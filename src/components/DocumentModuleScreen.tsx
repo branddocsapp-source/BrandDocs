@@ -110,7 +110,6 @@ export function DocumentModuleScreen({
       </Animated.View>
     </SafeAreaView>
   );
-  );
 }
 
 const shadow = Platform.select({
