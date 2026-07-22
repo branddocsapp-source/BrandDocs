@@ -510,6 +510,8 @@ export default function QuotationScreen() {
         </Animated.View>
       </SafeAreaView>
     );
+  }
+
   return (
     <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
       <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>

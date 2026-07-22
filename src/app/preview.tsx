@@ -399,70 +399,72 @@ export default function PreviewScreen() {
   if (type === "quotation") {
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-        <View style={[styles.header, isWebsite && styles.webHeader]}>
-          <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/quotation") as never)}>
-            <Ionicons name="chevron-back" size={22} color={Colors.text} />
-          </Pressable>
-          <Text style={styles.headerTitle}>{quotation ? `${getQuotationLabel(quotation.documentType)} Preview` : "Quotation Preview"}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <View style={[styles.header, isWebsite && styles.webHeader]}>
+            <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/quotation") as never)}>
+              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.headerTitle}>{quotation ? `${getQuotationLabel(quotation.documentType)} Preview` : "Quotation Preview"}</Text>
+            <View style={styles.headerSpacer} />
+          </View>
 
-        <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-          <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
-            {loading ? (
-              <Text style={styles.loadingText}>Loading quotation...</Text>
-            ) : quotation ? (
-              <>
-                <View style={styles.workflowBar}>
-                  <Text style={styles.workflowTitle}>Set Status</Text>
-                  <View style={styles.statusGrid}>
-                    {quotationStatusOptions.map((option) => (
-                      <Pressable
-                        key={option.value}
-                        style={[styles.statusBox, selectedQuotationStatus === option.value && styles.statusBoxActive]}
-                        onPress={() => setSelectedQuotationStatus(option.value)}
-                      >
-                        <Text style={[styles.statusLabel, selectedQuotationStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
-                        <Text style={styles.statusDescription}>{option.description}</Text>
+          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+              {loading ? (
+                <Text style={styles.loadingText}>Loading quotation...</Text>
+              ) : quotation ? (
+                <>
+                  <View style={styles.workflowBar}>
+                    <Text style={styles.workflowTitle}>Set Status</Text>
+                    <View style={styles.statusGrid}>
+                      {quotationStatusOptions.map((option) => (
+                        <Pressable
+                          key={option.value}
+                          style={[styles.statusBox, selectedQuotationStatus === option.value && styles.statusBoxActive]}
+                          onPress={() => setSelectedQuotationStatus(option.value)}
+                        >
+                          <Text style={[styles.statusLabel, selectedQuotationStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
+                          <Text style={styles.statusDescription}>{option.description}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <View style={styles.previewActions}>
+                      {selectedQuotationStatus === "draft" ? (
+                        <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/quotation", { editQuotationId: quotation.id || "" }) as never)}>
+                          <Ionicons name="create-outline" size={16} color={Colors.text} />
+                          <Text style={styles.secondaryActionText}>Edit</Text>
+                        </Pressable>
+                      ) : null}
+                      {selectedQuotationStatus === "accepted" ? (
+                        <Pressable style={[styles.secondaryAction, styles.disabledButton]} disabled>
+                          <Ionicons name="swap-horizontal-outline" size={16} color={Colors.textSecondary} />
+                          <Text style={styles.secondaryActionText}>Convert to Tax Invoice</Text>
+                        </Pressable>
+                      ) : null}
+                      <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                        <Ionicons name="print-outline" size={16} color={Colors.text} />
+                        <Text style={styles.secondaryActionText}>Print</Text>
                       </Pressable>
-                    ))}
+                      <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                        <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                        <Text style={styles.secondaryActionText}>PDF</Text>
+                      </Pressable>
+                      <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleQuotationFinalSave} disabled={saving}>
+                        <Text style={styles.primaryActionText}>{saving ? "Saving" : "Final Save"}</Text>
+                      </Pressable>
+                    </View>
                   </View>
-                  <View style={styles.previewActions}>
-                    {selectedQuotationStatus === "draft" ? (
-                      <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/quotation", { editQuotationId: quotation.id || "" }) as never)}>
-                        <Ionicons name="create-outline" size={16} color={Colors.text} />
-                        <Text style={styles.secondaryActionText}>Edit</Text>
-                      </Pressable>
-                    ) : null}
-                    {selectedQuotationStatus === "accepted" ? (
-                      <Pressable style={[styles.secondaryAction, styles.disabledButton]} disabled>
-                        <Ionicons name="swap-horizontal-outline" size={16} color={Colors.textSecondary} />
-                        <Text style={styles.secondaryActionText}>Convert to Tax Invoice</Text>
-                      </Pressable>
-                    ) : null}
-                    <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                      <Ionicons name="print-outline" size={16} color={Colors.text} />
-                      <Text style={styles.secondaryActionText}>Print</Text>
-                    </Pressable>
-                    <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                      <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
-                      <Text style={styles.secondaryActionText}>PDF</Text>
-                    </Pressable>
-                    <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleQuotationFinalSave} disabled={saving}>
-                      <Text style={styles.primaryActionText}>{saving ? "Saving" : "Final Save"}</Text>
-                    </Pressable>
-                  </View>
+                  <QuotationPreview quotation={{ ...quotation, status: selectedQuotationStatus }} isDesktop={isDesktop} />
+                </>
+              ) : (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyTitle}>Quotation not found</Text>
+                  <Text style={styles.emptyText}>We could not load this saved quotation.</Text>
                 </View>
-                <QuotationPreview quotation={{ ...quotation, status: selectedQuotationStatus }} isDesktop={isDesktop} />
-              </>
-            ) : (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyTitle}>Quotation not found</Text>
-                <Text style={styles.emptyText}>We could not load this saved quotation.</Text>
-              </View>
-            )}
+              )}
+            </ScrollView>
           </ScrollView>
-        </ScrollView>
+        </Animated.View>
       </SafeAreaView>
     );
   }
