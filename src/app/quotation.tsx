@@ -15,6 +15,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
@@ -369,150 +370,146 @@ export default function QuotationScreen() {
 
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-        <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <View style={styles.editorHeader}>
-            <Pressable style={styles.headerButton} onPress={() => setDraftQuotation(null)} accessibilityRole="button" accessibilityLabel="Back">
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
-            </Pressable>
-            <Text style={styles.editorTitle}>{getQuotationLabel(draftQuotation.documentType)}</Text>
-            <View style={styles.editorActions}>
-              <Pressable style={[styles.secondaryButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: false })} disabled={saving}>
-                <Text style={styles.secondaryButtonText}>Save Draft</Text>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <View style={styles.editorHeader}>
+              <Pressable style={styles.headerButton} onPress={() => setDraftQuotation(null)} accessibilityRole="button" accessibilityLabel="Back">
+                <Ionicons name="chevron-back" size={22} color={Colors.text} />
               </Pressable>
-              <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: true })} disabled={saving}>
-                <Text style={styles.saveButtonText}>Preview</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-            <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {fieldErrors.length ? (
-                <View style={styles.errorBox}>
-                  {fieldErrors.map((error) => <Text key={error} style={styles.errorText}>{error}</Text>)}
-                </View>
-              ) : null}
-
-              <View style={[styles.a4Paper, isDesktop && styles.webA4Paper]}>
-                <QuotationHeader quotation={draftQuotation} updateCompanyField={updateCompanyField} updateQuotationField={updateQuotationField} />
-                <View style={styles.clientGrid}>
-                  <View style={styles.clientBox}>
-                    <Text style={styles.sectionLabel}>Client Details</Text>
-                    <InlineInput value={draftQuotation.client.name} onChangeText={(value) => updateClientField("name", value)} textStyle={styles.clientName} placeholder="Client Name" />
-                    <InlineInput value={draftQuotation.client.companyName} onChangeText={(value) => updateClientField("companyName", value)} textStyle={styles.mutedInput} placeholder="Client Company" />
-                    <InlineInput value={draftQuotation.client.address} onChangeText={(value) => updateClientField("address", value)} textStyle={styles.mutedInput} multiline placeholder="Client Address" />
-                    <InlineInput value={draftQuotation.client.email} onChangeText={(value) => updateClientField("email", value)} textStyle={styles.mutedInput} placeholder="Client Email" />
-                    <InlineInput value={draftQuotation.client.phone} onChangeText={(value) => updateClientField("phone", value)} textStyle={styles.mutedInput} placeholder="Client Phone" />
-                  </View>
-                  <View style={styles.metaBox}>
-                    <MetaField label={`${getQuotationLabel(draftQuotation.documentType)} Number`} value={draftQuotation.quotationNumber} onChangeText={(value) => updateQuotationField("quotationNumber", value)} />
-                    <MetaField label="Quotation Date" value={draftQuotation.quotationDate} onChangeText={(value) => updateQuotationField("quotationDate", value)} />
-                    <MetaField label="Valid Until" value={draftQuotation.validUntil} onChangeText={(value) => updateQuotationField("validUntil", value)} />
-                    <MetaField label="Currency" value={draftQuotation.currency} onChangeText={(value) => updateQuotationField("currency", value.toUpperCase())} />
-                  </View>
-                </View>
-
-                <View style={styles.subjectBox}>
-                  <Text style={styles.sectionLabel}>Subject / Reference</Text>
-                  <InlineInput value={draftQuotation.subject} onChangeText={(value) => updateQuotationField("subject", value)} textStyle={styles.subjectInput} />
-                </View>
-
-                {isTableQuotation ? (
-                  <>
-                    <View style={styles.tableToolbar}>
-                      <Text style={styles.sectionLabel}>Itemized Quotation</Text>
-                      <Pressable style={styles.addRowButton} onPress={addRow}>
-                        <Ionicons name="add" size={16} color="#FFFFFF" />
-                        <Text style={styles.addRowText}>Add Row</Text>
-                      </Pressable>
-                    </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      <View style={styles.itemTable}>
-                        <View style={[styles.itemRow, styles.itemHeaderRow]}>
-                          <Text style={[styles.tableCell, styles.serialCell]}>S.No.</Text>
-                          <Text style={[styles.tableCell, styles.descriptionCell]}>Description of Goods / Services</Text>
-                          <Text style={[styles.tableCell, styles.codeCell]}>Item Code</Text>
-                          <Text style={[styles.tableCell, styles.smallCell]}>Qty</Text>
-                          <Text style={[styles.tableCell, styles.smallCell]}>Unit</Text>
-                          <Text style={[styles.tableCell, styles.smallCell]}>Rate</Text>
-                          <Text style={[styles.tableCell, styles.smallCell]}>Discount</Text>
-                          <Text style={[styles.tableCell, styles.amountCell]}>Amount</Text>
-                          <Text style={[styles.tableCell, styles.actionCell]} />
-                        </View>
-                        {draftQuotation.items.map((item, index) => (
-                          <View key={item.id} style={styles.itemRow}>
-                            <Text style={[styles.tableCell, styles.serialCell]}>{index + 1}</Text>
-                            <CellInput value={item.description} onChangeText={(value) => updateItem(item.id, "description", value)} style={styles.descriptionCell} />
-                            <CellInput value={item.itemCode || ""} onChangeText={(value) => updateItem(item.id, "itemCode", value)} style={styles.codeCell} />
-                            <CellInput value={item.quantity} onChangeText={(value) => updateItem(item.id, "quantity", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                            <CellInput value={item.unit} onChangeText={(value) => updateItem(item.id, "unit", value)} style={styles.smallCell} />
-                            <CellInput value={item.rate} onChangeText={(value) => updateItem(item.id, "rate", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                            <CellInput value={item.discount} onChangeText={(value) => updateItem(item.id, "discount", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                            <Text style={[styles.tableCell, styles.amountCell, styles.amountText]}>{formatMoney(getQuotationItemAmount(item), currency)}</Text>
-                            <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
-                              <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}><Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : Colors.textSecondary} /></Pressable>
-                              <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftQuotation.items.length - 1}><Ionicons name="chevron-down" size={15} color={index === draftQuotation.items.length - 1 ? "#CFCFCF" : Colors.textSecondary} /></Pressable>
-                              <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={Colors.error} /></Pressable>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                    </ScrollView>
-                  </>
-                ) : (
-                  <View style={styles.letterBody}>
-                    <InlineInput value={draftQuotation.greeting} onChangeText={(value) => updateQuotationField("greeting", value)} textStyle={styles.bodyLine} />
-                    <InlineInput value={draftQuotation.intro} onChangeText={(value) => updateQuotationField("intro", value)} textStyle={styles.bodyParagraph} multiline />
-                    <Text style={styles.sectionLabel}>Scope of Work / Services</Text>
-                    <TextInput style={styles.richTextArea} value={draftQuotation.scope} onChangeText={(value) => updateQuotationField("scope", value)} multiline />
-                    <Text style={styles.sectionLabel}>Milestones / Deliverables</Text>
-                    <TextInput style={styles.richTextArea} value={draftQuotation.milestones} onChangeText={(value) => updateQuotationField("milestones", value)} multiline />
-                  </View>
-                )}
-
-                <View style={styles.summaryArea}>
-                  <View style={styles.notesColumn}>
-                    <Text style={styles.sectionLabel}>Notes</Text>
-                    <TextInput style={styles.textArea} value={draftQuotation.notes} onChangeText={(value) => updateQuotationField("notes", value)} multiline />
-                    <Text style={styles.sectionLabel}>Terms & Conditions</Text>
-                    <TextInput style={styles.textArea} value={draftQuotation.terms} onChangeText={(value) => updateQuotationField("terms", value)} multiline />
-                  </View>
-                  <View style={styles.totalsBox}>
-                    <TotalRow label="Subtotal" value={formatMoney(totals.subtotal, currency)} />
-                    <EditableAmountRow label="Discount" value={String(draftQuotation.discount)} onChangeText={(value) => updateQuotationField("discount", toNumber(value))} currency={currency} />
-                    <EditableAmountRow label="Other Charges" value={String(draftQuotation.otherCharges)} onChangeText={(value) => updateQuotationField("otherCharges", toNumber(value))} currency={currency} />
-                    <View style={styles.totalDivider} />
-                    <TotalRow label="Grand Total" value={formatMoney(totals.grandTotal, currency)} strong />
-                    <Text style={styles.wordsLabel}>Amount in Words</Text>
-                    <TextInput style={styles.wordsInput} value={draftQuotation.amountInWords || getNumberWords(totals.grandTotal, currency)} onChangeText={(value) => updateQuotationField("amountInWords", value)} multiline />
-                  </View>
-                </View>
-
-                <View style={styles.signatureArea}>
-                  <View style={styles.closingBox}>
-                    <TextInput style={styles.textArea} value={draftQuotation.closing} onChangeText={(value) => updateQuotationField("closing", value)} multiline />
-                  </View>
-                  <View style={styles.signBox}>
-                    <Text style={styles.signFor}>For {draftQuotation.company.name}</Text>
-                    <View style={styles.assetRow}>
-                      <AssetPreview label="Stamp" uri={draftQuotation.company.stampUrl} />
-                      <AssetPreview label="Signature" uri={draftQuotation.company.signatureUrl} />
-                    </View>
-                    <Text style={styles.signLabel}>Authorized Signatory</Text>
-                  </View>
-                </View>
+              <Text style={styles.editorTitle}>{getQuotationLabel(draftQuotation.documentType)}</Text>
+              <View style={styles.editorActions}>
+                <Pressable style={[styles.secondaryButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: false })} disabled={saving}>
+                  <Text style={styles.secondaryButtonText}>Save Draft</Text>
+                </Pressable>
+                <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: true })} disabled={saving}>
+                  <Text style={styles.saveButtonText}>Preview</Text>
+                </Pressable>
               </View>
+            </View>
+
+            <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
+              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {fieldErrors.length ? (
+                  <View style={styles.errorBox}>
+                    {fieldErrors.map((error) => <Text key={error} style={styles.errorText}>{error}</Text>)}
+                  </View>
+                ) : null}
+
+                <View style={[styles.a4Paper, isDesktop && styles.webA4Paper]}>
+                  <QuotationHeader quotation={draftQuotation} updateCompanyField={updateCompanyField} updateQuotationField={updateQuotationField} />
+                  <View style={styles.clientGrid}>
+                    <View style={styles.clientBox}>
+                      <Text style={styles.sectionLabel}>Client Details</Text>
+                      <InlineInput value={draftQuotation.client.name} onChangeText={(value) => updateClientField("name", value)} textStyle={styles.clientName} placeholder="Client Name" />
+                      <InlineInput value={draftQuotation.client.companyName} onChangeText={(value) => updateClientField("companyName", value)} textStyle={styles.mutedInput} placeholder="Client Company" />
+                      <InlineInput value={draftQuotation.client.address} onChangeText={(value) => updateClientField("address", value)} textStyle={styles.mutedInput} multiline placeholder="Client Address" />
+                      <InlineInput value={draftQuotation.client.email} onChangeText={(value) => updateClientField("email", value)} textStyle={styles.mutedInput} placeholder="Client Email" />
+                      <InlineInput value={draftQuotation.client.phone} onChangeText={(value) => updateClientField("phone", value)} textStyle={styles.mutedInput} placeholder="Client Phone" />
+                    </View>
+                    <View style={styles.metaBox}>
+                      <MetaField label={`${getQuotationLabel(draftQuotation.documentType)} Number`} value={draftQuotation.quotationNumber} onChangeText={(value) => updateQuotationField("quotationNumber", value)} />
+                      <MetaField label="Quotation Date" value={draftQuotation.quotationDate} onChangeText={(value) => updateQuotationField("quotationDate", value)} />
+                      <MetaField label="Valid Until" value={draftQuotation.validUntil} onChangeText={(value) => updateQuotationField("validUntil", value)} />
+                      <MetaField label="Currency" value={draftQuotation.currency} onChangeText={(value) => updateQuotationField("currency", value.toUpperCase())} />
+                    </View>
+                  </View>
+
+                  <View style={styles.subjectBox}>
+                    <Text style={styles.sectionLabel}>Subject / Reference</Text>
+                    <InlineInput value={draftQuotation.subject} onChangeText={(value) => updateQuotationField("subject", value)} textStyle={styles.subjectInput} />
+                  </View>
+
+                  {isTableQuotation ? (
+                    <>
+                      <View style={styles.tableToolbar}>
+                        <Text style={styles.sectionLabel}>Itemized Quotation</Text>
+                        <Pressable style={styles.addRowButton} onPress={addRow}>
+                          <Ionicons name="add" size={16} color="#FFFFFF" />
+                          <Text style={styles.addRowText}>Add Row</Text>
+                        </Pressable>
+                      </View>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={styles.itemTable}>
+                          <View style={[styles.itemRow, styles.itemHeaderRow]}>
+                            <Text style={[styles.tableCell, styles.serialCell]}>S.No.</Text>
+                            <Text style={[styles.tableCell, styles.descriptionCell]}>Description of Goods / Services</Text>
+                            <Text style={[styles.tableCell, styles.codeCell]}>Item Code</Text>
+                            <Text style={[styles.tableCell, styles.smallCell]}>Qty</Text>
+                            <Text style={[styles.tableCell, styles.smallCell]}>Unit</Text>
+                            <Text style={[styles.tableCell, styles.smallCell]}>Rate</Text>
+                            <Text style={[styles.tableCell, styles.smallCell]}>Discount</Text>
+                            <Text style={[styles.tableCell, styles.amountCell]}>Amount</Text>
+                            <Text style={[styles.tableCell, styles.actionCell]} />
+                          </View>
+                          {draftQuotation.items.map((item, index) => (
+                            <View key={item.id} style={styles.itemRow}>
+                              <Text style={[styles.tableCell, styles.serialCell]}>{index + 1}</Text>
+                              <CellInput value={item.description} onChangeText={(value) => updateItem(item.id, "description", value)} style={styles.descriptionCell} />
+                              <CellInput value={item.itemCode || ""} onChangeText={(value) => updateItem(item.id, "itemCode", value)} style={styles.codeCell} />
+                              <CellInput value={item.quantity} onChangeText={(value) => updateItem(item.id, "quantity", value)} style={styles.smallCell} keyboardType="decimal-pad" />
+                              <CellInput value={item.unit} onChangeText={(value) => updateItem(item.id, "unit", value)} style={styles.smallCell} />
+                              <CellInput value={item.rate} onChangeText={(value) => updateItem(item.id, "rate", value)} style={styles.smallCell} keyboardType="decimal-pad" />
+                              <CellInput value={item.discount} onChangeText={(value) => updateItem(item.id, "discount", value)} style={styles.smallCell} keyboardType="decimal-pad" />
+                              <Text style={[styles.tableCell, styles.amountCell, styles.amountText]}>{formatMoney(getQuotationItemAmount(item), currency)}</Text>
+                              <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
+                                <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}><Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : Colors.textSecondary} /></Pressable>
+                                <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftQuotation.items.length - 1}><Ionicons name="chevron-down" size={15} color={index === draftQuotation.items.length - 1 ? "#CFCFCF" : Colors.textSecondary} /></Pressable>
+                                <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={Colors.error} /></Pressable>
+                              </View>
+                            </View>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </>
+                  ) : (
+                    <View style={styles.letterBody}>
+                      <InlineInput value={draftQuotation.greeting} onChangeText={(value) => updateQuotationField("greeting", value)} textStyle={styles.bodyLine} />
+                      <InlineInput value={draftQuotation.intro} onChangeText={(value) => updateQuotationField("intro", value)} textStyle={styles.bodyParagraph} multiline />
+                      <Text style={styles.sectionLabel}>Scope of Work / Services</Text>
+                      <TextInput style={styles.richTextArea} value={draftQuotation.scope} onChangeText={(value) => updateQuotationField("scope", value)} multiline />
+                      <Text style={styles.sectionLabel}>Milestones / Deliverables</Text>
+                      <TextInput style={styles.richTextArea} value={draftQuotation.milestones} onChangeText={(value) => updateQuotationField("milestones", value)} multiline />
+                    </View>
+                  )}
+
+                  <View style={styles.summaryArea}>
+                    <View style={styles.notesColumn}>
+                      <Text style={styles.sectionLabel}>Notes</Text>
+                      <TextInput style={styles.textArea} value={draftQuotation.notes} onChangeText={(value) => updateQuotationField("notes", value)} multiline />
+                      <Text style={styles.sectionLabel}>Terms & Conditions</Text>
+                      <TextInput style={styles.textArea} value={draftQuotation.terms} onChangeText={(value) => updateQuotationField("terms", value)} multiline />
+                    </View>
+                    <View style={styles.totalsBox}>
+                      <TotalRow label="Subtotal" value={formatMoney(totals.subtotal, currency)} />
+                      <EditableAmountRow label="Discount" value={String(draftQuotation.discount)} onChangeText={(value) => updateQuotationField("discount", toNumber(value))} currency={currency} />
+                      <EditableAmountRow label="Other Charges" value={String(draftQuotation.otherCharges)} onChangeText={(value) => updateQuotationField("otherCharges", toNumber(value))} currency={currency} />
+                      <View style={styles.totalDivider} />
+                      <TotalRow label="Grand Total" value={formatMoney(totals.grandTotal, currency)} strong />
+                      <Text style={styles.wordsLabel}>Amount in Words</Text>
+                      <TextInput style={styles.wordsInput} value={draftQuotation.amountInWords || getNumberWords(totals.grandTotal, currency)} onChangeText={(value) => updateQuotationField("amountInWords", value)} multiline />
+                    </View>
+                  </View>
+
+                  <View style={styles.signatureArea}>
+                    <View style={styles.closingBox}>
+                      <TextInput style={styles.textArea} value={draftQuotation.closing} onChangeText={(value) => updateQuotationField("closing", value)} multiline />
+                    </View>
+                    <View style={styles.signBox}>
+                      <Text style={styles.signFor}>For {draftQuotation.company.name}</Text>
+                      <View style={styles.assetRow}>
+                        <AssetPreview label="Stamp" uri={draftQuotation.company.stampUrl} />
+                        <AssetPreview label="Signature" uri={draftQuotation.company.signatureUrl} />
+                      </View>
+                      <Text style={styles.signLabel}>Authorized Signatory</Text>
+                    </View>
+                  </View>
+                </View>
+              </ScrollView>
             </ScrollView>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </SafeAreaView>
     );
-  }
-
-  return (
-    <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-      <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
-        <View style={styles.moduleHeader}>
           <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
             <Ionicons name="chevron-back" size={22} color={Colors.text} />
           </Pressable>

@@ -724,123 +724,125 @@ export default function InvoiceScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-      <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
-        <View style={styles.moduleHeader}>
-          <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
-            <Ionicons name="chevron-back" size={22} color={Colors.text} />
-          </Pressable>
-          <Text style={styles.moduleTitle}>Tax Invoice</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
-        <Pressable style={styles.createInvoiceButton} onPress={() => setSelectorVisible(true)}>
-          <View style={styles.createInvoiceIcon}>
-            <Ionicons name="document-text-outline" size={24} color="#FFFFFF" />
-          </View>
-          <Text style={styles.createInvoiceText}>Create Tax Invoice</Text>
-          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-        </Pressable>
-
-        <View style={styles.previousCard}>
-          <View style={styles.previousHeader}>
-            <Text style={styles.previousTitle}>Previous Documents</Text>
-            <Pressable style={styles.filterButton} onPress={() => setFilterOpen((value) => !value)}>
-              <Text style={styles.filterButtonText}>{previousFilters.find((item) => item.type === previousFilter)?.label}</Text>
-              <Ionicons name={filterOpen ? "chevron-up" : "chevron-down"} size={16} color={Colors.text} />
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
+          <View style={styles.moduleHeader}>
+            <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
+              <Ionicons name="chevron-back" size={22} color={Colors.text} />
             </Pressable>
+            <Text style={styles.moduleTitle}>Tax Invoice</Text>
+            <View style={styles.headerSpacer} />
           </View>
 
-          {filterOpen ? (
-            <View style={styles.filterMenu}>
-              {previousFilters.map((filter) => (
-                <Pressable
-                  key={filter.type}
-                  style={[styles.filterOption, previousFilter === filter.type && styles.filterOptionActive]}
-                  onPress={() => {
-                    setPreviousFilter(filter.type);
-                    setFilterOpen(false);
-                  }}
-                >
-                  <Text style={[styles.filterOptionText, previousFilter === filter.type && styles.filterOptionTextActive]}>{filter.label}</Text>
+          <Pressable style={styles.createInvoiceButton} onPress={() => setSelectorVisible(true)}>
+            <View style={styles.createInvoiceIcon}>
+              <Ionicons name="document-text-outline" size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.createInvoiceText}>Create Tax Invoice</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </Pressable>
+
+          <View style={styles.previousCard}>
+            <View style={styles.previousHeader}>
+              <Text style={styles.previousTitle}>Previous Documents</Text>
+              <Pressable style={styles.filterButton} onPress={() => setFilterOpen((value) => !value)}>
+                <Text style={styles.filterButtonText}>{previousFilters.find((item) => item.type === previousFilter)?.label}</Text>
+                <Ionicons name={filterOpen ? "chevron-up" : "chevron-down"} size={16} color={Colors.text} />
+              </Pressable>
+            </View>
+
+            {filterOpen ? (
+              <View style={styles.filterMenu}>
+                {previousFilters.map((filter) => (
+                  <Pressable
+                    key={filter.type}
+                    style={[styles.filterOption, previousFilter === filter.type && styles.filterOptionActive]}
+                    onPress={() => {
+                      setPreviousFilter(filter.type);
+                      setFilterOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.filterOptionText, previousFilter === filter.type && styles.filterOptionTextActive]}>{filter.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+
+            {loading || historyLoading ? (
+              <Text style={styles.emptyText}>Loading documents...</Text>
+            ) : previousDocuments.length ? (
+              previousDocuments.map((document) => (
+                <View key={document.id || document.documentNumber} style={styles.previousRow}>
+                  <Pressable
+                    style={styles.previousMain}
+                    onPress={() => router.push(appRoute("/preview", { type: "invoice", invoiceId: document.id || "" }) as never)}
+                  >
+                    <View style={styles.previousIcon}>
+                      <Ionicons name={document.documentType === "bill_of_supply" ? "document-text-outline" : "receipt-outline"} size={18} color={Colors.primary} />
+                    </View>
+                    <View style={styles.previousCopy}>
+                      <Text style={styles.previousNumber}>{document.documentNumber}</Text>
+                      <Text style={styles.previousMeta}>
+                        {document.invoiceDate} • {document.customer.name || "Recipient"} • {getStatusLabel(document.status)}
+                      </Text>
+                    </View>
+                    <Text style={styles.previousAmount}>{formatMoney(document.grandTotal, document.company.currency)}</Text>
+                  </Pressable>
+                  <View style={styles.previousActions}>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "invoice", invoiceId: document.id || "" }) as never)}>
+                      <Ionicons name="eye-outline" size={17} color={Colors.textSecondary} />
+                    </Pressable>
+                    {document.status === "draft" ? (
+                      <Pressable style={styles.rowIconButton} onPress={() => editDocument(document)}>
+                        <Ionicons name="create-outline" size={17} color={Colors.textSecondary} />
+                      </Pressable>
+                    ) : null}
+                    <Pressable style={styles.rowIconButton} onPress={() => printDocument(document)}>
+                      <Ionicons name="print-outline" size={17} color={Colors.textSecondary} />
+                    </Pressable>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIcon}>
+                  <Ionicons name="document-text-outline" size={28} color={Colors.primary} />
+                </View>
+                <Text style={styles.emptyTitle}>No saved documents yet</Text>
+                <Text style={styles.emptyText}>Saved {getDocumentLabel(previousFilter).toLowerCase()} records will appear here with number, date, recipient, amount, and status.</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        <Modal transparent visible={selectorVisible} animationType={isPhone ? "slide" : "fade"} onRequestClose={() => setSelectorVisible(false)}>
+          <View style={[styles.selectorOverlay, isPhone && styles.selectorOverlayPhone]}>
+            <View style={[styles.selectorModal, isPhone && styles.selectorSheet]}>
+              <View style={styles.selectorHeader}>
+                <View>
+                  <Text style={styles.selectorTitle}>Create New Document</Text>
+                  <Text style={styles.selectorSubtitle}>Choose the document type you want to create.</Text>
+                </View>
+                <Pressable style={styles.closeButton} onPress={() => setSelectorVisible(false)}>
+                  <Ionicons name="close" size={20} color={Colors.text} />
+                </Pressable>
+              </View>
+              {documentOptions.map((option) => (
+                <Pressable key={option.type} style={styles.selectorOption} onPress={() => startDocument(option.type)}>
+                  <View style={styles.selectorIcon}>
+                    <Ionicons name={option.icon} size={22} color={Colors.primary} />
+                  </View>
+                  <View style={styles.selectorCopy}>
+                    <Text style={styles.selectorOptionTitle}>{option.title}</Text>
+                    <Text style={styles.selectorOptionText}>{option.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
                 </Pressable>
               ))}
             </View>
-          ) : null}
-
-          {loading || historyLoading ? (
-            <Text style={styles.emptyText}>Loading documents...</Text>
-          ) : previousDocuments.length ? (
-            previousDocuments.map((document) => (
-              <View key={document.id || document.documentNumber} style={styles.previousRow}>
-                <Pressable
-                  style={styles.previousMain}
-                  onPress={() => router.push(appRoute("/preview", { type: "invoice", invoiceId: document.id || "" }) as never)}
-                >
-                  <View style={styles.previousIcon}>
-                    <Ionicons name={document.documentType === "bill_of_supply" ? "document-text-outline" : "receipt-outline"} size={18} color={Colors.primary} />
-                  </View>
-                  <View style={styles.previousCopy}>
-                    <Text style={styles.previousNumber}>{document.documentNumber}</Text>
-                    <Text style={styles.previousMeta}>
-                      {document.invoiceDate} • {document.customer.name || "Recipient"} • {getStatusLabel(document.status)}
-                    </Text>
-                  </View>
-                  <Text style={styles.previousAmount}>{formatMoney(document.grandTotal, document.company.currency)}</Text>
-                </Pressable>
-                <View style={styles.previousActions}>
-                  <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "invoice", invoiceId: document.id || "" }) as never)}>
-                    <Ionicons name="eye-outline" size={17} color={Colors.textSecondary} />
-                  </Pressable>
-                  {document.status === "draft" ? (
-                    <Pressable style={styles.rowIconButton} onPress={() => editDocument(document)}>
-                      <Ionicons name="create-outline" size={17} color={Colors.textSecondary} />
-                    </Pressable>
-                  ) : null}
-                  <Pressable style={styles.rowIconButton} onPress={() => printDocument(document)}>
-                    <Ionicons name="print-outline" size={17} color={Colors.textSecondary} />
-                  </Pressable>
-                </View>
-              </View>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="document-text-outline" size={28} color={Colors.primary} />
-              </View>
-              <Text style={styles.emptyTitle}>No saved documents yet</Text>
-              <Text style={styles.emptyText}>Saved {getDocumentLabel(previousFilter).toLowerCase()} records will appear here with number, date, recipient, amount, and status.</Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-
-      <Modal transparent visible={selectorVisible} animationType={isPhone ? "slide" : "fade"} onRequestClose={() => setSelectorVisible(false)}>
-        <View style={[styles.selectorOverlay, isPhone && styles.selectorOverlayPhone]}>
-          <View style={[styles.selectorModal, isPhone && styles.selectorSheet]}>
-            <View style={styles.selectorHeader}>
-              <View>
-                <Text style={styles.selectorTitle}>Create New Document</Text>
-                <Text style={styles.selectorSubtitle}>Choose the document type you want to create.</Text>
-              </View>
-              <Pressable style={styles.closeButton} onPress={() => setSelectorVisible(false)}>
-                <Ionicons name="close" size={20} color={Colors.text} />
-              </Pressable>
-            </View>
-            {documentOptions.map((option) => (
-              <Pressable key={option.type} style={styles.selectorOption} onPress={() => startDocument(option.type)}>
-                <View style={styles.selectorIcon}>
-                  <Ionicons name={option.icon} size={22} color={Colors.primary} />
-                </View>
-                <View style={styles.selectorCopy}>
-                  <Text style={styles.selectorOptionTitle}>{option.title}</Text>
-                  <Text style={styles.selectorOptionText}>{option.description}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
-              </Pressable>
-            ))}
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </Animated.View>
     </SafeAreaView>
   );
 }
