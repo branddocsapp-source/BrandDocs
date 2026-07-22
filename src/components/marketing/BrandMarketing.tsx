@@ -740,7 +740,7 @@ export function LandingPage() {
   }
 
   return (
-    <View style={[styles.page, { backgroundColor: theme.background }]}>
+    <Animated.View entering={FadeIn.duration(400)} style={[styles.page, { backgroundColor: theme.background }]}>
       <Header onNavigateSection={scrollToSection} />
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* HERO SECTION */}
@@ -895,7 +895,7 @@ export function LandingPage() {
         <Footer onNavigateSection={scrollToSection} />
       </ScrollView>
       <CookieConsentBanner />
-    </View>
+    </Animated.View>
   );
 }
 
