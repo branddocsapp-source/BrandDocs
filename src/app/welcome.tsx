@@ -1,12 +1,13 @@
 import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { Colors } from "@/theme/colors";
 import { Typography } from "@/theme/typography";
 
 export default function WelcomeScreen() {
   return (
-    <View style={styles.container}>
+    <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
       <Image
         source={require("../../assets/images/branddocs-logo-full.png")}
         style={styles.logo}
@@ -34,7 +35,7 @@ export default function WelcomeScreen() {
           <Text style={styles.signInBold}>Sign In</Text>
         </Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 

@@ -19,6 +19,7 @@ import {
     View,
     ViewStyle,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
@@ -567,7 +568,7 @@ export default function BusinessSetupScreen() {
 
   if (showSuccess) {
     return (
-      <View style={styles.successContainer}>
+      <Animated.View entering={FadeIn.duration(300)} style={styles.successContainer}>
         <View style={styles.successCard}>
           <View style={styles.successIconCircle}>
             <Ionicons name="checkmark" size={48} color="#24A148" />
@@ -578,348 +579,350 @@ export default function BusinessSetupScreen() {
           </Text>
           <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 24 }} />
         </View>
-      </View>
+      </Animated.View>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={[styles.card, isTablet && styles.tabletCard, isDesktop && styles.desktopCard]}>
-            <View style={styles.header}>
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <View style={[styles.card, isTablet && styles.tabletCard, isDesktop && styles.desktopCard]}>
+              <View style={styles.header}>
+                {step === 1 ? (
+                  <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
+                    <Ionicons name="chevron-back" size={20} color={Colors.text} />
+                  </Pressable>
+                ) : null}
+                <View style={styles.stepBadge}>
+                  <Text style={styles.stepBadgeText}>Step {step} of 2</Text>
+                </View>
+                <Text style={styles.title}>{step === 1 ? "Create Your Business Profile" : "Business Details"}</Text>
+                <Text style={styles.subtitle}>
+                  {step === 1
+                    ? "Set up your business once. BrandDocs will automatically use this information across your documents."
+                    : "Add the location and asset details that will support your professional documents."}
+                </Text>
+              </View>
+
               {step === 1 ? (
-                <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
-                  <Ionicons name="chevron-back" size={20} color={Colors.text} />
-                </Pressable>
-              ) : null}
-              <View style={styles.stepBadge}>
-                <Text style={styles.stepBadgeText}>Step {step} of 2</Text>
-              </View>
-              <Text style={styles.title}>{step === 1 ? "Create Your Business Profile" : "Business Details"}</Text>
-              <Text style={styles.subtitle}>
-                {step === 1
-                  ? "Set up your business once. BrandDocs will automatically use this information across your documents."
-                  : "Add the location and asset details that will support your professional documents."}
-              </Text>
+                <View style={styles.form}>
+                  <Text style={styles.sectionTitle}>Business Information</Text>
+                  {BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE ? (
+                    <Text style={styles.uploadInfoText}>{BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE}</Text>
+                  ) : null}
+
+                  {renderUploadField("logo", "Company Logo (Optional Upload)", "PNG, JPG, JPEG, WEBP up to 8 MB", logoAsset, () => pickImage("logo"), () => {
+                    Alert.alert(
+                      "Remove company logo",
+                      "This will remove the current company logo and show initials instead.",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Remove",
+                          style: "destructive",
+                          onPress: () => {
+                            setLogoAsset(null);
+                            setAssetStatuses((current) => ({ ...current, logo: { status: "idle", message: "Logo will be removed on save." } }));
+                          },
+                        },
+                      ]
+                    );
+                  })}
+
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Company Name *</Text>
+                      <TextInput
+                        placeholder="Enter company name"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        value={businessName}
+                        onChangeText={setBusinessName}
+                      />
+                    </View>
+
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Business Owner Name</Text>
+                      <TextInput
+                        placeholder="Enter owner name"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        value={ownerName}
+                        onChangeText={setOwnerName}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Business Email</Text>
+                      <TextInput
+                        placeholder="Enter business email"
+                        placeholderTextColor="#999"
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                        style={styles.input}
+                        value={businessEmail}
+                        onChangeText={setBusinessEmail}
+                      />
+                    </View>
+
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Business Phone</Text>
+                      <TextInput
+                        placeholder="Enter phone number"
+                        placeholderTextColor="#999"
+                        keyboardType="phone-pad"
+                        style={styles.input}
+                        value={businessPhone}
+                        onChangeText={setBusinessPhone}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Website (Optional)</Text>
+                      <TextInput
+                        placeholder="Enter website"
+                        placeholderTextColor="#999"
+                        autoCapitalize="none"
+                        keyboardType="url"
+                        style={styles.input}
+                        value={website}
+                        onChangeText={setWebsite}
+                      />
+                    </View>
+
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Business Type</Text>
+                      <Pressable style={styles.inputRow} onPress={() => setShowBusinessTypePicker(true)}>
+                        <Text style={styles.inputRowText}>{businessType}</Text>
+                        <Text style={styles.inputRowHint}>▾</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+
+                  <Pressable style={[styles.button, loading && styles.buttonDisabled]} onPress={handleNext} disabled={loading}>
+                    <Text style={styles.buttonText}>Continue</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.form}>
+                  <Text style={styles.sectionTitle}>Business Details</Text>
+
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Country *</Text>
+                      <Pressable style={styles.inputRow} onPress={() => setShowCountryPicker(true)}>
+                        <Text style={styles.inputRowText}>{country}</Text>
+                        <Text style={styles.inputRowHint}>▾</Text>
+                      </Pressable>
+                    </View>
+
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>{stateLabel}</Text>
+                      <TextInput
+                        placeholder="Enter state or province"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        value={stateProvince}
+                        onChangeText={setStateProvince}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>City</Text>
+                      <TextInput
+                        placeholder="Enter city"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        value={city}
+                        onChangeText={setCity}
+                      />
+                    </View>
+
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>{postalLabel}</Text>
+                      <TextInput
+                        placeholder={`Enter ${postalLabel.toLowerCase()}`}
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        value={zipCode}
+                        onChangeText={setZipCode}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Full Address</Text>
+                      <TextInput
+                        placeholder="Enter full address"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        value={address}
+                        onChangeText={setAddress}
+                      />
+                    </View>
+
+                    <View style={[useTwoColumns && styles.fieldColumn]}>
+                      <Text style={styles.fieldLabel}>Currency</Text>
+                      <Pressable style={styles.inputRow} onPress={() => setShowCurrencyPicker(true)}>
+                        <Text style={styles.inputRowText}>{currency}</Text>
+                        <Text style={styles.inputRowHint}>▾</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+
+                  <Text style={styles.fieldLabel}>Tax & Registration Details (Optional)</Text>
+                  <TextInput
+                    placeholder="Enter an additional tax number if needed"
+                    placeholderTextColor="#999"
+                    style={styles.input}
+                    value={taxRegistrationNumber}
+                    onChangeText={setTaxRegistrationNumber}
+                  />
+
+                  {countryHelperText ? <Text style={styles.helperText}>{countryHelperText}</Text> : null}
+
+                  {dynamicTaxFields.length ? (
+                    <View>
+                      {dynamicTaxFields.map((field) => (
+                        <View key={field.key}>
+                          <Text style={styles.fieldLabel}>{field.label} (Optional)</Text>
+                          <TextInput
+                            placeholder={field.placeholder}
+                            placeholderTextColor="#999"
+                            style={styles.input}
+                            value={taxFields[field.key] || ""}
+                            onChangeText={(value) => setTaxFields((current) => ({ ...current, [field.key]: value }))}
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+
+                  {dynamicRegistrationFields.length ? (
+                    <View>
+                      {dynamicRegistrationFields.map((field) => (
+                        <View key={field.key}>
+                          <Text style={styles.fieldLabel}>{field.label} (Optional)</Text>
+                          <TextInput
+                            placeholder={field.placeholder}
+                            placeholderTextColor="#999"
+                            style={styles.input}
+                            value={taxFields[field.key] || ""}
+                            onChangeText={(value) => setTaxFields((current) => ({ ...current, [field.key]: value }))}
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+
+                  <Text style={styles.sectionTitle}>Optional Business Assets</Text>
+                  {BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE ? (
+                    <Text style={styles.uploadInfoText}>{BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE}</Text>
+                  ) : null}
+                  <View style={[useTwoColumns && styles.fieldRow]}>
+                    {renderUploadField("signature", "Company Signature (Optional Upload)", "PNG, JPG, JPEG, WEBP up to 8 MB", signatureAsset, () => pickImage("signature"), () => {
+                      Alert.alert(
+                        "Remove company signature",
+                        "This will remove the current company signature from the profile.",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Remove",
+                            style: "destructive",
+                            onPress: () => {
+                              setSignatureAsset(null);
+                              setAssetStatuses((current) => ({ ...current, signature: { status: "idle", message: "Company signature will be removed on save." } }));
+                            },
+                          },
+                        ]
+                      );
+                    }, useTwoColumns ? styles.fieldColumn : undefined)}
+                    {renderUploadField("photo", "Owner/Business Photo (Optional)", "PNG, JPG, JPEG, WEBP up to 8 MB", photoAsset, () => pickImage("photo"), () => {
+                      Alert.alert(
+                        "Remove photo",
+                        "This will remove the current photo from the profile.",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Remove",
+                            style: "destructive",
+                            onPress: () => {
+                              setPhotoAsset(null);
+                              setAssetStatuses((current) => ({ ...current, photo: { status: "idle", message: "Photo will be removed on save." } }));
+                            },
+                          },
+                        ]
+                      );
+                    }, useTwoColumns ? styles.fieldColumn : undefined)}
+                  </View>
+                  <View style={[useTwoColumns && styles.fieldRow, { marginTop: 12 }]}>
+                    {renderUploadField("stamp", "Company Stamp (Optional Upload)", "PNG, JPG, JPEG, WEBP up to 8 MB", stampAsset, () => pickImage("stamp"), () => {
+                      Alert.alert(
+                        "Remove company stamp",
+                        "This will remove the current company stamp from the profile.",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Remove",
+                            style: "destructive",
+                            onPress: () => {
+                              setStampAsset(null);
+                              setAssetStatuses((current) => ({ ...current, stamp: { status: "idle", message: "Company stamp will be removed on save." } }));
+                            },
+                          },
+                        ]
+                      );
+                    }, useTwoColumns ? styles.fieldColumn : undefined)}
+                    {useTwoColumns ? <View style={styles.fieldColumn} /> : null}
+                  </View>
+
+                  <Text style={styles.helperText}>You can skip these now and upload them later from Settings.</Text>
+
+                  <View style={styles.buttonRow}>
+                    <Pressable style={[styles.secondaryButton, loading && styles.buttonDisabled]} onPress={handleBack} disabled={loading}>
+                      <Text style={styles.secondaryButtonText}>Back</Text>
+                    </Pressable>
+                    <Pressable style={[styles.button, loading && styles.buttonDisabled]} onPress={() => handleBusinessSetup()} disabled={loading}>
+                      {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Finish Setup</Text>}
+                    </Pressable>
+                  </View>
+                </View>
+              )}
             </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
-            {step === 1 ? (
-              <View style={styles.form}>
-                <Text style={styles.sectionTitle}>Business Information</Text>
-                {BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE ? (
-                  <Text style={styles.uploadInfoText}>{BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE}</Text>
-                ) : null}
-
-                {renderUploadField("logo", "Company Logo (Optional Upload)", "PNG, JPG, JPEG, WEBP up to 8 MB", logoAsset, () => pickImage("logo"), () => {
-                  Alert.alert(
-                    "Remove company logo",
-                    "This will remove the current company logo and show initials instead.",
-                    [
-                      { text: "Cancel", style: "cancel" },
-                      {
-                        text: "Remove",
-                        style: "destructive",
-                        onPress: () => {
-                          setLogoAsset(null);
-                          setAssetStatuses((current) => ({ ...current, logo: { status: "idle", message: "Logo will be removed on save." } }));
-                        },
-                      },
-                    ]
-                  );
-                })}
-
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Company Name *</Text>
-                    <TextInput
-                      placeholder="Enter company name"
-                      placeholderTextColor="#999"
-                      style={styles.input}
-                      value={businessName}
-                      onChangeText={setBusinessName}
-                    />
-                  </View>
-
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Business Owner Name</Text>
-                    <TextInput
-                      placeholder="Enter owner name"
-                      placeholderTextColor="#999"
-                      style={styles.input}
-                      value={ownerName}
-                      onChangeText={setOwnerName}
-                    />
-                  </View>
-                </View>
-
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Business Email</Text>
-                    <TextInput
-                      placeholder="Enter business email"
-                      placeholderTextColor="#999"
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      style={styles.input}
-                      value={businessEmail}
-                      onChangeText={setBusinessEmail}
-                    />
-                  </View>
-
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Business Phone</Text>
-                    <TextInput
-                      placeholder="Enter phone number"
-                      placeholderTextColor="#999"
-                      keyboardType="phone-pad"
-                      style={styles.input}
-                      value={businessPhone}
-                      onChangeText={setBusinessPhone}
-                    />
-                  </View>
-                </View>
-
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Website (Optional)</Text>
-                    <TextInput
-                      placeholder="Enter website"
-                      placeholderTextColor="#999"
-                      autoCapitalize="none"
-                      keyboardType="url"
-                      style={styles.input}
-                      value={website}
-                      onChangeText={setWebsite}
-                    />
-                  </View>
-
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Business Type</Text>
-                    <Pressable style={styles.inputRow} onPress={() => setShowBusinessTypePicker(true)}>
-                      <Text style={styles.inputRowText}>{businessType}</Text>
-                      <Text style={styles.inputRowHint}>▾</Text>
-                    </Pressable>
-                  </View>
-                </View>
-
-                <Pressable style={[styles.button, loading && styles.buttonDisabled]} onPress={handleNext} disabled={loading}>
-                  <Text style={styles.buttonText}>Continue</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.form}>
-                <Text style={styles.sectionTitle}>Business Details</Text>
-
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Country *</Text>
-                    <Pressable style={styles.inputRow} onPress={() => setShowCountryPicker(true)}>
-                      <Text style={styles.inputRowText}>{country}</Text>
-                      <Text style={styles.inputRowHint}>▾</Text>
-                    </Pressable>
-                  </View>
-
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>{stateLabel}</Text>
-                    <TextInput
-                      placeholder="Enter state or province"
-                      placeholderTextColor="#999"
-                      style={styles.input}
-                      value={stateProvince}
-                      onChangeText={setStateProvince}
-                    />
-                  </View>
-                </View>
-
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>City</Text>
-                    <TextInput
-                      placeholder="Enter city"
-                      placeholderTextColor="#999"
-                      style={styles.input}
-                      value={city}
-                      onChangeText={setCity}
-                    />
-                  </View>
-
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>{postalLabel}</Text>
-                    <TextInput
-                      placeholder={`Enter ${postalLabel.toLowerCase()}`}
-                      placeholderTextColor="#999"
-                      style={styles.input}
-                      value={zipCode}
-                      onChangeText={setZipCode}
-                    />
-                  </View>
-                </View>
-
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Full Address</Text>
-                    <TextInput
-                      placeholder="Enter full address"
-                      placeholderTextColor="#999"
-                      style={styles.input}
-                      value={address}
-                      onChangeText={setAddress}
-                    />
-                  </View>
-
-                  <View style={[useTwoColumns && styles.fieldColumn]}>
-                    <Text style={styles.fieldLabel}>Currency</Text>
-                    <Pressable style={styles.inputRow} onPress={() => setShowCurrencyPicker(true)}>
-                      <Text style={styles.inputRowText}>{currency}</Text>
-                      <Text style={styles.inputRowHint}>▾</Text>
-                    </Pressable>
-                  </View>
-                </View>
-
-                <Text style={styles.fieldLabel}>Tax & Registration Details (Optional)</Text>
-                <TextInput
-                  placeholder="Enter an additional tax number if needed"
-                  placeholderTextColor="#999"
-                  style={styles.input}
-                  value={taxRegistrationNumber}
-                  onChangeText={setTaxRegistrationNumber}
-                />
-
-                {countryHelperText ? <Text style={styles.helperText}>{countryHelperText}</Text> : null}
-
-                {dynamicTaxFields.length ? (
-                  <View>
-                    {dynamicTaxFields.map((field) => (
-                      <View key={field.key}>
-                        <Text style={styles.fieldLabel}>{field.label} (Optional)</Text>
-                        <TextInput
-                          placeholder={field.placeholder}
-                          placeholderTextColor="#999"
-                          style={styles.input}
-                          value={taxFields[field.key] || ""}
-                          onChangeText={(value) => setTaxFields((current) => ({ ...current, [field.key]: value }))}
-                        />
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-
-                {dynamicRegistrationFields.length ? (
-                  <View>
-                    {dynamicRegistrationFields.map((field) => (
-                      <View key={field.key}>
-                        <Text style={styles.fieldLabel}>{field.label} (Optional)</Text>
-                        <TextInput
-                          placeholder={field.placeholder}
-                          placeholderTextColor="#999"
-                          style={styles.input}
-                          value={taxFields[field.key] || ""}
-                          onChangeText={(value) => setTaxFields((current) => ({ ...current, [field.key]: value }))}
-                        />
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-
-                <Text style={styles.sectionTitle}>Optional Business Assets</Text>
-                {BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE ? (
-                  <Text style={styles.uploadInfoText}>{BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE}</Text>
-                ) : null}
-                <View style={[useTwoColumns && styles.fieldRow]}>
-                  {renderUploadField("signature", "Company Signature (Optional Upload)", "PNG, JPG, JPEG, WEBP up to 8 MB", signatureAsset, () => pickImage("signature"), () => {
-                    Alert.alert(
-                      "Remove company signature",
-                      "This will remove the current company signature from the profile.",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Remove",
-                          style: "destructive",
-                          onPress: () => {
-                            setSignatureAsset(null);
-                            setAssetStatuses((current) => ({ ...current, signature: { status: "idle", message: "Company signature will be removed on save." } }));
-                          },
-                        },
-                      ]
-                    );
-                  }, useTwoColumns ? styles.fieldColumn : undefined)}
-                  {renderUploadField("photo", "Owner/Business Photo (Optional)", "PNG, JPG, JPEG, WEBP up to 8 MB", photoAsset, () => pickImage("photo"), () => {
-                    Alert.alert(
-                      "Remove photo",
-                      "This will remove the current photo from the profile.",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Remove",
-                          style: "destructive",
-                          onPress: () => {
-                            setPhotoAsset(null);
-                            setAssetStatuses((current) => ({ ...current, photo: { status: "idle", message: "Photo will be removed on save." } }));
-                          },
-                        },
-                      ]
-                    );
-                  }, useTwoColumns ? styles.fieldColumn : undefined)}
-                </View>
-                <View style={[useTwoColumns && styles.fieldRow, { marginTop: 12 }]}>
-                  {renderUploadField("stamp", "Company Stamp (Optional Upload)", "PNG, JPG, JPEG, WEBP up to 8 MB", stampAsset, () => pickImage("stamp"), () => {
-                    Alert.alert(
-                      "Remove company stamp",
-                      "This will remove the current company stamp from the profile.",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Remove",
-                          style: "destructive",
-                          onPress: () => {
-                            setStampAsset(null);
-                            setAssetStatuses((current) => ({ ...current, stamp: { status: "idle", message: "Company stamp will be removed on save." } }));
-                          },
-                        },
-                      ]
-                    );
-                  }, useTwoColumns ? styles.fieldColumn : undefined)}
-                  {useTwoColumns ? <View style={styles.fieldColumn} /> : null}
-                </View>
-
-                <Text style={styles.helperText}>You can skip these now and upload them later from Settings.</Text>
-
-                <View style={styles.buttonRow}>
-                  <Pressable style={[styles.secondaryButton, loading && styles.buttonDisabled]} onPress={handleBack} disabled={loading}>
-                    <Text style={styles.secondaryButtonText}>Back</Text>
+        {renderPickerModal(showBusinessTypePicker, () => setShowBusinessTypePicker(false), BUSINESS_TYPES, businessType, handleBusinessTypeSelect, "Business Type", "", () => undefined, "")}
+        {renderPickerModal(showCountryPicker, () => setShowCountryPicker(false), filteredCountries, country, handleCountrySelect, "Country", countrySearch, setCountrySearch, "Search countries")}
+        {renderPickerModal(showCurrencyPicker, () => setShowCurrencyPicker(false), filteredCurrencies, currency, handleCurrencySelect, "Currency", currencySearch, setCurrencySearch, "Search currencies")}
+        {saveError ? (
+          <View style={styles.snackbar} accessibilityRole="alert">
+            <Text style={styles.snackbarTitle}>{saveError.startsWith("Company profile saved.") ? "Profile saved with asset warning" : "Save failed"}</Text>
+            <Text style={styles.snackbarText}>{saveError}</Text>
+            <View style={styles.snackbarActions}>
+              {(Object.entries(assetStatuses) as [BusinessProfileAssetKind, AssetStatusState[BusinessProfileAssetKind]][])
+                .filter(([kind, status]) => BUSINESS_PROFILE_IMAGE_UPLOADS_ENABLED && status.status === "failed" && Boolean(getSelectedAsset(kind)?.uri))
+                .map(([kind]) => (
+                  <Pressable key={kind} onPress={() => retryAssetUpload(kind)} style={styles.snackbarRetryButton} disabled={loading}>
+                    <Text style={styles.snackbarRetryText}>Retry {kind === "logo" ? "Logo" : kind === "stamp" ? "Stamp" : "Signature"}</Text>
                   </Pressable>
-                  <Pressable style={[styles.button, loading && styles.buttonDisabled]} onPress={() => handleBusinessSetup()} disabled={loading}>
-                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Finish Setup</Text>}
-                  </Pressable>
-                </View>
-              </View>
-            )}
+                ))}
+            </View>
+            <Pressable onPress={() => setSaveError("")} style={styles.snackbarClose} accessibilityRole="button" accessibilityLabel="Dismiss save error">
+              <Ionicons name="close" size={18} color="#FFFFFF" />
+            </Pressable>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {renderPickerModal(showBusinessTypePicker, () => setShowBusinessTypePicker(false), BUSINESS_TYPES, businessType, handleBusinessTypeSelect, "Business Type", "", () => undefined, "")}
-      {renderPickerModal(showCountryPicker, () => setShowCountryPicker(false), filteredCountries, country, handleCountrySelect, "Country", countrySearch, setCountrySearch, "Search countries")}
-      {renderPickerModal(showCurrencyPicker, () => setShowCurrencyPicker(false), filteredCurrencies, currency, handleCurrencySelect, "Currency", currencySearch, setCurrencySearch, "Search currencies")}
-      {saveError ? (
-        <View style={styles.snackbar} accessibilityRole="alert">
-          <Text style={styles.snackbarTitle}>{saveError.startsWith("Company profile saved.") ? "Profile saved with asset warning" : "Save failed"}</Text>
-          <Text style={styles.snackbarText}>{saveError}</Text>
-          <View style={styles.snackbarActions}>
-            {(Object.entries(assetStatuses) as [BusinessProfileAssetKind, AssetStatusState[BusinessProfileAssetKind]][])
-              .filter(([kind, status]) => BUSINESS_PROFILE_IMAGE_UPLOADS_ENABLED && status.status === "failed" && Boolean(getSelectedAsset(kind)?.uri))
-              .map(([kind]) => (
-                <Pressable key={kind} onPress={() => retryAssetUpload(kind)} style={styles.snackbarRetryButton} disabled={loading}>
-                  <Text style={styles.snackbarRetryText}>Retry {kind === "logo" ? "Logo" : kind === "stamp" ? "Stamp" : "Signature"}</Text>
-                </Pressable>
-              ))}
-          </View>
-          <Pressable onPress={() => setSaveError("")} style={styles.snackbarClose} accessibilityRole="button" accessibilityLabel="Dismiss save error">
-            <Ionicons name="close" size={18} color="#FFFFFF" />
-          </Pressable>
-        </View>
-      ) : null}
+        ) : null}
+      </Animated.View>
     </SafeAreaView>
   );
 }

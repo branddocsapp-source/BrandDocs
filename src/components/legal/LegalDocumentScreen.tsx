@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { legalCenterLinks, LegalDocument } from "@/services/legal-content";
 import { useAppTheme } from "@/theme/theme-context";
@@ -10,48 +11,50 @@ export function LegalDocumentScreen({ document }: { document: LegalDocument }) {
   const { theme } = useAppTheme();
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerRow}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]}>
-            <Ionicons name="chevron-back" size={19} color={theme.ink} />
-          </Pressable>
-          <Pressable accessibilityRole="link" onPress={() => router.push("/legal-center" as never)} style={styles.centerLink}>
-            <Text style={styles.centerLinkText}>Legal & Privacy Center</Text>
-          </Pressable>
-        </View>
-
-        <View style={[styles.hero, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <Text style={styles.badge}>Draft - Legal Review Required</Text>
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>{document.title}</Text>
-          <Text style={[styles.summary, { color: theme.muted }]}>{document.summary}</Text>
-          <View style={styles.metaRow}>
-            <Text style={[styles.metaText, { color: theme.muted }]}>Last Updated: {document.lastUpdated}</Text>
-            <Text style={[styles.metaText, { color: theme.muted }]}>Version: {document.version}</Text>
-            <Text style={[styles.metaText, { color: theme.muted }]}>Language: en</Text>
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.headerRow}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]}>
+              <Ionicons name="chevron-back" size={19} color={theme.ink} />
+            </Pressable>
+            <Pressable accessibilityRole="link" onPress={() => router.push("/legal-center" as never)} style={styles.centerLink}>
+              <Text style={styles.centerLinkText}>Legal & Privacy Center</Text>
+            </Pressable>
           </View>
-        </View>
 
-        <View style={[styles.toc, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <Text style={[styles.sectionTitle, { color: theme.ink }]}>Contents</Text>
-          {document.tableOfContents.map((item) => (
-            <View key={item} style={styles.tocRow}>
-              <Ionicons name="ellipse" size={6} color={BrandColors.primary} />
-              <Text style={[styles.tocText, { color: theme.ink }]}>{item}</Text>
+          <View style={[styles.hero, { backgroundColor: theme.card, borderColor: theme.line }]}>
+            <Text style={styles.badge}>Draft - Legal Review Required</Text>
+            <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>{document.title}</Text>
+            <Text style={[styles.summary, { color: theme.muted }]}>{document.summary}</Text>
+            <View style={styles.metaRow}>
+              <Text style={[styles.metaText, { color: theme.muted }]}>Last Updated: {document.lastUpdated}</Text>
+              <Text style={[styles.metaText, { color: theme.muted }]}>Version: {document.version}</Text>
+              <Text style={[styles.metaText, { color: theme.muted }]}>Language: en</Text>
             </View>
-          ))}
-        </View>
+          </View>
 
-        <View style={styles.sections}>
-          {document.sections.map((section) => (
-            <View key={section.heading} style={[styles.section, { backgroundColor: theme.card, borderColor: theme.line }]}>
-              <Text style={[styles.sectionTitle, { color: theme.ink }]}>{section.heading}</Text>
-              {section.body.map((paragraph) => (
-                <Text key={paragraph} style={[styles.paragraph, { color: theme.muted }]}>{paragraph}</Text>
-              ))}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+          <View style={[styles.toc, { backgroundColor: theme.card, borderColor: theme.line }]}>
+            <Text style={[styles.sectionTitle, { color: theme.ink }]}>Contents</Text>
+            {document.tableOfContents.map((item) => (
+              <View key={item} style={styles.tocRow}>
+                <Ionicons name="ellipse" size={6} color={BrandColors.primary} />
+                <Text style={[styles.tocText, { color: theme.ink }]}>{item}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.sections}>
+            {document.sections.map((section) => (
+              <View key={section.heading} style={[styles.section, { backgroundColor: theme.card, borderColor: theme.line }]}>
+                <Text style={[styles.sectionTitle, { color: theme.ink }]}>{section.heading}</Text>
+                {section.body.map((paragraph) => (
+                  <Text key={paragraph} style={[styles.paragraph, { color: theme.muted }]}>{paragraph}</Text>
+                ))}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -60,37 +63,39 @@ export function LegalCenterScreen() {
   const { theme } = useAppTheme();
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerRow}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={19} color={BrandColors.text} />
-          </Pressable>
-        </View>
-        <View style={styles.hero}>
-          <Text style={styles.badge}>Draft - Legal Review Required</Text>
-          <Text accessibilityRole="header" style={styles.title}>Legal & Privacy Center</Text>
-          <Text style={styles.summary}>
-            Central access to BrandDocs draft legal, privacy, security, export and account-control documents.
-          </Text>
-        </View>
-        <View style={styles.grid}>
-          {legalCenterLinks.map((item) => (
-            <Pressable
-              accessibilityRole="link"
-              key={item.key}
-              onPress={() => router.push(item.route as never)}
-              style={({ pressed }) => [styles.card, pressed && styles.pressed]}
-            >
-              <View style={styles.cardIcon}>
-                <Ionicons name="document-text-outline" size={20} color={BrandColors.primary} />
-              </View>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardText}>{item.summary}</Text>
-              <Text style={styles.cardMeta}>Version {item.version}</Text>
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.headerRow}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="chevron-back" size={19} color={BrandColors.text} />
             </Pressable>
-          ))}
-        </View>
-      </ScrollView>
+          </View>
+          <View style={styles.hero}>
+            <Text style={styles.badge}>Draft - Legal Review Required</Text>
+            <Text accessibilityRole="header" style={styles.title}>Legal & Privacy Center</Text>
+            <Text style={styles.summary}>
+              Central access to BrandDocs draft legal, privacy, security, export and account-control documents.
+            </Text>
+          </View>
+          <View style={styles.grid}>
+            {legalCenterLinks.map((item) => (
+              <Pressable
+                accessibilityRole="link"
+                key={item.key}
+                onPress={() => router.push(item.route as never)}
+                style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+              >
+                <View style={styles.cardIcon}>
+                  <Ionicons name="document-text-outline" size={20} color={BrandColors.primary} />
+                </View>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardText}>{item.summary}</Text>
+                <Text style={styles.cardMeta}>Version {item.version}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
