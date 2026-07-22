@@ -389,7 +389,6 @@ export default function LetterheadScreen() {
       </Animated.View>
     </SafeAreaView>
   );
-  );
 }
 
 function ToolbarButton({ label, icon, active, onPress }: { label?: string; icon?: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void }) {
