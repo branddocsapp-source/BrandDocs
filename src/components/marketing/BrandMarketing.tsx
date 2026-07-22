@@ -12,6 +12,7 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import {
     detectPricingCountry,
@@ -912,7 +913,7 @@ export function MarketingInfoPage({
   const { theme } = useAppTheme();
 
   return (
-    <View style={[styles.page, { backgroundColor: theme.background }]}>
+    <Animated.View entering={FadeIn.duration(400)} style={[styles.page, { backgroundColor: theme.background }]}>
       <Header />
       <ScrollView contentContainerStyle={[styles.section, { paddingVertical: 80 }]} showsVerticalScrollIndicator={false}>
         <SectionHeading eyebrow={eyebrow} title={title} body={body} />
@@ -936,7 +937,7 @@ export function MarketingInfoPage({
         </View>
       </ScrollView>
       <Footer />
-    </View>
+    </Animated.View>
   );
 }
 
