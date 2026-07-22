@@ -621,13 +621,15 @@ export default function PreviewScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-      <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]}>
-        <View style={styles.document}>
-          <Text style={styles.title}>Document Preview</Text>
-          <View style={styles.divider} />
-          <Text style={styles.content}>{content || "No content generated yet."}</Text>
-        </View>
-      </ScrollView>
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]}>
+          <View style={styles.document}>
+            <Text style={styles.title}>Document Preview</Text>
+            <View style={styles.divider} />
+            <Text style={styles.content}>{content || "No content generated yet."}</Text>
+          </View>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
