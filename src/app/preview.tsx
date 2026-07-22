@@ -539,80 +539,82 @@ export default function PreviewScreen() {
   if (type === "visitingCard") {
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-        <View style={[styles.header, isWebsite && styles.webHeader]}>
-          <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/visiting-card") as never)}>
-            <Ionicons name="chevron-back" size={22} color={Colors.text} />
-          </Pressable>
-          <Text style={styles.headerTitle}>{visitingCard ? "Visiting Card Preview" : "Visiting Card"}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <View style={[styles.header, isWebsite && styles.webHeader]}>
+            <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/visiting-card") as never)}>
+              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.headerTitle}>{visitingCard ? "Visiting Card Preview" : "Visiting Card"}</Text>
+            <View style={styles.headerSpacer} />
+          </View>
 
-        <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
-          {loading ? (
-            <Text style={styles.loadingText}>Loading visiting card...</Text>
-          ) : visitingCard ? (
-            <>
-              <View style={styles.workflowBar}>
-                <Text style={styles.workflowTitle}>Set Status</Text>
-                <View style={styles.statusGrid}>
-                  {visitingCardStatusOptions.map((option) => (
-                    <Pressable
-                      key={option.value}
-                      style={[styles.statusBox, selectedVisitingCardStatus === option.value && styles.statusBoxActive]}
-                      onPress={() => setSelectedVisitingCardStatus(option.value)}
-                    >
-                      <Text style={[styles.statusLabel, selectedVisitingCardStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
-                      <Text style={styles.statusDescription}>{option.description}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <View style={styles.previewActions}>
-                  <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/visiting-card", { editCardId: visitingCard.id || "" }) as never)}>
-                    <Ionicons name="create-outline" size={16} color={Colors.text} />
-                    <Text style={styles.secondaryActionText}>Edit</Text>
-                  </Pressable>
-                  <Pressable style={styles.secondaryAction} onPress={handleVisitingCardDuplicate}>
-                    <Ionicons name="copy-outline" size={16} color={Colors.text} />
-                    <Text style={styles.secondaryActionText}>Duplicate</Text>
-                  </Pressable>
-                  <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                    <Ionicons name="print-outline" size={16} color={Colors.text} />
-                    <Text style={styles.secondaryActionText}>Print A4</Text>
-                  </Pressable>
-                  <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                    <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
-                    <Text style={styles.secondaryActionText}>PDF</Text>
-                  </Pressable>
-                  <Pressable style={styles.secondaryAction} onPress={handleShare}>
-                    <Ionicons name="share-outline" size={16} color={Colors.text} />
-                    <Text style={styles.secondaryActionText}>Share</Text>
-                  </Pressable>
-                  <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleVisitingCardFinalSave} disabled={saving}>
-                    <Text style={styles.primaryActionText}>{saving ? "Saving" : "Save Status"}</Text>
-                  </Pressable>
-                </View>
-              </View>
-
-              <View style={[styles.visitingCardPreviewGrid, isDesktop && styles.visitingCardPreviewGridDesktop]}>
-                <View style={styles.visitingCardPreviewPane}>
-                  <Text style={styles.workflowTitle}>Front</Text>
-                  <VisitingCardPreview card={{ ...visitingCard, status: selectedVisitingCardStatus }} side="front" showActualSizeLabel />
-                </View>
-                {visitingCard.backEnabled ? (
-                  <View style={styles.visitingCardPreviewPane}>
-                    <Text style={styles.workflowTitle}>Back</Text>
-                    <VisitingCardPreview card={{ ...visitingCard, status: selectedVisitingCardStatus }} side="back" showActualSizeLabel />
+          <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+            {loading ? (
+              <Text style={styles.loadingText}>Loading visiting card...</Text>
+            ) : visitingCard ? (
+              <>
+                <View style={styles.workflowBar}>
+                  <Text style={styles.workflowTitle}>Set Status</Text>
+                  <View style={styles.statusGrid}>
+                    {visitingCardStatusOptions.map((option) => (
+                      <Pressable
+                        key={option.value}
+                        style={[styles.statusBox, selectedVisitingCardStatus === option.value && styles.statusBoxActive]}
+                        onPress={() => setSelectedVisitingCardStatus(option.value)}
+                      >
+                        <Text style={[styles.statusLabel, selectedVisitingCardStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
+                        <Text style={styles.statusDescription}>{option.description}</Text>
+                      </Pressable>
+                    ))}
                   </View>
-                ) : null}
+                  <View style={styles.previewActions}>
+                    <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/visiting-card", { editCardId: visitingCard.id || "" }) as never)}>
+                      <Ionicons name="create-outline" size={16} color={Colors.text} />
+                      <Text style={styles.secondaryActionText}>Edit</Text>
+                    </Pressable>
+                    <Pressable style={styles.secondaryAction} onPress={handleVisitingCardDuplicate}>
+                      <Ionicons name="copy-outline" size={16} color={Colors.text} />
+                      <Text style={styles.secondaryActionText}>Duplicate</Text>
+                    </Pressable>
+                    <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                      <Ionicons name="print-outline" size={16} color={Colors.text} />
+                      <Text style={styles.secondaryActionText}>Print A4</Text>
+                    </Pressable>
+                    <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                      <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                      <Text style={styles.secondaryActionText}>PDF</Text>
+                    </Pressable>
+                    <Pressable style={styles.secondaryAction} onPress={handleShare}>
+                      <Ionicons name="share-outline" size={16} color={Colors.text} />
+                      <Text style={styles.secondaryActionText}>Share</Text>
+                    </Pressable>
+                    <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleVisitingCardFinalSave} disabled={saving}>
+                      <Text style={styles.primaryActionText}>{saving ? "Saving" : "Save Status"}</Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                <View style={[styles.visitingCardPreviewGrid, isDesktop && styles.visitingCardPreviewGridDesktop]}>
+                  <View style={styles.visitingCardPreviewPane}>
+                    <Text style={styles.workflowTitle}>Front</Text>
+                    <VisitingCardPreview card={{ ...visitingCard, status: selectedVisitingCardStatus }} side="front" showActualSizeLabel />
+                  </View>
+                  {visitingCard.backEnabled ? (
+                    <View style={styles.visitingCardPreviewPane}>
+                      <Text style={styles.workflowTitle}>Back</Text>
+                      <VisitingCardPreview card={{ ...visitingCard, status: selectedVisitingCardStatus }} side="back" showActualSizeLabel />
+                    </View>
+                  ) : null}
+                </View>
+              </>
+            ) : (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyTitle}>Visiting card not found</Text>
+                <Text style={styles.emptyText}>We could not load this saved visiting card.</Text>
               </View>
-            </>
-          ) : (
-            <View style={styles.emptyCard}>
-              <Text style={styles.emptyTitle}>Visiting card not found</Text>
-              <Text style={styles.emptyText}>We could not load this saved visiting card.</Text>
-            </View>
-          )}
-        </ScrollView>
+            )}
+          </ScrollView>
+        </Animated.View>
       </SafeAreaView>
     );
   }
