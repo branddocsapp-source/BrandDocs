@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
@@ -282,107 +283,112 @@ export default function LetterheadScreen() {
   if (draftLetterhead) {
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-        <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <View style={styles.editorHeader}>
-            <Pressable style={styles.headerButton} onPress={() => setDraftLetterhead(null)} accessibilityRole="button" accessibilityLabel="Back">
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
-            </Pressable>
-            <Text style={styles.editorTitle}>Letterhead</Text>
-            <View style={styles.editorActions}>
-              <Pressable style={styles.secondaryButton} onPress={() => persistLetterhead("draft")} disabled={saving}>
-                <Text style={styles.secondaryButtonText}>Draft</Text>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <View style={styles.editorHeader}>
+              <Pressable style={styles.headerButton} onPress={() => setDraftLetterhead(null)} accessibilityRole="button" accessibilityLabel="Back">
+                <Ionicons name="chevron-back" size={22} color={Colors.text} />
               </Pressable>
-              <Pressable style={styles.secondaryButton} onPress={() => persistLetterhead("final")} disabled={saving}>
-                <Text style={styles.secondaryButtonText}>Final</Text>
-              </Pressable>
-              <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistLetterhead("draft", true)} disabled={saving}>
-                <Text style={styles.saveButtonText}>Preview</Text>
-              </Pressable>
+              <Text style={styles.editorTitle}>Letterhead</Text>
+              <View style={styles.editorActions}>
+                <Pressable style={styles.secondaryButton} onPress={() => persistLetterhead("draft")} disabled={saving}>
+                  <Text style={styles.secondaryButtonText}>Draft</Text>
+                </Pressable>
+                <Pressable style={styles.secondaryButton} onPress={() => persistLetterhead("final")} disabled={saving}>
+                  <Text style={styles.secondaryButtonText}>Final</Text>
+                </Pressable>
+                <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistLetterhead("draft", true)} disabled={saving}>
+                  <Text style={styles.saveButtonText}>Preview</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.toolbar}>
-            <ToolbarButton label="B" active={draftLetterhead.bodyFormatting.bold} onPress={() => toggleBodyFormat("bold")} />
-            <ToolbarButton label="I" active={draftLetterhead.bodyFormatting.italic} onPress={() => toggleBodyFormat("italic")} />
-            <ToolbarButton label="U" active={draftLetterhead.bodyFormatting.underline} onPress={() => toggleBodyFormat("underline")} />
-            <ToolbarButton icon="list-outline" onPress={() => insertListMarker("bullet")} />
-            <ToolbarButton icon="reorder-three-outline" onPress={() => insertListMarker("number")} />
-            <ToolbarButton icon="arrow-undo-outline" onPress={undoBody} />
-            <ToolbarButton icon="arrow-redo-outline" onPress={redoBody} />
-            <ToolbarButton label="L" active={draftLetterhead.bodyFormatting.alignment === "left"} onPress={() => setAlignment("left")} />
-            <ToolbarButton label="C" active={draftLetterhead.bodyFormatting.alignment === "center"} onPress={() => setAlignment("center")} />
-            <ToolbarButton label="R" active={draftLetterhead.bodyFormatting.alignment === "right"} onPress={() => setAlignment("right")} />
-            <ToolbarButton label="1x" active={draftLetterhead.bodyFormatting.spacing === "compact"} onPress={() => setSpacing("compact")} />
-            <ToolbarButton label="1.5x" active={draftLetterhead.bodyFormatting.spacing === "normal"} onPress={() => setSpacing("normal")} />
-            <ToolbarButton label="2x" active={draftLetterhead.bodyFormatting.spacing === "relaxed"} onPress={() => setSpacing("relaxed")} />
-          </View>
+            <View style={styles.toolbar}>
+              <ToolbarButton label="B" active={draftLetterhead.bodyFormatting.bold} onPress={() => toggleBodyFormat("bold")} />
+              <ToolbarButton label="I" active={draftLetterhead.bodyFormatting.italic} onPress={() => toggleBodyFormat("italic")} />
+              <ToolbarButton label="U" active={draftLetterhead.bodyFormatting.underline} onPress={() => toggleBodyFormat("underline")} />
+              <ToolbarButton icon="list-outline" onPress={() => insertListMarker("bullet")} />
+              <ToolbarButton icon="reorder-three-outline" onPress={() => insertListMarker("number")} />
+              <ToolbarButton icon="arrow-undo-outline" onPress={undoBody} />
+              <ToolbarButton icon="arrow-redo-outline" onPress={redoBody} />
+              <ToolbarButton label="L" active={draftLetterhead.bodyFormatting.alignment === "left"} onPress={() => setAlignment("left")} />
+              <ToolbarButton label="C" active={draftLetterhead.bodyFormatting.alignment === "center"} onPress={() => setAlignment("center")} />
+              <ToolbarButton label="R" active={draftLetterhead.bodyFormatting.alignment === "right"} onPress={() => setAlignment("right")} />
+              <ToolbarButton label="1x" active={draftLetterhead.bodyFormatting.spacing === "compact"} onPress={() => setSpacing("compact")} />
+              <ToolbarButton label="1.5x" active={draftLetterhead.bodyFormatting.spacing === "normal"} onPress={() => setSpacing("normal")} />
+              <ToolbarButton label="2x" active={draftLetterhead.bodyFormatting.spacing === "relaxed"} onPress={() => setSpacing("relaxed")} />
+            </View>
 
-          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-            <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <LetterheadPaper
-                letterhead={draftLetterhead}
-                updateLetterheadField={updateLetterheadField}
-                updateCompanyField={updateCompanyField}
-                updateBody={updateBody}
-              />
+            <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
+              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <LetterheadPaper
+                  letterhead={draftLetterhead}
+                  updateLetterheadField={updateLetterheadField}
+                  updateCompanyField={updateCompanyField}
+                  updateBody={updateBody}
+                />
+              </ScrollView>
             </ScrollView>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-      <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
-        <View style={styles.moduleHeader}>
-          <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
-            <Ionicons name="chevron-back" size={22} color={Colors.text} />
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
+          <View style={styles.moduleHeader}>
+            <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
+              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.moduleTitle}>Letterhead</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
+          <Pressable style={styles.createButton} onPress={startLetterhead}>
+            <View style={styles.createIcon}><Ionicons name="newspaper-outline" size={24} color="#FFFFFF" /></View>
+            <Text style={styles.createText}>Create New Letterhead</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
           </Pressable>
-          <Text style={styles.moduleTitle}>Letterhead</Text>
-          <View style={styles.headerSpacer} />
-        </View>
 
-        <Pressable style={styles.createButton} onPress={startLetterhead}>
-          <View style={styles.createIcon}><Ionicons name="newspaper-outline" size={24} color="#FFFFFF" /></View>
-          <Text style={styles.createText}>Create New Letterhead</Text>
-          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-        </Pressable>
-
-        <View style={styles.previousCard}>
-          <Text style={styles.previousTitle}>Previous Letterheads</Text>
-          {loading ? (
-            <Text style={styles.emptyText}>Loading letterheads...</Text>
-          ) : letterheads.length ? (
-            letterheads.map((letterhead) => (
-              <View key={letterhead.id || letterhead.letterheadNumber} style={styles.previousRow}>
-                <Pressable style={styles.previousMain} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}>
-                  <View style={styles.previousIcon}><Ionicons name="newspaper-outline" size={18} color={Colors.primary} /></View>
-                  <View style={styles.previousCopy}>
-                    <Text style={styles.previousNumber}>{letterhead.letterheadNumber}</Text>
-                    <Text style={styles.previousMeta}>{letterhead.documentName} • {letterhead.documentDate} • {getStatusLabel(letterhead.status)}</Text>
+          <View style={styles.previousCard}>
+            <Text style={styles.previousTitle}>Previous Letterheads</Text>
+            {loading ? (
+              <Text style={styles.emptyText}>Loading letterheads...</Text>
+            ) : letterheads.length ? (
+              letterheads.map((letterhead) => (
+                <View key={letterhead.id || letterhead.letterheadNumber} style={styles.previousRow}>
+                  <Pressable style={styles.previousMain} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}>
+                    <View style={styles.previousIcon}><Ionicons name="newspaper-outline" size={18} color={Colors.primary} /></View>
+                    <View style={styles.previousCopy}>
+                      <Text style={styles.previousNumber}>{letterhead.letterheadNumber}</Text>
+                      <Text style={styles.previousMeta}>{letterhead.documentName} • {letterhead.documentDate} • {getStatusLabel(letterhead.status)}</Text>
+                    </View>
+                  </Pressable>
+                  <View style={styles.previousActions}>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => setDraftLetterhead(letterhead)}><Ionicons name="create-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => duplicateLetterhead(letterhead)}><Ionicons name="copy-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => handleDelete(letterhead)}><Ionicons name="trash-outline" size={17} color={Colors.error} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "pdf" }) as never)}><Ionicons name="document-attach-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "print" }) as never)}><Ionicons name="print-outline" size={17} color={Colors.textSecondary} /></Pressable>
                   </View>
-                </Pressable>
-                <View style={styles.previousActions}>
-                  <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                  <Pressable style={styles.rowIconButton} onPress={() => setDraftLetterhead(letterhead)}><Ionicons name="create-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                  <Pressable style={styles.rowIconButton} onPress={() => duplicateLetterhead(letterhead)}><Ionicons name="copy-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                  <Pressable style={styles.rowIconButton} onPress={() => handleDelete(letterhead)}><Ionicons name="trash-outline" size={17} color={Colors.error} /></Pressable>
-                  <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "pdf" }) as never)}><Ionicons name="document-attach-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                  <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "print" }) as never)}><Ionicons name="print-outline" size={17} color={Colors.textSecondary} /></Pressable>
                 </View>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIcon}><Ionicons name="newspaper-outline" size={28} color={Colors.primary} /></View>
+                <Text style={styles.emptyTitle}>No letterheads created yet</Text>
+                <Text style={styles.emptyText}>Created letterheads will appear here with number, name, date, and status.</Text>
               </View>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}><Ionicons name="newspaper-outline" size={28} color={Colors.primary} /></View>
-              <Text style={styles.emptyTitle}>No letterheads created yet</Text>
-              <Text style={styles.emptyText}>Created letterheads will appear here with number, name, date, and status.</Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+            )}
+          </View>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
+  );
   );
 }
 
