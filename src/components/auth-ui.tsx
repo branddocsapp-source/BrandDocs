@@ -13,6 +13,7 @@ import {
     TextInput,
     View,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { Colors } from "@/theme/colors";
@@ -93,15 +94,18 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     >
       <View style={[styles.shell, isWide && styles.shellWide, isTablet && styles.shellTablet]}>
         <BrandPanel compact={!isWide} />
-        <View style={[
-          styles.card,
-          { backgroundColor: theme.white, borderColor: theme.line },
-          isWebsite && isWide && styles.cardWide,
-          isTablet && styles.cardTablet,
-          isCompact && styles.cardCompact,
-        ]}>
+        <Animated.View
+          entering={FadeIn.duration(350)}
+          style={[
+            styles.card,
+            { backgroundColor: theme.white, borderColor: theme.line },
+            isWebsite && isWide && styles.cardWide,
+            isTablet && styles.cardTablet,
+            isCompact && styles.cardCompact,
+          ]}
+        >
           {children}
-        </View>
+        </Animated.View>
       </View>
     </ScrollView>
   );
