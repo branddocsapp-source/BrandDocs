@@ -1,1 +1,2 @@
-export { useColorScheme } from 'react-native';
+// Unused template file
+export function useColorScheme() { return 'light'; }

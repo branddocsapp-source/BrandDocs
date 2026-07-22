@@ -16,6 +16,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { BrandLogo } from "@/components/brand-logo";
