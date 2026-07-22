@@ -472,64 +472,66 @@ export default function PreviewScreen() {
   if (type === "letterhead") {
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-        <View style={[styles.header, isWebsite && styles.webHeader]}>
-          <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/letterhead") as never)}>
-            <Ionicons name="chevron-back" size={22} color={Colors.text} />
-          </Pressable>
-          <Text style={styles.headerTitle}>{letterhead ? "Letterhead Preview" : "Letterhead"}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <View style={[styles.header, isWebsite && styles.webHeader]}>
+            <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/letterhead") as never)}>
+              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.headerTitle}>{letterhead ? "Letterhead Preview" : "Letterhead"}</Text>
+            <View style={styles.headerSpacer} />
+          </View>
 
-        <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-          <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
-            {loading ? (
-              <Text style={styles.loadingText}>Loading letterhead...</Text>
-            ) : letterhead ? (
-              <>
-                <View style={styles.workflowBar}>
-                  <Text style={styles.workflowTitle}>Set Status</Text>
-                  <View style={styles.statusGrid}>
-                    {letterheadStatusOptions.map((option) => (
-                      <Pressable
-                        key={option.value}
-                        style={[styles.statusBox, selectedLetterheadStatus === option.value && styles.statusBoxActive]}
-                        onPress={() => setSelectedLetterheadStatus(option.value)}
-                      >
-                        <Text style={[styles.statusLabel, selectedLetterheadStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
-                        <Text style={styles.statusDescription}>{option.description}</Text>
+          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+              {loading ? (
+                <Text style={styles.loadingText}>Loading letterhead...</Text>
+              ) : letterhead ? (
+                <>
+                  <View style={styles.workflowBar}>
+                    <Text style={styles.workflowTitle}>Set Status</Text>
+                    <View style={styles.statusGrid}>
+                      {letterheadStatusOptions.map((option) => (
+                        <Pressable
+                          key={option.value}
+                          style={[styles.statusBox, selectedLetterheadStatus === option.value && styles.statusBoxActive]}
+                          onPress={() => setSelectedLetterheadStatus(option.value)}
+                        >
+                          <Text style={[styles.statusLabel, selectedLetterheadStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
+                          <Text style={styles.statusDescription}>{option.description}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <View style={styles.previewActions}>
+                      {selectedLetterheadStatus === "bold" || selectedLetterheadStatus === "draft" ? (
+                        <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/letterhead", { editLetterheadId: letterhead.id || "" }) as never)}>
+                          <Ionicons name="create-outline" size={16} color={Colors.text} />
+                          <Text style={styles.secondaryActionText}>Edit</Text>
+                        </Pressable>
+                      ) : null}
+                      <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                        <Ionicons name="print-outline" size={16} color={Colors.text} />
+                        <Text style={styles.secondaryActionText}>Print</Text>
                       </Pressable>
-                    ))}
-                  </View>
-                  <View style={styles.previewActions}>
-                    {selectedLetterheadStatus === "draft" ? (
-                      <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/letterhead", { editLetterheadId: letterhead.id || "" }) as never)}>
-                        <Ionicons name="create-outline" size={16} color={Colors.text} />
-                        <Text style={styles.secondaryActionText}>Edit</Text>
+                      <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                        <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                        <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
-                    ) : null}
-                    <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                      <Ionicons name="print-outline" size={16} color={Colors.text} />
-                      <Text style={styles.secondaryActionText}>Print</Text>
-                    </Pressable>
-                    <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                      <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
-                      <Text style={styles.secondaryActionText}>PDF</Text>
-                    </Pressable>
-                    <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleLetterheadFinalSave} disabled={saving}>
-                      <Text style={styles.primaryActionText}>{saving ? "Saving" : "Final Save"}</Text>
-                    </Pressable>
+                      <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleLetterheadFinalSave} disabled={saving}>
+                        <Text style={styles.primaryActionText}>{saving ? "Saving" : "Final Save"}</Text>
+                      </Pressable>
+                    </View>
                   </View>
+                  <LetterheadPreview letterhead={{ ...letterhead, status: selectedLetterheadStatus }} isDesktop={isDesktop} />
+                </>
+              ) : (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyTitle}>Letterhead not found</Text>
+                  <Text style={styles.emptyText}>We could not load this saved letterhead.</Text>
                 </View>
-                <LetterheadPreview letterhead={{ ...letterhead, status: selectedLetterheadStatus }} isDesktop={isDesktop} />
-              </>
-            ) : (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyTitle}>Letterhead not found</Text>
-                <Text style={styles.emptyText}>We could not load this saved letterhead.</Text>
-              </View>
-            )}
+              )}
+            </ScrollView>
           </ScrollView>
-        </ScrollView>
+        </Animated.View>
       </SafeAreaView>
     );
   }
