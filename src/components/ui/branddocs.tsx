@@ -523,9 +523,12 @@ export function AppShell({
   const resolvedInitials = profileInitials !== "BD" ? profileInitials : (profile ? getCompanyInitials(profile.name) : "BD");
 
   const content = (
-    <View style={[styles.contentInner, !usesSidebar && styles.mobileContentInner, contentStyle]}>
+    <Animated.View
+      entering={FadeIn.duration(300)}
+      style={[styles.contentInner, !usesSidebar && styles.mobileContentInner, contentStyle]}
+    >
       {children}
-    </View>
+    </Animated.View>
   );
 
   return (
