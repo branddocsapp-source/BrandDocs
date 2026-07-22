@@ -104,6 +104,8 @@ const FIREBASE_OPERATION_TIMEOUT_MS = 30000;
 export const BUSINESS_PROFILE_IMAGE_UPLOADS_ENABLED = true;
 export const BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE = "";
 
+let memoryCachedProfile: BusinessProfile | null = null;
+
 function getLocalStorage() {
   if (typeof globalThis === "undefined" || !("localStorage" in globalThis)) {
     return null;
@@ -480,6 +482,7 @@ function normalizeProfile(id: string | undefined, value: any): BusinessProfile |
 
 function saveLocalProfile(userId: string | undefined, profile: BusinessProfile) {
   const storage = getLocalStorage();
+  memoryCachedProfile = profile;
   if (!storage) return;
 
   storage.setItem(getLocalKey(userId), JSON.stringify(profile));
@@ -500,6 +503,15 @@ function loadLocalProfile(userId?: string) {
   }
 }
 
+export function getCachedBusinessProfile(userId?: string): BusinessProfile | null {
+  if (memoryCachedProfile) return memoryCachedProfile;
+  const local = loadLocalProfile(userId);
+  if (local) {
+    memoryCachedProfile = local;
+  }
+  return memoryCachedProfile;
+}
+
 export function getCompanyInitials(companyName?: string) {
   const words = (companyName || "")
     .trim()
@@ -514,7 +526,9 @@ export function getCompanyInitials(companyName?: string) {
 
 export async function loadBusinessProfile(user: User | null): Promise<BusinessProfile | null> {
   if (!user) {
-    return loadLocalProfile();
+    const local = loadLocalProfile();
+    memoryCachedProfile = local;
+    return local;
   }
 
   try {
@@ -527,6 +541,7 @@ export async function loadBusinessProfile(user: User | null): Promise<BusinessPr
 
       if (profile) {
         saveLocalProfile(user.uid, profile);
+        memoryCachedProfile = profile;
         return profile;
       }
     }
@@ -534,7 +549,11 @@ export async function loadBusinessProfile(user: User | null): Promise<BusinessPr
     console.warn("BrandDocs Firebase profile load failed; using local fallback if available.", error);
   }
 
-  return loadLocalProfile(user.uid);
+  const local = loadLocalProfile(user.uid);
+  if (local) {
+    memoryCachedProfile = local;
+  }
+  return local;
 }
 
 function cleanUndefined(obj: any): any {

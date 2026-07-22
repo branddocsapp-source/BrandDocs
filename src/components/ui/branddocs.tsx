@@ -30,7 +30,7 @@ import {
   BrandTypography,
 } from "@/theme/tokens";
 import { auth } from "@/firebase";
-import { loadBusinessProfile, BusinessProfile, getCompanyInitials } from "@/services/business-profile";
+import { loadBusinessProfile, BusinessProfile, getCompanyInitials, getCachedBusinessProfile } from "@/services/business-profile";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type RouteValue = string | { pathname: string; params?: Record<string, string> };
@@ -499,7 +499,7 @@ export function AppShell({
   const appRoute = usePreviewRoute();
   const { isWebsite, usesSidebar } = useResponsiveLayout();
   const { isDark, theme, toggleTheme } = useAppTheme();
-  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+  const [profile, setProfile] = useState<BusinessProfile | null>(() => getCachedBusinessProfile(auth.currentUser?.uid));
 
   useEffect(() => {
     let isMounted = true;
