@@ -461,215 +461,263 @@ export default function InvoiceScreen() {
   if (draftDocument && totals) {
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
-        <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <View style={styles.editorHeader}>
-            <Pressable style={styles.headerButton} onPress={() => setDraftDocument(null)} accessibilityRole="button" accessibilityLabel="Back">
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
-            </Pressable>
-            <Text style={styles.editorTitle}>{getDocumentLabel(draftDocument.documentType)}</Text>
-            <View style={styles.editorActions}>
-              <Pressable style={[styles.secondaryButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: false })} disabled={saving}>
-                <Text style={styles.secondaryButtonText}>Save Draft</Text>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <View style={styles.editorHeader}>
+              <Pressable style={styles.headerButton} onPress={() => setDraftDocument(null)} accessibilityRole="button" accessibilityLabel="Back">
+                <Ionicons name="chevron-back" size={22} color={Colors.text} />
               </Pressable>
-              <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: true })} disabled={saving}>
-                <Text style={styles.saveButtonText}>Preview</Text>
-              </Pressable>
+              <Text style={styles.editorTitle}>{getDocumentLabel(draftDocument.documentType)}</Text>
+              <View style={styles.editorActions}>
+                <Pressable style={[styles.secondaryButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: false })} disabled={saving}>
+                  <Text style={styles.secondaryButtonText}>Save Draft</Text>
+                </Pressable>
+                <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: true })} disabled={saving}>
+                  <Text style={styles.saveButtonText}>Preview</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
 
-          <ScrollView
-            horizontal={isPhone}
-            contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined}
-            showsHorizontalScrollIndicator={isPhone}
-          >
-            <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {fieldErrors.length ? (
-                <View style={styles.errorBox}>
-                  {fieldErrors.map((error) => (
-                    <Text key={error} style={styles.errorText}>{error}</Text>
-                  ))}
-                </View>
-              ) : null}
-
-              <View style={[styles.a4Paper, isDesktop && styles.webA4Paper]}>
-                <View style={styles.topStrip}>
-                  <View style={styles.stripBlock}>
-                    <InlineInput value={`GSTIN: ${draftDocument.company.taxRegistrationNumber}`} onChangeText={(value) => updateCompanyField("taxRegistrationNumber", value.replace(/^GSTIN:\s*/i, ""))} textStyle={styles.stripText} />
-                    <InlineInput value={`PAN: ${draftDocument.company.pan || ""}`} onChangeText={(value) => updateCompanyField("pan", value.replace(/^PAN:\s*/i, ""))} textStyle={styles.stripText} />
-                  </View>
-                  <Text style={styles.documentTitle}>{getDocumentTitle(draftDocument.documentType)}</Text>
-                  <View style={styles.stripBlockRight}>
-                    <InlineInput value={draftDocument.company.phone} onChangeText={(value) => updateCompanyField("phone", value)} textStyle={styles.stripTextRight} />
-                    <InlineInput value={draftDocument.company.email} onChangeText={(value) => updateCompanyField("email", value)} textStyle={styles.stripTextRight} />
-                  </View>
-                </View>
-
-                <View style={styles.companyPanel}>
-                  {draftDocument.company.logoUrl ? (
-                    <View style={styles.logoBox}>
-                      <Image source={{ uri: draftDocument.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
-                    </View>
-                  ) : null}
-                  <View style={styles.companyBlock}>
-                    <InlineInput value={draftDocument.company.name} onChangeText={(value) => updateCompanyField("name", value)} textStyle={styles.companyName} />
-                    <InlineInput value={`Office : ${draftDocument.company.address}`} onChangeText={(value) => updateCompanyField("address", value.replace(/^Office\s*:\s*/i, ""))} multiline textStyle={styles.companyAddress} />
-                    <InlineInput value={`Email: ${draftDocument.company.email}`} onChangeText={(value) => updateCompanyField("email", value.replace(/^Email:\s*/i, ""))} textStyle={styles.companyEmail} />
-                  </View>
-                </View>
-
-                <View style={styles.partiesGrid}>
-                  <View style={styles.partyBox}>
-                    <Text style={styles.sectionLabel}>Recipient Detail :</Text>
-                    <DottedField label="Name" value={draftDocument.customer.name} onChangeText={(value) => updateCustomerField("name", value)} />
-                    <DottedField label="Address" value={draftDocument.customer.address} onChangeText={(value) => updateCustomerField("address", value)} />
-                    <View style={styles.recipientLine}>
-                      <DottedField label="State" value={draftDocument.customer.state || ""} onChangeText={(value) => updateCustomerField("state", value)} compact />
-                      <DottedField label="State Code" value={draftDocument.customer.stateCode || ""} onChangeText={(value) => updateCustomerField("stateCode", value)} compact />
-                      <DottedField label="PIN" value={draftDocument.customer.pin || ""} onChangeText={(value) => updateCustomerField("pin", value)} compact />
-                    </View>
-                    {isTaxDocument ? <BoxedGstinField value={draftDocument.customer.gstin || ""} onChangeText={(value) => updateCustomerField("gstin", value)} /> : null}
-                  </View>
-                  <View style={styles.invoiceInfoBox}>
-                    <DottedField label={isTaxDocument ? "Invoice Serial No." : "Bill Serial No."} value={draftDocument.documentNumber} onChangeText={(value) => updateDocumentField("documentNumber", value)} />
-                    <DottedField label="Invoice Date" value={draftDocument.invoiceDate} onChangeText={(value) => updateDocumentField("invoiceDate", value)} />
-                    <DottedField label="Time" value={new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} onChangeText={() => undefined} />
-                    <DottedField label="Currency" value={draftDocument.company.currency} onChangeText={(value) => updateCompanyField("currency", value.toUpperCase())} />
-                  </View>
-                </View>
-
-                {isTaxDocument ? (
-                  <View style={styles.taxModeRow}>
-                    {(["No GST", "CGST + SGST", "IGST"] as const).map((taxMode) => (
-                      <Pressable
-                        key={taxMode}
-                        style={[styles.taxModePill, draftDocument.taxMode === taxMode && styles.taxModePillActive]}
-                        onPress={() => setDraftDocument((current) => (current ? { ...current, taxMode } : current))}
-                      >
-                        <Text style={[styles.taxModeText, draftDocument.taxMode === taxMode && styles.taxModeTextActive]}>{taxMode}</Text>
-                      </Pressable>
+            <ScrollView
+              horizontal={isPhone}
+              contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined}
+              showsHorizontalScrollIndicator={isPhone}
+            >
+              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {fieldErrors.length ? (
+                  <View style={styles.errorBox}>
+                    {fieldErrors.map((error) => (
+                      <Text key={error} style={styles.errorText}>{error}</Text>
                     ))}
                   </View>
                 ) : null}
 
-                <View style={styles.tableToolbar}>
-                  <Text style={styles.sectionLabel}>Line Items</Text>
-                  <Pressable style={styles.addRowButton} onPress={addRow}>
-                    <Ionicons name="add" size={16} color="#FFFFFF" />
-                    <Text style={styles.addRowText}>Add Row</Text>
-                  </Pressable>
-                </View>
-
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View style={styles.itemTable}>
-                    <View style={[styles.itemRow, styles.itemHeaderRow]}>
-                      <Text style={[styles.tableCell, styles.serialCell]}>S.No.</Text>
-                      <Text style={[styles.tableCell, styles.itemCell]}>Description of Goods / Services</Text>
-                      <Text style={[styles.tableCell, styles.codeCell]}>SSN{"\n"}CODE</Text>
-                      <Text style={[styles.tableCell, styles.codeCell]}>HSN{"\n"}CODE</Text>
-                      <Text style={[styles.tableCell, styles.smallCell]}>Qty</Text>
-                      <Text style={[styles.tableCell, styles.smallCell]}>Rate</Text>
-                      <Text style={[styles.tableCell, styles.amountCell]}>VALUE{"\n"}Rs.        P.</Text>
-                      <Text style={[styles.tableCell, styles.actionCell]} />
+                <View style={[styles.a4Paper, isDesktop && styles.webA4Paper]}>
+                  <View style={styles.topStrip}>
+                    <View style={styles.stripBlock}>
+                      <InlineInput value={`GSTIN: ${draftDocument.company.taxRegistrationNumber}`} onChangeText={(value) => updateCompanyField("taxRegistrationNumber", value.replace(/^GSTIN:\s*/i, ""))} textStyle={styles.stripText} />
+                      <InlineInput value={`PAN: ${draftDocument.company.pan || ""}`} onChangeText={(value) => updateCompanyField("pan", value.replace(/^PAN:\s*/i, ""))} textStyle={styles.stripText} />
                     </View>
+                    <Text style={styles.documentTitle}>{getDocumentTitle(draftDocument.documentType)}</Text>
+                    <View style={styles.stripBlockRight}>
+                      <InlineInput value={draftDocument.company.phone} onChangeText={(value) => updateCompanyField("phone", value)} textStyle={styles.stripTextRight} />
+                      <InlineInput value={draftDocument.company.email} onChangeText={(value) => updateCompanyField("email", value)} textStyle={styles.stripTextRight} />
+                    </View>
+                  </View>
 
-                    {draftDocument.items.map((item, index) => (
-                      <View key={item.id} style={styles.itemRow}>
-                        <Text style={[styles.tableCell, styles.serialCell]}>{index + 1}</Text>
-                        <CellInput value={item.description} onChangeText={(value) => updateItem(item.id, "description", value)} style={styles.itemCell} />
-                        <CellInput value={item.ssnCode || ""} onChangeText={(value) => updateItem(item.id, "ssnCode", value)} style={styles.codeCell} />
-                        <CellInput value={item.hsnSac || ""} onChangeText={(value) => updateItem(item.id, "hsnSac", value)} style={styles.codeCell} />
-                        <CellInput value={item.quantity} onChangeText={(value) => updateItem(item.id, "quantity", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                        <CellInput value={item.rate} onChangeText={(value) => updateItem(item.id, "rate", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                        <Text style={[styles.tableCell, styles.amountCell, styles.amountText]}>{formatMoney(getLineAmount(item), currency)}</Text>
-                        <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
-                          <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}>
-                            <Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : Colors.textSecondary} />
-                          </Pressable>
-                          <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftDocument.items.length - 1}>
-                            <Ionicons name="chevron-down" size={15} color={index === draftDocument.items.length - 1 ? "#CFCFCF" : Colors.textSecondary} />
-                          </Pressable>
-                          <Pressable onPress={() => deleteRow(item.id)}>
-                            <Ionicons name="trash-outline" size={16} color={Colors.error} />
-                          </Pressable>
-                        </View>
+                  <View style={styles.companyPanel}>
+                    {draftDocument.company.logoUrl ? (
+                      <View style={styles.logoBox}>
+                        <Image source={{ uri: draftDocument.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
                       </View>
-                    ))}
-                    {Array.from({ length: Math.max(0, 12 - draftDocument.items.length) }).map((_, index) => (
-                      <View key={`blank-${index}`} style={styles.itemRow}>
-                        <Text style={[styles.tableCell, styles.serialCell]} />
-                        <Text style={[styles.tableCell, styles.itemCell]} />
-                        <Text style={[styles.tableCell, styles.codeCell]} />
-                        <Text style={[styles.tableCell, styles.codeCell]} />
-                        <Text style={[styles.tableCell, styles.smallCell]} />
-                        <Text style={[styles.tableCell, styles.smallCell]} />
-                        <Text style={[styles.tableCell, styles.amountCell]} />
+                    ) : null}
+                    <View style={styles.companyBlock}>
+                      <InlineInput value={draftDocument.company.name} onChangeText={(value) => updateCompanyField("name", value)} textStyle={styles.companyName} />
+                      <InlineInput value={`Office : ${draftDocument.company.address}`} onChangeText={(value) => updateCompanyField("address", value.replace(/^Office\s*:\s*/i, ""))} multiline textStyle={styles.companyAddress} />
+                      <InlineInput value={`Email: ${draftDocument.company.email}`} onChangeText={(value) => updateCompanyField("email", value.replace(/^Email:\s*/i, ""))} textStyle={styles.companyEmail} />
+                    </View>
+                  </View>
+
+                  <View style={styles.partiesGrid}>
+                    <View style={styles.partyBox}>
+                      <Text style={styles.sectionLabel}>Recipient Detail :</Text>
+                      <DottedField label="Name" value={draftDocument.customer.name} onChangeText={(value) => updateCustomerField("name", value)} />
+                      <DottedField label="Address" value={draftDocument.customer.address} onChangeText={(value) => updateCustomerField("address", value)} />
+                      <View style={styles.recipientLine}>
+                        <DottedField label="State" value={draftDocument.customer.state || ""} onChangeText={(value) => updateCustomerField("state", value)} compact />
+                        <DottedField label="State Code" value={draftDocument.customer.stateCode || ""} onChangeText={(value) => updateCustomerField("stateCode", value)} compact />
+                        <DottedField label="PIN" value={draftDocument.customer.pin || ""} onChangeText={(value) => updateCustomerField("pin", value)} compact />
+                      </View>
+                      {isTaxDocument ? <BoxedGstinField value={draftDocument.customer.gstin || ""} onChangeText={(value) => updateCustomerField("gstin", value)} /> : null}
+                    </View>
+                    <View style={styles.invoiceInfoBox}>
+                      <DottedField label={isTaxDocument ? "Invoice Serial No." : "Bill Serial No."} value={draftDocument.documentNumber} onChangeText={(value) => updateDocumentField("documentNumber", value)} />
+                      <DottedField label="Invoice Date" value={draftDocument.invoiceDate} onChangeText={(value) => updateDocumentField("invoiceDate", value)} />
+                      <DottedField label="Time" value={new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} onChangeText={() => undefined} />
+                      <DottedField label="Currency" value={draftDocument.company.currency} onChangeText={(value) => updateCompanyField("currency", value.toUpperCase())} />
+                    </View>
+                  </View>
+
+                  {isTaxDocument ? (
+                    <View style={styles.taxModeRow}>
+                      {(["No GST", "CGST + SGST", "IGST"] as const).map((taxMode) => (
+                        <Pressable
+                          key={taxMode}
+                          style={[styles.taxModePill, draftDocument.taxMode === taxMode && styles.taxModePillActive]}
+                          onPress={() => setDraftDocument((current) => (current ? { ...current, taxMode } : current))}
+                        >
+                          <Text style={[styles.taxModeText, draftDocument.taxMode === taxMode && styles.taxModeTextActive]}>{taxMode}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  ) : null}
+
+                  <View style={styles.tableToolbar}>
+                    <Text style={styles.sectionLabel}>Line Items</Text>
+                    <Pressable style={styles.addRowButton} onPress={addRow}>
+                      <Ionicons name="add" size={16} color="#FFFFFF" />
+                      <Text style={styles.addRowText}>Add Row</Text>
+                    </Pressable>
+                  </View>
+
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.itemTable}>
+                      <View style={[styles.itemRow, styles.itemHeaderRow]}>
+                        <Text style={[styles.tableCell, styles.serialCell]}>S.No.</Text>
+                        <Text style={[styles.tableCell, styles.itemCell]}>Description of Goods / Services</Text>
+                        <Text style={[styles.tableCell, styles.codeCell]}>SSN{"\n"}CODE</Text>
+                        <Text style={[styles.tableCell, styles.codeCell]}>HSN{"\n"}CODE</Text>
+                        <Text style={[styles.tableCell, styles.smallCell]}>Qty</Text>
+                        <Text style={[styles.tableCell, styles.smallCell]}>Rate</Text>
+                        <Text style={[styles.tableCell, styles.amountCell]}>VALUE{"\n"}Rs.        P.</Text>
                         <Text style={[styles.tableCell, styles.actionCell]} />
                       </View>
-                    ))}
-                  </View>
-                </ScrollView>
 
-                <View style={styles.summaryArea}>
-                  <View style={styles.bankTermsColumn}>
-                    <View style={styles.bankBox}>
-                      <Text style={styles.sectionLabel}>Bank Details</Text>
-                      <MetaField label="Bank Name" value={draftDocument.bank.bankName} onChangeText={(value) => updateBankField("bankName", value)} />
-                      <MetaField label="Account Number" value={draftDocument.bank.accountNumber} onChangeText={(value) => updateBankField("accountNumber", value)} />
-                      <MetaField label="IFSC" value={draftDocument.bank.ifscCode} onChangeText={(value) => updateBankField("ifscCode", value)} />
-                      <MetaField label="Branch" value={draftDocument.bank.branchAddress} onChangeText={(value) => updateBankField("branchAddress", value)} />
+                      {draftDocument.items.map((item, index) => (
+                        <View key={item.id} style={styles.itemRow}>
+                          <Text style={[styles.tableCell, styles.serialCell]}>{index + 1}</Text>
+                          <CellInput value={item.description} onChangeText={(value) => updateItem(item.id, "description", value)} style={styles.itemCell} />
+                          <CellInput value={item.ssnCode || ""} onChangeText={(value) => updateItem(item.id, "ssnCode", value)} style={styles.codeCell} />
+                          <CellInput value={item.hsnSac || ""} onChangeText={(value) => updateItem(item.id, "hsnSac", value)} style={styles.codeCell} />
+                          <CellInput value={item.quantity} onChangeText={(value) => updateItem(item.id, "quantity", value)} style={styles.smallCell} keyboardType="decimal-pad" />
+                          <CellInput value={item.rate} onChangeText={(value) => updateItem(item.id, "rate", value)} style={styles.smallCell} keyboardType="decimal-pad" />
+                          <Text style={[styles.tableCell, styles.amountCell, styles.amountText]}>{formatMoney(getLineAmount(item), currency)}</Text>
+                          <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
+                            <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}>
+                              <Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : Colors.textSecondary} />
+                            </Pressable>
+                            <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftDocument.items.length - 1}>
+                              <Ionicons name="chevron-down" size={15} color={index === draftDocument.items.length - 1 ? "#CFCFCF" : Colors.textSecondary} />
+                            </Pressable>
+                            <Pressable onPress={() => deleteRow(item.id)}>
+                              <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                            </Pressable>
+                          </View>
+                        </View>
+                      ))}
+                      {Array.from({ length: Math.max(0, 12 - draftDocument.items.length) }).map((_, index) => (
+                        <View key={`blank-${index}`} style={styles.itemRow}>
+                          <Text style={[styles.tableCell, styles.serialCell]} />
+                          <Text style={[styles.tableCell, styles.itemCell]} />
+                          <Text style={[styles.tableCell, styles.codeCell]} />
+                          <Text style={[styles.tableCell, styles.codeCell]} />
+                          <Text style={[styles.tableCell, styles.smallCell]} />
+                          <Text style={[styles.tableCell, styles.smallCell]} />
+                          <Text style={[styles.tableCell, styles.amountCell]} />
+                          <Text style={[styles.tableCell, styles.actionCell]} />
+                        </View>
+                      ))}
                     </View>
-                    <View style={styles.textAreaBlock}>
-                      <Text style={styles.sectionLabel}>Terms & Conditions</Text>
-                      <TextInput style={styles.textArea} value={draftDocument.terms} onChangeText={(value) => updateDocumentField("terms", value)} multiline />
+                  </ScrollView>
+
+                  <View style={styles.summaryArea}>
+                    <View style={styles.bankTermsColumn}>
+                      <View style={styles.bankBox}>
+                        <Text style={styles.sectionLabel}>Bank Details :</Text>
+                        <DottedField label="Bank Name" value={draftDocument.bank.bankName} onChangeText={(value) => updateBankField("bankName", value)} />
+                        <DottedField label="A/c No." value={draftDocument.bank.accountNumber} onChangeText={(value) => updateBankField("accountNumber", value)} />
+                        <DottedField label="IFSC Code" value={draftDocument.bank.ifscCode} onChangeText={(value) => updateBankField("ifscCode", value)} />
+                        <DottedField label="Branch" value={draftDocument.bank.branchAddress} onChangeText={(value) => updateBankField("branchAddress", value)} />
+                      </View>
+                      <View style={styles.noteBox}>
+                        <Text style={styles.sectionLabel}>Terms & Conditions :</Text>
+                        <View style={styles.textAreaBlock}>
+                          <TextInput
+                            value={draftDocument.terms}
+                            onChangeText={(value) => updateDocumentField("terms", value)}
+                            multiline
+                            style={styles.textArea}
+                          />
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.totalsBox}>
+                      <View style={styles.totalRow}>
+                        <Text style={styles.totalLabel}>Subtotal</Text>
+                        <Text style={styles.totalValue}>{formatMoney(totals.subtotal, currency)}</Text>
+                      </View>
+
+                      {draftDocument.taxMode === "CGST + SGST" ? (
+                        <>
+                          <View style={styles.totalRow}>
+                            <Text style={styles.totalLabel}>CGST</Text>
+                            <View style={styles.percentInputWrap}>
+                              <TextInput value={`${draftDocument.cgstPercent}`} onChangeText={(value) => updateNumberField("cgstPercent", value)} keyboardType="decimal-pad" style={styles.percentInput} />
+                              <Text style={styles.totalLabel}>%</Text>
+                            </View>
+                            <Text style={styles.totalValue}>{formatMoney(totals.cgstAmount, currency)}</Text>
+                          </View>
+                          <View style={styles.totalRow}>
+                            <Text style={styles.totalLabel}>SGST</Text>
+                            <View style={styles.percentInputWrap}>
+                              <TextInput value={`${draftDocument.sgstPercent}`} onChangeText={(value) => updateNumberField("sgstPercent", value)} keyboardType="decimal-pad" style={styles.percentInput} />
+                              <Text style={styles.totalLabel}>%</Text>
+                            </View>
+                            <Text style={styles.totalValue}>{formatMoney(totals.sgstAmount, currency)}</Text>
+                          </View>
+                        </>
+                      ) : draftDocument.taxMode === "IGST" ? (
+                        <View style={styles.totalRow}>
+                          <Text style={styles.totalLabel}>IGST</Text>
+                          <View style={styles.percentInputWrap}>
+                            <TextInput value={`${draftDocument.igstPercent}`} onChangeText={(value) => updateNumberField("igstPercent", value)} keyboardType="decimal-pad" style={styles.percentInput} />
+                            <Text style={styles.totalLabel}>%</Text>
+                          </View>
+                          <Text style={styles.totalValue}>{formatMoney(totals.igstAmount, currency)}</Text>
+                        </View>
+                      ) : null}
+
+                      <View style={styles.totalRow}>
+                        <Text style={styles.totalLabel}>Freight Charges</Text>
+                        <View style={styles.editableTotalValue}>
+                          <Text style={styles.currencyPrefix}>{currency}</Text>
+                          <TextInput value={`${draftDocument.freightCharges || ""}`} onChangeText={(value) => updateNumberField("freightCharges", value)} keyboardType="decimal-pad" style={styles.totalInput} />
+                        </View>
+                      </View>
+
+                      <View style={styles.totalDivider} />
+
+                      <View style={styles.totalRow}>
+                        <Text style={[styles.totalLabel, styles.totalStrong]}>Grand Total</Text>
+                        <Text style={[styles.totalValue, styles.totalStrong, { color: Colors.primary }]}>{formatMoney(totals.grandTotal, currency)}</Text>
+                      </View>
+
+                      <View style={styles.wordsBox}>
+                        <Text style={styles.wordsLabel}>Amount in Words :</Text>
+                        <TextInput value={getNumberWords(totals.grandTotal, currency)} style={styles.wordsInput} multiline editable={false} />
+                      </View>
                     </View>
                   </View>
 
-                  <View style={styles.totalsBox}>
-                    <TotalRow label={isTaxDocument ? "Total Value Before Tax" : "Subtotal"} value={formatMoney(totals.subtotal, currency)} />
-                    <EditableAmountRow label="Discount" value={String(draftDocument.discount)} onChangeText={(value) => updateNumberField("discount", value)} currency={currency} />
-                    <EditableAmountRow label="Freight / Other Charges" value={String(draftDocument.freightCharges)} onChangeText={(value) => updateNumberField("freightCharges", value)} currency={currency} />
-                    <TotalRow label={isTaxDocument ? "Taxable Value" : "Total"} value={formatMoney(totals.taxableValue, currency)} />
-                    {isTaxDocument && draftDocument.taxMode === "CGST + SGST" ? (
-                      <>
-                        <EditablePercentRow label="CGST %" value={String(draftDocument.cgstPercent)} onChangeText={(value) => updateNumberField("cgstPercent", value)} amount={formatMoney(totals.cgstAmount, currency)} />
-                        <EditablePercentRow label="SGST %" value={String(draftDocument.sgstPercent)} onChangeText={(value) => updateNumberField("sgstPercent", value)} amount={formatMoney(totals.sgstAmount, currency)} />
-                      </>
-                    ) : null}
-                    {isTaxDocument && draftDocument.taxMode === "IGST" ? (
-                      <EditablePercentRow label="IGST %" value={String(draftDocument.igstPercent)} onChangeText={(value) => updateNumberField("igstPercent", value)} amount={formatMoney(totals.igstAmount, currency)} />
-                    ) : null}
-                    <View style={styles.totalDivider} />
-                    <TotalRow label={isTaxDocument ? "Gross Total Value" : "Grand Total"} value={formatMoney(totals.grandTotal, currency)} strong />
-                    <View style={styles.wordsBox}>
-                      <Text style={styles.wordsLabel}>Amount in Words</Text>
-                      <TextInput
-                        style={styles.wordsInput}
-                        value={draftDocument.amountInWords || getNumberWords(totals.grandTotal, currency)}
-                        onChangeText={(value) => updateDocumentField("amountInWords", value)}
-                        multiline
-                      />
+                  <View style={styles.signatureArea}>
+                    <View style={styles.noteBox}>
+                      <Text style={styles.sectionLabel}>Notes :</Text>
+                      <View style={styles.textAreaBlock}>
+                        <TextInput
+                          value={draftDocument.notes}
+                          onChangeText={(value) => updateDocumentField("notes", value)}
+                          multiline
+                          style={styles.textArea}
+                          placeholder="Add any specific notes for client here..."
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.signBox}>
+                      <Text style={styles.signFor}>For {draftDocument.company.name}</Text>
+                      <View style={styles.assetRow}>
+                        <AssetPreview label="Stamp" uri={draftDocument.company.stampUrl} />
+                        <AssetPreview label="Signature" uri={draftDocument.company.signatureUrl} />
+                      </View>
+                      <Text style={styles.signLabel}>Authorized Signatory</Text>
                     </View>
                   </View>
                 </View>
-
-                <View style={styles.signatureArea}>
-                  <View style={styles.noteBox}>
-                    <Text style={styles.sectionLabel}>Notes</Text>
-                    <TextInput style={styles.textArea} value={draftDocument.notes} onChangeText={(value) => updateDocumentField("notes", value)} multiline />
-                  </View>
-                  <View style={styles.signBox}>
-                    <Text style={styles.signFor}>For {draftDocument.company.name}</Text>
-                    <View style={styles.assetRow}>
-                      <AssetPreview label="Stamp" uri={draftDocument.company.stampUrl} />
-                      <AssetPreview label="Signature" uri={draftDocument.company.signatureUrl} />
-                    </View>
-                    <Text style={styles.signLabel}>Authorized Signatory</Text>
-                  </View>
-                </View>
-              </View>
+              </ScrollView>
             </ScrollView>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </SafeAreaView>
     );
   }
