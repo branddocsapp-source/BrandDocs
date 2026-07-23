@@ -75,7 +75,7 @@ type AuthCheckboxProps = {
 };
 
 export function AuthLayout({ children }: AuthLayoutProps) {
-  const { isWebsite, width } = useResponsiveLayout();
+  const { isWebsite, width, isPhone } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
   const isWide = width >= 1040;
   const isTablet = width >= 720 && width < 1040;
@@ -93,7 +93,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       keyboardShouldPersistTaps="handled"
     >
       <View style={[styles.shell, isWide && styles.shellWide, isTablet && styles.shellTablet]}>
-        <BrandPanel compact={!isWide} />
+        {!isPhone ? <BrandPanel compact={!isWide} /> : null}
         <Animated.View
           entering={FadeIn.duration(350)}
           style={[

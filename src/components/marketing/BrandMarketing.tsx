@@ -619,6 +619,8 @@ function PricingSelector({
 }
 
 function PricingSection() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 680;
   const initialCountry = useMemo(() => detectPricingCountry(), []);
   const [selectedCountry, setSelectedCountry] = useState<PricingCountryCode>(initialCountry);
   const { theme } = useAppTheme();
@@ -629,7 +631,7 @@ function PricingSection() {
     <View style={styles.pricingWrap}>
       <PricingSelector selectedCountry={selectedCountry} onSelectCountry={setSelectedCountry} />
       <View style={styles.pricingGrid}>
-        <View style={[styles.planCard, { backgroundColor: theme.white, borderColor: theme.line }]}>
+        <View style={[styles.planCard, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
           <Text style={[styles.planName, { color: theme.ink }]}>Free</Text>
           <Text style={[styles.planPrice, { color: theme.ink }]}>Free</Text>
           <Text style={[styles.planSubtext, { color: theme.muted }]}>Start creating approved BrandDocs documents.</Text>
@@ -644,7 +646,7 @@ function PricingSection() {
           <MarketingButton label="Start Free" href="/signup" variant="secondary" />
         </View>
 
-        <View style={[styles.planCard, { backgroundColor: theme.white, borderColor: theme.orangeDark }]}>
+        <View style={[styles.planCard, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.orangeDark }]}>
           <View style={[styles.popularBadge, { backgroundColor: theme.orange }]}>
             <Text style={styles.popularBadgeText}>MOST POPULAR</Text>
           </View>
@@ -664,8 +666,8 @@ function PricingSection() {
           <MarketingButton label="Upgrade to Premium" href="/signup" />
         </View>
       </View>
-      <View style={[styles.billingNote, { backgroundColor: theme.white, borderColor: theme.line }]}>
-        <View style={[styles.billingIcon, { backgroundColor: theme.orangeSoft }]}>
+      <View style={[styles.billingNote, isMobile && { flexDirection: "column" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
+        <View style={[styles.billingIcon, { backgroundColor: theme.orangeSoft }, isMobile && { marginBottom: 12 }]}>
           <Ionicons name="information-circle-outline" size={22} color={theme.orangeDark} />
         </View>
         <View style={styles.billingCopy}>
@@ -787,12 +789,12 @@ export function LandingPage() {
             <Text style={[styles.metricNumber, { color: theme.ink }]}>10,000+</Text>
             <Text style={[styles.metricLabel, { color: theme.muted }]}>Documents Generated</Text>
           </View>
-          <View style={[styles.metricDivider, { backgroundColor: theme.line }]} />
+          {!isMobile ? <View style={[styles.metricDivider, { backgroundColor: theme.line }]} /> : null}
           <View style={styles.metricItem}>
             <Text style={[styles.metricNumber, { color: theme.ink }]}>100%</Text>
             <Text style={[styles.metricLabel, { color: theme.muted }]}>Tax & GST Compliant</Text>
           </View>
-          <View style={[styles.metricDivider, { backgroundColor: theme.line }]} />
+          {!isMobile ? <View style={[styles.metricDivider, { backgroundColor: theme.line }]} /> : null}
           <View style={styles.metricItem}>
             <Text style={[styles.metricNumber, { color: theme.ink }]}>4.9 / 5 ⭐</Text>
             <Text style={[styles.metricLabel, { color: theme.muted }]}>User Satisfaction</Text>
@@ -811,7 +813,7 @@ export function LandingPage() {
           />
           <View style={styles.documentGrid}>
             {documentCards.map((document) => (
-              <View key={document.title} style={[styles.card, { backgroundColor: theme.white, borderColor: theme.line }]}>
+              <View key={document.title} style={[styles.card, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
                 <OutlineIcon name={document.icon} />
                 <Text style={[styles.cardTitle, { color: theme.ink }]}>{document.title}</Text>
                 <Text style={[styles.cardText, { color: theme.muted }]}>{document.description}</Text>
@@ -832,7 +834,7 @@ export function LandingPage() {
           />
           <View style={styles.featureGrid}>
             {featureCards.map((feature) => (
-              <View key={feature.title} style={[styles.featureCard, { backgroundColor: theme.white, borderColor: theme.line }]}>
+              <View key={feature.title} style={[styles.featureCard, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
                 <OutlineIcon name={feature.icon} />
                 <Text style={[styles.cardTitle, { color: theme.ink }]}>{feature.title}</Text>
                 <Text style={[styles.cardText, { color: theme.muted }]}>{feature.description}</Text>
@@ -911,6 +913,8 @@ export function MarketingInfoPage({
   items?: string[];
 }) {
   const { theme } = useAppTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 680;
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={[styles.page, { backgroundColor: theme.background }]}>
@@ -921,7 +925,7 @@ export function MarketingInfoPage({
         {items.length > 0 ? (
           <View style={styles.featureGrid}>
             {items.map((item) => (
-              <View key={item} style={[styles.card, { backgroundColor: theme.white, borderColor: theme.line }]}>
+              <View key={item} style={[styles.card, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
                 <OutlineIcon name="shield-checkmark-outline" />
                 <Text style={[styles.cardTitle, { color: theme.ink }]}>{item}</Text>
                 <Text style={[styles.cardText, { color: theme.muted }]}>
