@@ -29,7 +29,7 @@ export default function ReportsScreen() {
   const [quotations, setQuotations] = useState<QuotationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<TimePeriod>("all");
-  const { isAppPreview, isWideDesktop } = useResponsiveLayout();
+  const { isAppPreview, isWideDesktop, isPhone } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
 
   const currency = profile?.defaultCurrency || profile?.currencyCode || "INR";
@@ -178,7 +178,7 @@ export default function ReportsScreen() {
         <View style={styles.contentGrid}>
           {/* Top KPI Cards */}
           <View style={[styles.kpiGrid, isWideDesktop && styles.kpiGridWide]}>
-            <AppCard style={styles.kpiCard}>
+            <AppCard style={[styles.kpiCard, isPhone && { minWidth: 140 }]}>
               <View style={[styles.kpiIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
                 <Ionicons name="bar-chart-outline" size={22} color={BrandColors.primary} />
               </View>
@@ -189,7 +189,7 @@ export default function ReportsScreen() {
               <Text style={[styles.kpiSubtext, { color: theme.muted }]}>{filteredInvoices.length} invoices generated</Text>
             </AppCard>
 
-            <AppCard style={styles.kpiCard}>
+            <AppCard style={[styles.kpiCard, isPhone && { minWidth: 140 }]}>
               <View style={[styles.kpiIcon, { backgroundColor: isDark ? "rgba(36, 161, 72, 0.18)" : BrandColors.successSoft }]}>
                 <Ionicons name="checkmark-circle-outline" size={22} color={BrandColors.success} />
               </View>
@@ -202,7 +202,7 @@ export default function ReportsScreen() {
               </Text>
             </AppCard>
 
-            <AppCard style={styles.kpiCard}>
+            <AppCard style={[styles.kpiCard, isPhone && { minWidth: 140 }]}>
               <View style={[styles.kpiIcon, { backgroundColor: isDark ? "rgba(245, 158, 11, 0.18)" : BrandColors.warningSoft }]}>
                 <Ionicons name="time-outline" size={22} color={BrandColors.warning} />
               </View>
@@ -215,7 +215,7 @@ export default function ReportsScreen() {
               </Text>
             </AppCard>
 
-            <AppCard style={styles.kpiCard}>
+            <AppCard style={[styles.kpiCard, isPhone && { minWidth: 140 }]}>
               <View style={[styles.kpiIcon, { backgroundColor: isDark ? "rgba(37, 99, 235, 0.18)" : BrandColors.infoSoft }]}>
                 <Ionicons name="pie-chart-outline" size={22} color={BrandColors.info} />
               </View>
