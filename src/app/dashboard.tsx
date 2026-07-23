@@ -75,7 +75,7 @@ export default function DashboardScreen() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
-  const { isAppPreview, isWideDesktop, usesSidebar } = useResponsiveLayout();
+  const { isAppPreview, isWideDesktop, usesSidebar, isPhone } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
   const companyName = profile?.name || "Your company";
   const companyInitials = getCompanyInitials(profile?.name);
@@ -282,7 +282,7 @@ export default function DashboardScreen() {
 
       <View style={[styles.statsGrid, isWideDesktop && styles.statsGridWide]}>
         {stats.map((item) => (
-          <AppCard key={item.label} style={styles.statCard}>
+          <AppCard key={item.label} style={[styles.statCard, isPhone && { minWidth: 140 }]}>
             <View style={[styles.statIcon, statToneStyle(item.tone, isDark, theme)]}>
               <Ionicons name={item.icon as never} size={21} color={BrandColors.primary} />
             </View>
@@ -301,6 +301,7 @@ export default function DashboardScreen() {
             key={action.title}
             style={({ pressed }) => [
               styles.actionCard,
+              isPhone && { minWidth: 135 },
               { backgroundColor: theme.card, borderColor: theme.line },
               pressed && styles.pressedCard,
             ]}
