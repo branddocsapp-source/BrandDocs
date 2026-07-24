@@ -566,8 +566,8 @@ export function AppShell({
               {content}
             </ScrollView>
           ) : content}
+          {!usesSidebar ? <MobileBottomNavigation /> : null}
         </View>
-        {!usesSidebar ? <MobileBottomNavigation /> : null}
       </View>
     </SafeAreaView>
   );
