@@ -662,7 +662,6 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     alignItems: "center",
-    alignSelf: "center",
     backgroundColor: BrandColors.background,
     borderColor: BrandColors.border,
     borderRadius: BrandRadius.large,
@@ -671,10 +670,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: BrandLayout.bottomNavHeight,
     justifyContent: "space-around",
-    maxWidth: BrandLayout.mobileContentWidth - BrandSpacing.xl,
+    left: 16,
+    right: 16,
     paddingHorizontal: BrandSpacing.xs,
     position: "absolute",
-    width: "92%",
     ...BrandShadows.raised,
   },
   bottomNavItem: {
