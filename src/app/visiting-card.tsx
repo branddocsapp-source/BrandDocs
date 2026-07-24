@@ -54,7 +54,14 @@ import {
   VisitingCardStatus,
   VisitingCardTemplateId,
 } from "@/services/visiting-cards";
+import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { BrandColors, BrandRadius, BrandShadows, BrandSpacing, BrandTypography } from "@/theme/tokens";
+
+function useVisitingCardStyles() {
+  const { theme, isDark } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  return { theme, styles, isDark };
+}
 
 type Step = 1 | 2 | 3 | 4 | 5;
 type ViewMode = "grid" | "list";
@@ -87,6 +94,7 @@ const cardSizes: { value: VisitingCardSize; label: string }[] = [
 type ImageSelection = VisitingCardAssetInput | null;
 
 export default function VisitingCardScreen() {
+  const { theme, styles } = useVisitingCardStyles();
   const router = useRouter();
   const params = useLocalSearchParams<{ editCardId?: string; duplicateCardId?: string; appPreview?: string }>();
   const { isAppPreview, isDesktop, usesSidebar, width } = useResponsiveLayout();
@@ -652,13 +660,14 @@ function EditorHeader({
   onPreview: () => void;
   onFinal: () => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   const saveLabel = autoSaveState === "saving" ? "Saving..." : autoSaveState === "saved" ? "Saved" : autoSaveState === "failed" ? "Save failed" : "Not saved";
 
   return (
     <View style={styles.editorHeader}>
       <View style={styles.editorTitleRow}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" style={styles.roundIconButton} onPress={onBack}>
-          <Ionicons name="chevron-back" size={20} color={BrandColors.text} />
+          <Ionicons name="chevron-back" size={20} color={theme.ink} />
         </Pressable>
         <View style={styles.editorTitleCopy}>
           <Text style={styles.editorTitle}>{draft.fullName || "New Visiting Card"}</Text>
@@ -677,6 +686,7 @@ function EditorHeader({
 }
 
 function StepIndicator({ step, setStep }: { step: Step; setStep: (step: Step) => void }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.stepIndicator}>
       {stepLabels.map((label, index) => {
@@ -685,8 +695,8 @@ function StepIndicator({ step, setStep }: { step: Step; setStep: (step: Step) =>
         const complete = step > currentStep;
         return (
           <Pressable key={label} style={[styles.stepPill, active && styles.stepPillActive, complete && styles.stepPillComplete]} onPress={() => setStep(currentStep)}>
-            <Text style={[styles.stepNumber, (active || complete) && styles.stepNumberActive]}>{index + 1}</Text>
-            <Text style={[styles.stepLabel, active && styles.stepLabelActive]} numberOfLines={1}>{label}</Text>
+            <Text style={[styles.stepNumber, active && { color: theme.orange }, complete && { color: theme.success || "#24A148" }]}>{index + 1}</Text>
+            <Text style={[styles.stepLabel, active && { color: theme.orange }]} numberOfLines={1}>{label}</Text>
           </Pressable>
         );
       })}
@@ -700,11 +710,12 @@ function BusinessStep({
   updateDraft,
   refreshFromProfile,
 }: {
-  profile: BusinessProfile | null;
-  draft: VisitingCardRecord;
-  updateDraft: (patch: Partial<VisitingCardRecord>) => void;
+  profile: BusinessProfile;
+  draft: Partial<VisitingCardRecord>;
+  updateDraft: (updates: Partial<VisitingCardRecord>) => void;
   refreshFromProfile: () => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <AppCard style={styles.stepCard}>
       <Text style={styles.panelTitle}>Select Business</Text>
@@ -724,7 +735,7 @@ function BusinessStep({
       <ToggleRow
         label="Use Business Profile Details"
         description="Initialize this card from the selected business, while keeping card edits separate from the main profile."
-        value={draft.useBusinessProfileDetails}
+        value={draft.useBusinessProfileDetails || false}
         onValueChange={(value) => updateDraft({ useBusinessProfileDetails: value })}
       />
       <SecondaryButton label="Refresh from Business Profile" icon="refresh-outline" onPress={refreshFromProfile} disabled={!profile} />
@@ -732,7 +743,14 @@ function BusinessStep({
   );
 }
 
-function TemplateStep({ draft, updateDraft }: { draft: VisitingCardRecord; updateDraft: (patch: Partial<VisitingCardRecord>) => void }) {
+function TemplateStep({
+  draft,
+  updateDraft,
+}: {
+  draft: Partial<VisitingCardRecord>;
+  updateDraft: (updates: Partial<VisitingCardRecord>) => void;
+}) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <AppCard style={styles.stepCard}>
       <Text style={styles.panelTitle}>Choose Template</Text>
@@ -752,7 +770,7 @@ function TemplateStep({ draft, updateDraft }: { draft: VisitingCardRecord; updat
                 backEnabled: template.backEnabled,
                 designSettings: {
                   ...template.defaultColors,
-                  accentColor: draft.designSettings.accentColor,
+                  accentColor: draft.designSettings?.accentColor || template.defaultColors.accentColor,
                 },
               })}
             >
@@ -785,6 +803,7 @@ function DetailsStep({
   pickProfilePhoto: () => void;
   removeProfilePhoto: () => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.stepStack}>
       <AppCard style={styles.stepCard}>
@@ -824,7 +843,7 @@ function DetailsStep({
         </View>
         <View style={styles.mediaRow}>
           <View style={styles.mediaPreview}>
-            {draft.profilePhotoUrl ? <Image source={{ uri: draft.profilePhotoUrl }} style={styles.mediaPhoto} contentFit="cover" /> : <Ionicons name="person-outline" size={26} color={BrandColors.textSecondary} />}
+            {draft.profilePhotoUrl ? <Image source={{ uri: draft.profilePhotoUrl }} style={styles.mediaPhoto} contentFit="cover" /> : <Ionicons name="person-outline" size={26} color={theme.muted} />}
           </View>
           <View style={styles.mediaCopy}>
             <Text style={styles.mediaTitle}>Profile Photo</Text>
@@ -870,6 +889,7 @@ function DesignStep({
   handlePngExport: () => void;
   handlePrintOrPdf: () => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   const physicalSize = getCardPhysicalSize(draft.cardSize, draft.orientation);
   const contrastWarning = hasContrastWarning(draft.designSettings.backgroundColor, draft.designSettings.textColor);
 
@@ -960,7 +980,7 @@ function DesignStep({
 function SaveStep({
   draft,
   saving,
-  onSaveDraft,
+  onSave,
   onSaveFinal,
   onPreview,
   onPrint,
@@ -969,13 +989,14 @@ function SaveStep({
 }: {
   draft: VisitingCardRecord;
   saving: boolean;
-  onSaveDraft: () => void;
+  onSave: () => void;
   onSaveFinal: () => void;
   onPreview: () => void;
   onPrint: () => void;
   onPng: () => void;
   onShare: () => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   const filename = sanitizeVisitingCardFilename(draft);
 
   return (
@@ -1102,6 +1123,7 @@ function SegmentedControl({
 }
 
 function NumberControl({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (value: number) => void }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.numberControl}>
       <Text style={styles.numberLabel}>{label}</Text>
@@ -1115,25 +1137,28 @@ function NumberControl({ label, value, min, max, onChange }: { label: string; va
 }
 
 function ToastMessage({ message, onClose }: { message: string; onClose?: () => void }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.toast}>
-      <Ionicons name="information-circle-outline" size={18} color={BrandColors.primary} />
+      <Ionicons name="information-circle-outline" size={18} color={theme.orange} />
       <Text style={styles.toastText}>{message}</Text>
-      {onClose ? <Pressable accessibilityRole="button" accessibilityLabel="Dismiss message" onPress={onClose}><Ionicons name="close-outline" size={18} color={BrandColors.textSecondary} /></Pressable> : null}
+      {onClose ? <Pressable accessibilityRole="button" accessibilityLabel="Dismiss message" onPress={onClose}><Ionicons name="close-outline" size={18} color={theme.muted} /></Pressable> : null}
     </View>
   );
 }
 
 function WarningText({ message }: { message: string }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.warningBox}>
-      <Ionicons name="warning-outline" size={17} color={BrandColors.warning} />
+      <Ionicons name="warning-outline" size={17} color={theme.orangeDark} />
       <Text style={styles.warningText}>{message}</Text>
     </View>
   );
 }
 
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.filterGroup}>
       <Text style={styles.filterLabel}>{label}</Text>
@@ -1143,6 +1168,7 @@ function FilterGroup({ label, children }: { label: string; children: React.React
 }
 
 function Pill({ label, active, onPress }: { label: string; active?: boolean; onPress?: () => void }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.pill, active && styles.pillActive, pressed && styles.pressed]}>
       <Text style={[styles.pillText, active && styles.pillTextActive]}>{label}</Text>
@@ -1151,17 +1177,19 @@ function Pill({ label, active, onPress }: { label: string; active?: boolean; onP
 }
 
 function IconToggle({ icon, active, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; active?: boolean; label: string; onPress: () => void }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.iconToggle, active && styles.iconToggleActive, pressed && styles.pressed]}>
-      <Ionicons name={icon} size={18} color={active ? BrandColors.primary : BrandColors.textSecondary} />
+      <Ionicons name={icon} size={18} color={active ? theme.orange : theme.muted} />
     </Pressable>
   );
 }
 
 function ActionButton({ icon, label, destructive, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; destructive?: boolean; onPress: () => void }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
-      <Ionicons name={icon} size={16} color={destructive ? BrandColors.error : BrandColors.textSecondary} />
+      <Ionicons name={icon} size={16} color={destructive ? (theme.error || "#D92D20") : theme.muted} />
       <Text style={[styles.actionText, destructive && styles.destructiveActionText]}>{label}</Text>
     </Pressable>
   );
@@ -1193,571 +1221,573 @@ function parseHexBrightness(value: string) {
   return (red * 299 + green * 587 + blue * 114) / 1000;
 }
 
-const styles = StyleSheet.create({
-  retryButton: {
-    alignSelf: "center",
-    marginTop: BrandSpacing.lg,
-  },
-  editorScroll: {
-    paddingBottom: BrandSpacing["5xl"],
-  },
-  editorHeader: {
-    gap: BrandSpacing.md,
-    marginBottom: BrandSpacing.lg,
-  },
-  editorTitleRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-  },
-  roundIconButton: {
-    alignItems: "center",
-    backgroundColor: BrandColors.background,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.pill,
-    borderWidth: 1,
-    height: 42,
-    justifyContent: "center",
-    width: 42,
-  },
-  editorTitleCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  editorTitle: {
-    ...BrandTypography.pageHeading,
-    color: BrandColors.text,
-  },
-  editorSubtitle: {
-    ...BrandTypography.caption,
-    color: BrandColors.textSecondary,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-  },
-  editorLayout: {
-    gap: BrandSpacing.lg,
-  },
-  editorLayoutSplit: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-  },
-  editorPanel: {
-    gap: BrandSpacing.md,
-  },
-  editorPanelSplit: {
-    flex: 0.95,
-    minWidth: 0,
-  },
-  previewPanel: {
-    gap: BrandSpacing.md,
-  },
-  previewPanelSplit: {
-    flex: 0.85,
-    minWidth: 330,
-    position: "sticky" as never,
-    top: 18,
-  },
-  previewToolbar: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.md,
-    justifyContent: "space-between",
-  },
-  previewPair: {
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-  },
-  stepIndicator: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-  },
-  stepPill: {
-    alignItems: "center",
-    backgroundColor: BrandColors.background,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.pill,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.xs,
-    minHeight: 38,
-    paddingHorizontal: BrandSpacing.md,
-  },
-  stepPillActive: {
-    backgroundColor: BrandColors.primarySoft,
-    borderColor: BrandColors.primarySubtle,
-  },
-  stepPillComplete: {
-    borderColor: BrandColors.success,
-  },
-  stepNumber: {
-    color: BrandColors.textSecondary,
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  stepNumberActive: {
-    color: BrandColors.primary,
-  },
-  stepLabel: {
-    ...BrandTypography.caption,
-    color: BrandColors.textSecondary,
-  },
-  stepLabelActive: {
-    color: BrandColors.primary,
-  },
-  stepStack: {
-    gap: BrandSpacing.md,
-  },
-  stepCard: {
-    gap: BrandSpacing.md,
-  },
-  panelTitle: {
-    ...BrandTypography.sectionHeading,
-    color: BrandColors.text,
-  },
-  businessSummary: {
-    alignItems: "center",
-    backgroundColor: BrandColors.surface,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-    padding: BrandSpacing.md,
-  },
-  businessAvatar: {
-    alignItems: "center",
-    backgroundColor: BrandColors.primarySoft,
-    borderRadius: BrandRadius.medium,
-    height: 56,
-    justifyContent: "center",
-    width: 56,
-  },
-  businessAvatarImage: {
-    height: 44,
-    width: 44,
-  },
-  businessAvatarText: {
-    color: BrandColors.primary,
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  businessCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  businessTitle: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  businessMeta: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-    marginTop: 2,
-  },
-  templateGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.md,
-  },
-  templateOption: {
-    backgroundColor: BrandColors.background,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexGrow: 1,
-    gap: BrandSpacing.sm,
-    minWidth: 220,
-    padding: BrandSpacing.md,
-    width: "31%",
-  },
-  templateOptionActive: {
-    borderColor: BrandColors.primary,
-    backgroundColor: BrandColors.primarySoft,
-  },
-  templateSwatch: {
-    aspectRatio: 3.5 / 2,
-    borderRadius: BrandRadius.small,
-    borderWidth: 1,
-    overflow: "hidden",
-    width: "100%",
-  },
-  templateAccent: {
-    height: "100%",
-    marginLeft: "72%",
-  },
-  templateName: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  templateDescription: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-  },
-  templateMeta: {
-    ...BrandTypography.caption,
-    color: BrandColors.primary,
-  },
-  formGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.md,
-  },
-  mediaRow: {
-    alignItems: "center",
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-    padding: BrandSpacing.md,
-  },
-  mediaPreview: {
-    alignItems: "center",
-    backgroundColor: BrandColors.surface,
-    borderRadius: BrandRadius.medium,
-    height: 76,
-    justifyContent: "center",
-    width: 76,
-  },
-  mediaImage: {
-    height: 62,
-    width: 62,
-  },
-  mediaPhoto: {
-    borderRadius: BrandRadius.pill,
-    height: 62,
-    width: 62,
-  },
-  mediaInitials: {
-    color: BrandColors.primary,
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  mediaCopy: {
-    flex: 1,
-    gap: BrandSpacing.sm,
-    minWidth: 0,
-  },
-  mediaTitle: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  mediaText: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-  },
-  inlineActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-  },
-  toggleRow: {
-    alignItems: "center",
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-    justifyContent: "space-between",
-    padding: BrandSpacing.md,
-  },
-  toggleCopy: {
-    flex: 1,
-  },
-  toggleLabel: {
-    ...BrandTypography.formLabel,
-    color: BrandColors.text,
-  },
-  toggleDescription: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-    marginTop: 2,
-  },
-  segmented: {
-    backgroundColor: BrandColors.surface,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.xs,
-    padding: BrandSpacing.xs,
-  },
-  segment: {
-    alignItems: "center",
-    borderRadius: BrandRadius.small,
-    flexGrow: 1,
-    minHeight: 36,
-    justifyContent: "center",
-    paddingHorizontal: BrandSpacing.md,
-  },
-  segmentActive: {
-    backgroundColor: BrandColors.background,
-    ...BrandShadows.subtle,
-  },
-  segmentText: {
-    ...BrandTypography.caption,
-    color: BrandColors.textSecondary,
-  },
-  segmentTextActive: {
-    color: BrandColors.primary,
-  },
-  disabledSegment: {
-    opacity: 0.45,
-  },
-  disabledText: {
-    color: BrandColors.textMuted,
-  },
-  helperLine: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-  },
-  colorSwatches: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-  },
-  colorSwatch: {
-    borderColor: BrandColors.borderStrong,
-    borderRadius: BrandRadius.pill,
-    borderWidth: 1,
-    height: 34,
-    width: 34,
-  },
-  controlRows: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.md,
-  },
-  numberControl: {
-    backgroundColor: BrandColors.surface,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    gap: BrandSpacing.sm,
-    minWidth: 150,
-    padding: BrandSpacing.md,
-  },
-  numberLabel: {
-    ...BrandTypography.formLabel,
-    color: BrandColors.text,
-  },
-  numberStepper: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  numberValue: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  iconToggle: {
-    alignItems: "center",
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.small,
-    borderWidth: 1,
-    height: 36,
-    justifyContent: "center",
-    width: 36,
-  },
-  iconToggleActive: {
-    backgroundColor: BrandColors.primarySoft,
-    borderColor: BrandColors.primarySubtle,
-  },
-  qrPayloadBox: {
-    backgroundColor: BrandColors.surface,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    padding: BrandSpacing.md,
-  },
-  qrPayloadTitle: {
-    ...BrandTypography.formLabel,
-    color: BrandColors.text,
-    marginBottom: BrandSpacing.xs,
-  },
-  qrPayloadText: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-  },
-  saveGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-  },
-  stepActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-    justifyContent: "space-between",
-  },
-  filterCard: {
-    gap: BrandSpacing.md,
-    marginBottom: BrandSpacing.lg,
-  },
-  filterTop: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-  },
-  searchWrap: {
-    flex: 1,
-    minWidth: 220,
-  },
-  viewToggle: {
-    flexDirection: "row",
-    gap: BrandSpacing.xs,
-  },
-  filterRows: {
-    gap: BrandSpacing.md,
-  },
-  filterGroup: {
-    gap: BrandSpacing.sm,
-  },
-  filterLabel: {
-    ...BrandTypography.formLabel,
-    color: BrandColors.text,
-  },
-  pillRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.sm,
-  },
-  pill: {
-    backgroundColor: BrandColors.background,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.pill,
-    borderWidth: 1,
-    paddingHorizontal: BrandSpacing.md,
-    paddingVertical: BrandSpacing.sm,
-  },
-  pillActive: {
-    backgroundColor: BrandColors.primarySoft,
-    borderColor: BrandColors.primarySubtle,
-  },
-  pillText: {
-    ...BrandTypography.caption,
-    color: BrandColors.textSecondary,
-  },
-  pillTextActive: {
-    color: BrandColors.primary,
-  },
-  listRefreshContent: {
-    paddingBottom: BrandSpacing["4xl"],
-  },
-  cardGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.md,
-  },
-  cardList: {
-    flexDirection: "column",
-  },
-  savedCard: {
-    flexGrow: 1,
-    gap: BrandSpacing.md,
-    minWidth: 300,
-    width: "31%",
-  },
-  savedCardList: {
-    alignItems: "center",
-    flexDirection: "row",
-    width: "100%",
-  },
-  thumbnailArea: {
-    gap: BrandSpacing.sm,
-  },
-  thumbnailAreaList: {
-    maxWidth: 240,
-    width: "32%",
-  },
-  savedCardCopy: {
-    flex: 1,
-    gap: BrandSpacing.sm,
-  },
-  savedTitleRow: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-    justifyContent: "space-between",
-  },
-  savedTitleCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  savedName: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  savedMeta: {
-    ...BrandTypography.helperText,
-    color: BrandColors.textSecondary,
-  },
-  cardActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.xs,
-  },
-  actionButton: {
-    alignItems: "center",
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.pill,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 4,
-    minHeight: 32,
-    paddingHorizontal: BrandSpacing.sm,
-  },
-  actionText: {
-    color: BrandColors.textSecondary,
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  destructiveActionText: {
-    color: BrandColors.error,
-  },
-  loadMoreButton: {
-    alignSelf: "center",
-    marginTop: BrandSpacing.lg,
-  },
-  toast: {
-    alignItems: "center",
-    backgroundColor: BrandColors.primarySoft,
-    borderColor: BrandColors.primarySubtle,
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-    marginBottom: BrandSpacing.md,
-    padding: BrandSpacing.md,
-  },
-  toastText: {
-    ...BrandTypography.helperText,
-    color: BrandColors.text,
-    flex: 1,
-  },
-  warningBox: {
-    alignItems: "center",
-    backgroundColor: BrandColors.warningSoft,
-    borderColor: "#FBD38D",
-    borderRadius: BrandRadius.medium,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-    padding: BrandSpacing.md,
-  },
-  warningText: {
-    ...BrandTypography.helperText,
-    color: BrandColors.text,
-    flex: 1,
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-});
+function createStyles(theme: ThemePalette, isDark: boolean) {
+  return StyleSheet.create({
+    retryButton: {
+      alignSelf: "center",
+      marginTop: BrandSpacing.lg,
+    },
+    editorScroll: {
+      paddingBottom: BrandSpacing["5xl"],
+    },
+    editorHeader: {
+      gap: BrandSpacing.md,
+      marginBottom: BrandSpacing.lg,
+    },
+    editorTitleRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: BrandSpacing.md,
+    },
+    roundIconButton: {
+      alignItems: "center",
+      backgroundColor: theme.card,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.pill,
+      borderWidth: 1,
+      height: 42,
+      justifyContent: "center",
+      width: 42,
+    },
+    editorTitleCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    editorTitle: {
+      ...BrandTypography.pageHeading,
+      color: theme.ink,
+    },
+    editorSubtitle: {
+      ...BrandTypography.caption,
+      color: theme.muted,
+      marginTop: 2,
+    },
+    headerActions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+    },
+    editorLayout: {
+      gap: BrandSpacing.lg,
+    },
+    editorLayoutSplit: {
+      alignItems: "flex-start",
+      flexDirection: "row",
+    },
+    editorPanel: {
+      gap: BrandSpacing.md,
+    },
+    editorPanelSplit: {
+      flex: 0.95,
+      minWidth: 0,
+    },
+    previewPanel: {
+      gap: BrandSpacing.md,
+    },
+    previewPanelSplit: {
+      flex: 0.85,
+      minWidth: 330,
+      position: "sticky" as never,
+      top: 18,
+    },
+    previewToolbar: {
+      alignItems: "center",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.md,
+      justifyContent: "space-between",
+    },
+    previewPair: {
+      flexDirection: "row",
+      gap: BrandSpacing.md,
+    },
+    stepIndicator: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+    },
+    stepPill: {
+      alignItems: "center",
+      backgroundColor: theme.card,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.pill,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: BrandSpacing.xs,
+      minHeight: 38,
+      paddingHorizontal: BrandSpacing.md,
+    },
+    stepPillActive: {
+      backgroundColor: theme.orangeSoft,
+      borderColor: theme.orange,
+    },
+    stepPillComplete: {
+      borderColor: theme.success || "#24A148",
+    },
+    stepNumber: {
+      color: theme.muted,
+      fontSize: 12,
+      fontWeight: "900",
+    },
+    stepNumberActive: {
+      color: theme.orange,
+    },
+    stepLabel: {
+      ...BrandTypography.caption,
+      color: theme.muted,
+    },
+    stepLabelActive: {
+      color: theme.orange,
+    },
+    stepStack: {
+      gap: BrandSpacing.md,
+    },
+    stepCard: {
+      gap: BrandSpacing.md,
+    },
+    panelTitle: {
+      ...BrandTypography.sectionHeading,
+      color: theme.ink,
+    },
+    businessSummary: {
+      alignItems: "center",
+      backgroundColor: theme.wash,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: BrandSpacing.md,
+      padding: BrandSpacing.md,
+    },
+    businessAvatar: {
+      alignItems: "center",
+      backgroundColor: theme.orangeSoft,
+      borderRadius: BrandRadius.medium,
+      height: 56,
+      justifyContent: "center",
+      width: 56,
+    },
+    businessAvatarImage: {
+      height: 44,
+      width: 44,
+    },
+    businessAvatarText: {
+      color: theme.orange,
+      fontSize: 16,
+      fontWeight: "900",
+    },
+    businessCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    businessTitle: {
+      ...BrandTypography.cardTitle,
+      color: theme.ink,
+    },
+    businessMeta: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+      marginTop: 2,
+    },
+    templateGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.md,
+    },
+    templateOption: {
+      backgroundColor: theme.card,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexGrow: 1,
+      gap: BrandSpacing.sm,
+      minWidth: 220,
+      padding: BrandSpacing.md,
+      width: "31%",
+    },
+    templateOptionActive: {
+      borderColor: theme.orange,
+      backgroundColor: theme.orangeSoft,
+    },
+    templateSwatch: {
+      aspectRatio: 3.5 / 2,
+      borderRadius: BrandRadius.small,
+      borderWidth: 1,
+      overflow: "hidden",
+      width: "100%",
+    },
+    templateAccent: {
+      height: "100%",
+      marginLeft: "72%",
+    },
+    templateName: {
+      ...BrandTypography.cardTitle,
+      color: theme.ink,
+    },
+    templateDescription: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+    },
+    templateMeta: {
+      ...BrandTypography.caption,
+      color: theme.orange,
+    },
+    formGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.md,
+    },
+    mediaRow: {
+      alignItems: "center",
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: BrandSpacing.md,
+      padding: BrandSpacing.md,
+    },
+    mediaPreview: {
+      alignItems: "center",
+      backgroundColor: theme.wash,
+      borderRadius: BrandRadius.medium,
+      height: 76,
+      justifyContent: "center",
+      width: 76,
+    },
+    mediaImage: {
+      height: 62,
+      width: 62,
+    },
+    mediaPhoto: {
+      borderRadius: BrandRadius.pill,
+      height: 62,
+      width: 62,
+    },
+    mediaInitials: {
+      color: theme.orange,
+      fontSize: 16,
+      fontWeight: "900",
+    },
+    mediaCopy: {
+      flex: 1,
+      gap: BrandSpacing.sm,
+      minWidth: 0,
+    },
+    mediaTitle: {
+      ...BrandTypography.cardTitle,
+      color: theme.ink,
+    },
+    mediaText: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+    },
+    inlineActions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+    },
+    toggleRow: {
+      alignItems: "center",
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: BrandSpacing.md,
+      justifyContent: "space-between",
+      padding: BrandSpacing.md,
+    },
+    toggleCopy: {
+      flex: 1,
+    },
+    toggleLabel: {
+      ...BrandTypography.formLabel,
+      color: theme.ink,
+    },
+    toggleDescription: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+      marginTop: 2,
+    },
+    segmented: {
+      backgroundColor: theme.wash,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.xs,
+      padding: BrandSpacing.xs,
+    },
+    segment: {
+      alignItems: "center",
+      borderRadius: BrandRadius.small,
+      flexGrow: 1,
+      minHeight: 36,
+      justifyContent: "center",
+      paddingHorizontal: BrandSpacing.md,
+    },
+    segmentActive: {
+      backgroundColor: theme.card,
+      ...BrandShadows.subtle,
+    },
+    segmentText: {
+      ...BrandTypography.caption,
+      color: theme.muted,
+    },
+    segmentTextActive: {
+      color: theme.orange,
+    },
+    disabledSegment: {
+      opacity: 0.45,
+    },
+    disabledText: {
+      color: theme.muted,
+    },
+    helperLine: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+    },
+    colorSwatches: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+    },
+    colorSwatch: {
+      borderColor: theme.line,
+      borderRadius: BrandRadius.pill,
+      borderWidth: 1,
+      height: 34,
+      width: 34,
+    },
+    controlRows: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.md,
+    },
+    numberControl: {
+      backgroundColor: theme.wash,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      gap: BrandSpacing.sm,
+      minWidth: 150,
+      padding: BrandSpacing.md,
+    },
+    numberLabel: {
+      ...BrandTypography.formLabel,
+      color: theme.ink,
+    },
+    numberStepper: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    numberValue: {
+      ...BrandTypography.cardTitle,
+      color: theme.ink,
+    },
+    iconToggle: {
+      alignItems: "center",
+      borderColor: theme.line,
+      borderRadius: BrandRadius.small,
+      borderWidth: 1,
+      height: 36,
+      justifyContent: "center",
+      width: 36,
+    },
+    iconToggleActive: {
+      backgroundColor: theme.orangeSoft,
+      borderColor: theme.orange,
+    },
+    qrPayloadBox: {
+      backgroundColor: theme.wash,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      padding: BrandSpacing.md,
+    },
+    qrPayloadTitle: {
+      ...BrandTypography.formLabel,
+      color: theme.ink,
+      marginBottom: BrandSpacing.xs,
+    },
+    qrPayloadText: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+    },
+    saveGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+    },
+    stepActions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+      justifyContent: "space-between",
+    },
+    filterCard: {
+      gap: BrandSpacing.md,
+      marginBottom: BrandSpacing.lg,
+    },
+    filterTop: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: BrandSpacing.md,
+    },
+    searchWrap: {
+      flex: 1,
+      minWidth: 220,
+    },
+    viewToggle: {
+      flexDirection: "row",
+      gap: BrandSpacing.xs,
+    },
+    filterRows: {
+      gap: BrandSpacing.md,
+    },
+    filterGroup: {
+      gap: BrandSpacing.sm,
+    },
+    filterLabel: {
+      ...BrandTypography.formLabel,
+      color: theme.ink,
+    },
+    pillRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.sm,
+    },
+    pill: {
+      backgroundColor: theme.card,
+      borderColor: theme.line,
+      borderRadius: BrandRadius.pill,
+      borderWidth: 1,
+      paddingHorizontal: BrandSpacing.md,
+      paddingVertical: BrandSpacing.sm,
+    },
+    pillActive: {
+      backgroundColor: theme.orangeSoft,
+      borderColor: theme.orange,
+    },
+    pillText: {
+      ...BrandTypography.caption,
+      color: theme.muted,
+    },
+    pillTextActive: {
+      color: theme.orange,
+    },
+    listRefreshContent: {
+      paddingBottom: BrandSpacing["4xl"],
+    },
+    cardGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.md,
+    },
+    cardList: {
+      flexDirection: "column",
+    },
+    savedCard: {
+      flexGrow: 1,
+      gap: BrandSpacing.md,
+      minWidth: 300,
+      width: "31%",
+    },
+    savedCardList: {
+      alignItems: "center",
+      flexDirection: "row",
+      width: "100%",
+    },
+    thumbnailArea: {
+      gap: BrandSpacing.sm,
+    },
+    thumbnailAreaList: {
+      maxWidth: 240,
+      width: "32%",
+    },
+    savedCardCopy: {
+      flex: 1,
+      gap: BrandSpacing.sm,
+    },
+    savedTitleRow: {
+      alignItems: "flex-start",
+      flexDirection: "row",
+      gap: BrandSpacing.sm,
+      justifyContent: "space-between",
+    },
+    savedTitleCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    savedName: {
+      ...BrandTypography.cardTitle,
+      color: theme.ink,
+    },
+    savedMeta: {
+      ...BrandTypography.helperText,
+      color: theme.muted,
+    },
+    cardActions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: BrandSpacing.xs,
+    },
+    actionButton: {
+      alignItems: "center",
+      borderColor: theme.line,
+      borderRadius: BrandRadius.pill,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 4,
+      minHeight: 32,
+      paddingHorizontal: BrandSpacing.sm,
+    },
+    actionText: {
+      color: theme.muted,
+      fontSize: 11,
+      fontWeight: "800",
+    },
+    destructiveActionText: {
+      color: theme.error || "#D92D20",
+    },
+    loadMoreButton: {
+      alignSelf: "center",
+      marginTop: BrandSpacing.lg,
+    },
+    toast: {
+      alignItems: "center",
+      backgroundColor: theme.orangeSoft,
+      borderColor: theme.orange,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: BrandSpacing.sm,
+      marginBottom: BrandSpacing.md,
+      padding: BrandSpacing.md,
+    },
+    toastText: {
+      ...BrandTypography.helperText,
+      color: theme.ink,
+      flex: 1,
+    },
+    warningBox: {
+      alignItems: "center",
+      backgroundColor: theme.orangeSoft,
+      borderColor: theme.orange,
+      borderRadius: BrandRadius.medium,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: BrandSpacing.sm,
+      padding: BrandSpacing.md,
+    },
+    warningText: {
+      ...BrandTypography.helperText,
+      color: theme.ink,
+      flex: 1,
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+  });
+}

@@ -16,6 +16,9 @@ import {
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
+import { useAppTheme, ThemePalette } from "@/theme/theme-context";
+import { Colors } from "@/theme/colors";
+import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { BusinessProfile, getCompanyInitials, loadBusinessProfile } from "@/services/business-profile";
@@ -29,7 +32,6 @@ import {
   SignatureMode,
   TextAlignment,
 } from "@/services/letterheads";
-import { Colors } from "@/theme/colors";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -107,6 +109,8 @@ function getStatusLabel(status: LetterheadRecord["status"]) {
 }
 
 export default function LetterheadScreen() {
+  const { theme, isDark } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const router = useRouter();
   const { editLetterheadId } = useLocalSearchParams<{ editLetterheadId?: string }>();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
@@ -287,7 +291,7 @@ export default function LetterheadScreen() {
           <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
             <View style={styles.editorHeader}>
               <Pressable style={styles.headerButton} onPress={() => setDraftLetterhead(null)} accessibilityRole="button" accessibilityLabel="Back">
-                <Ionicons name="chevron-back" size={22} color={Colors.text} />
+                <Ionicons name="chevron-back" size={22} color={theme.ink} />
               </Pressable>
               <Text style={styles.editorTitle}>Letterhead</Text>
               <View style={styles.editorActions}>
@@ -341,7 +345,7 @@ export default function LetterheadScreen() {
         <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
           <View style={styles.moduleHeader}>
             <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
             </Pressable>
             <Text style={styles.moduleTitle}>Letterhead</Text>
             <View style={styles.headerSpacer} />
@@ -361,25 +365,25 @@ export default function LetterheadScreen() {
               letterheads.map((letterhead) => (
                 <View key={letterhead.id || letterhead.letterheadNumber} style={styles.previousRow}>
                   <Pressable style={styles.previousMain} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}>
-                    <View style={styles.previousIcon}><Ionicons name="newspaper-outline" size={18} color={Colors.primary} /></View>
+                    <View style={styles.previousIcon}><Ionicons name="newspaper-outline" size={18} color={theme.orange} /></View>
                     <View style={styles.previousCopy}>
                       <Text style={styles.previousNumber}>{letterhead.letterheadNumber}</Text>
                       <Text style={styles.previousMeta}>{letterhead.documentName} • {letterhead.documentDate} • {getStatusLabel(letterhead.status)}</Text>
                     </View>
                   </Pressable>
                   <View style={styles.previousActions}>
-                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                    <Pressable style={styles.rowIconButton} onPress={() => setDraftLetterhead(letterhead)}><Ionicons name="create-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                    <Pressable style={styles.rowIconButton} onPress={() => duplicateLetterhead(letterhead)}><Ionicons name="copy-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={theme.muted} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => setDraftLetterhead(letterhead)}><Ionicons name="create-outline" size={17} color={theme.muted} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => duplicateLetterhead(letterhead)}><Ionicons name="copy-outline" size={17} color={theme.muted} /></Pressable>
                     <Pressable style={styles.rowIconButton} onPress={() => handleDelete(letterhead)}><Ionicons name="trash-outline" size={17} color={Colors.error} /></Pressable>
-                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "pdf" }) as never)}><Ionicons name="document-attach-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "print" }) as never)}><Ionicons name="print-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "pdf" }) as never)}><Ionicons name="document-attach-outline" size={17} color={theme.muted} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "letterhead", letterheadId: letterhead.id || "", action: "print" }) as never)}><Ionicons name="print-outline" size={17} color={theme.muted} /></Pressable>
                   </View>
                 </View>
               ))
             ) : (
               <View style={styles.emptyState}>
-                <View style={styles.emptyIcon}><Ionicons name="newspaper-outline" size={28} color={Colors.primary} /></View>
+                <View style={styles.emptyIcon}><Ionicons name="newspaper-outline" size={28} color={theme.orange} /></View>
                 <Text style={styles.emptyTitle}>No letterheads created yet</Text>
                 <Text style={styles.emptyText}>Created letterheads will appear here with number, name, date, and status.</Text>
               </View>
@@ -392,9 +396,10 @@ export default function LetterheadScreen() {
 }
 
 function ToolbarButton({ label, icon, active, onPress }: { label?: string; icon?: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void }) {
+  const { theme } = useAppTheme();
   return (
     <Pressable style={[styles.toolbarButton, active && styles.toolbarButtonActive]} onPress={onPress}>
-      {icon ? <Ionicons name={icon} size={17} color={active ? "#FFFFFF" : Colors.text} /> : <Text style={[styles.toolbarText, active && styles.toolbarTextActive]}>{label}</Text>}
+      {icon ? <Ionicons name={icon} size={17} color={active ? "#FFFFFF" : theme.ink} /> : <Text style={[styles.toolbarText, active && styles.toolbarTextActive]}>{label}</Text>}
     </Pressable>
   );
 }
@@ -505,97 +510,77 @@ const shadow = Platform.select({
   },
 });
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.background },
-  webSafeArea: { backgroundColor: Colors.surface },
+const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.background },
+  webSafeArea: { backgroundColor: theme.wash },
   keyboardView: { flex: 1 },
-  moduleContent: { alignSelf: "center", maxWidth: 520, paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12, width: "100%" },
-  webModuleContent: { maxWidth: 1040, paddingHorizontal: 40, paddingTop: 28, paddingBottom: 52 },
-  moduleHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 24 },
-  headerButton: { alignItems: "center", backgroundColor: "#FFFFFF", borderColor: "#EFEFEF", borderRadius: 18, borderWidth: 1, height: 40, justifyContent: "center", width: 40, ...shadow },
-  headerSpacer: { width: 40 },
-  moduleTitle: { color: Colors.text, fontSize: 22, fontWeight: "800" },
-  createButton: {
-    alignItems: "center",
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-    padding: 18,
-    elevation: 5,
-    ...Platform.select({
-      web: {
-        boxShadow: "0px 12px 20px rgba(255, 122, 0, 0.22)",
-      },
-      default: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.22,
-        shadowRadius: 20,
-      },
-    }),
-  },
-  createIcon: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 16, height: 44, justifyContent: "center", width: 44 },
+  moduleContent: { alignSelf: "center", maxWidth: 680, padding: 18, width: "100%" },
+  webModuleContent: { maxWidth: 1040, paddingHorizontal: 40, paddingBottom: 56, paddingTop: 38 },
+  moduleHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  headerButton: { alignItems: "center", backgroundColor: theme.card, borderColor: theme.line, borderRadius: 14, borderWidth: 1, height: 40, justifyContent: "center", width: 40, ...shadow },
+  headerSpacer: { width: 44 },
+  moduleTitle: { color: theme.ink, fontSize: 24, fontWeight: "900" },
+  createButton: { alignItems: "center", backgroundColor: theme.orange, borderRadius: 20, flexDirection: "row", gap: 12, marginBottom: 18, padding: 18 },
+  createIcon: { alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.18)", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
   createText: { color: "#FFFFFF", flex: 1, fontSize: 17, fontWeight: "800" },
-  previousCard: { backgroundColor: "#FFFFFF", borderColor: "#EFEFEF", borderRadius: 20, borderWidth: 1, padding: 18, ...shadow },
-  previousTitle: { color: Colors.text, fontSize: 18, fontWeight: "800", marginBottom: 14 },
-  previousRow: { borderTopColor: "#EFEFEF", borderTopWidth: 1, paddingVertical: 12 },
+  previousCard: { backgroundColor: theme.card, borderColor: theme.line, borderRadius: 20, borderWidth: 1, padding: 18, ...shadow },
+  previousTitle: { color: theme.ink, fontSize: 18, fontWeight: "800", marginBottom: 14 },
+  previousRow: { borderTopColor: theme.line, borderTopWidth: 1, paddingVertical: 12 },
   previousMain: { alignItems: "center", flexDirection: "row" },
-  previousIcon: { alignItems: "center", backgroundColor: "#FFF4E3", borderRadius: 14, height: 40, justifyContent: "center", marginRight: 12, width: 40 },
+  previousIcon: { alignItems: "center", backgroundColor: theme.orangeSoft, borderRadius: 14, height: 40, justifyContent: "center", marginRight: 12, width: 40 },
   previousCopy: { flex: 1 },
-  previousNumber: { color: Colors.text, fontSize: 14, fontWeight: "800", marginBottom: 3 },
-  previousMeta: { color: Colors.textSecondary, fontSize: 12 },
+  previousNumber: { color: theme.ink, fontSize: 14, fontWeight: "800", marginBottom: 3 },
+  previousMeta: { color: theme.muted, fontSize: 12 },
   previousActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "flex-end", marginTop: 10 },
-  rowIconButton: { alignItems: "center", backgroundColor: "#FAFAFA", borderColor: "#EEEEEE", borderRadius: 12, borderWidth: 1, height: 34, justifyContent: "center", width: 34 },
-  emptyState: { alignItems: "center", borderColor: "#F1F1F1", borderRadius: 18, borderStyle: "dashed", borderWidth: 1, paddingHorizontal: 18, paddingVertical: 34 },
-  emptyIcon: { alignItems: "center", backgroundColor: "#FFF4E3", borderRadius: 22, height: 56, justifyContent: "center", marginBottom: 14, width: 56 },
-  emptyTitle: { color: Colors.text, fontSize: 17, fontWeight: "800", marginBottom: 6, textAlign: "center" },
-  emptyText: { color: Colors.textSecondary, fontSize: 13, lineHeight: 19, textAlign: "center" },
-  editorHeader: { alignItems: "center", backgroundColor: "#FFFFFF", borderBottomColor: "#EFEFEF", borderBottomWidth: 1, flexDirection: "row", gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  editorTitle: { color: Colors.text, flex: 1, fontSize: 18, fontWeight: "800", textAlign: "center" },
+  rowIconButton: { alignItems: "center", backgroundColor: theme.wash, borderColor: theme.line, borderRadius: 12, borderWidth: 1, height: 34, justifyContent: "center", width: 34 },
+  emptyState: { alignItems: "center", borderColor: theme.line, borderRadius: 18, borderStyle: "dashed", borderWidth: 1, paddingHorizontal: 18, paddingVertical: 34 },
+  emptyIcon: { alignItems: "center", backgroundColor: theme.orangeSoft, borderRadius: 22, height: 56, justifyContent: "center", marginBottom: 14, width: 56 },
+  emptyTitle: { color: theme.ink, fontSize: 17, fontWeight: "800", marginBottom: 6, textAlign: "center" },
+  emptyText: { color: theme.muted, fontSize: 13, lineHeight: 19, textAlign: "center" },
+  editorHeader: { alignItems: "center", backgroundColor: theme.card, borderBottomColor: theme.line, borderBottomWidth: 1, flexDirection: "row", gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
+  editorTitle: { color: theme.ink, flex: 1, fontSize: 18, fontWeight: "800", textAlign: "center" },
   editorActions: { alignItems: "center", flexDirection: "row", gap: 8 },
-  saveButton: { backgroundColor: Colors.primary, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 },
+  saveButton: { backgroundColor: theme.orange, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 },
   saveButtonText: { color: "#FFFFFF", fontSize: 12, fontWeight: "800" },
-  secondaryButton: { backgroundColor: "#FFFFFF", borderColor: "#EAEAEA", borderRadius: 999, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10 },
-  secondaryButtonText: { color: Colors.text, fontSize: 12, fontWeight: "800" },
+  secondaryButton: { backgroundColor: theme.card, borderColor: theme.line, borderRadius: 999, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10 },
+  secondaryButtonText: { color: theme.ink, fontSize: 12, fontWeight: "800" },
   disabledButton: { opacity: 0.7 },
-  toolbar: { alignItems: "center", backgroundColor: "#FFFFFF", borderBottomColor: "#EFEFEF", borderBottomWidth: 1, flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
-  toolbarButton: { alignItems: "center", borderColor: "#E6E6E6", borderRadius: 10, borderWidth: 1, height: 34, justifyContent: "center", minWidth: 34, paddingHorizontal: 8 },
-  toolbarButtonActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  toolbarText: { color: Colors.text, fontSize: 12, fontWeight: "900" },
+  toolbar: { alignItems: "center", backgroundColor: theme.card, borderBottomColor: theme.line, borderBottomWidth: 1, flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
+  toolbarButton: { alignItems: "center", borderColor: theme.line, borderRadius: 10, borderWidth: 1, height: 34, justifyContent: "center", minWidth: 34, paddingHorizontal: 8 },
+  toolbarButtonActive: { backgroundColor: theme.orange, borderColor: theme.orange },
+  toolbarText: { color: theme.ink, fontSize: 12, fontWeight: "900" },
   toolbarTextActive: { color: "#FFFFFF" },
   phoneHorizontalWorkspace: { minWidth: 860 },
-  editorContent: { alignSelf: "center", minWidth: 820, paddingHorizontal: 14, paddingBottom: 96, paddingTop: 14, width: "100%" },
+  editorContent: { alignSelf: "center", minWidth: 820, paddingHorizontal: 14, paddingBottom: 96, paddingTop: 14, width: "100%", backgroundColor: theme.background },
   webEditorContent: { maxWidth: 1120, paddingHorizontal: 40, paddingTop: 24 },
   a4Paper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: "#FFFFFF", borderColor: "#D9D9D9", borderRadius: 2, borderWidth: 1, maxWidth: 794, minHeight: 1123, padding: 28, width: 794, ...shadow },
-  paperHeader: { borderBottomColor: Colors.primary, borderBottomWidth: 3, flexDirection: "row", gap: 16, paddingBottom: 18 },
+  paperHeader: { borderBottomColor: theme.orange, borderBottomWidth: 3, flexDirection: "row", gap: 16, paddingBottom: 18 },
   logoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 6, borderWidth: 1, height: 78, justifyContent: "center", overflow: "hidden", width: 92 },
   logoImage: { height: "100%", width: "100%" },
-  logoInitials: { color: Colors.primaryDark, fontSize: 22, fontWeight: "900" },
+  logoInitials: { color: theme.orangeDark, fontSize: 22, fontWeight: "900" },
   companyBlock: { flex: 1 },
-  inlineInput: { color: Colors.text, padding: 0 },
+  inlineInput: { color: "#111111", padding: 0 },
   inlineRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   companyName: { color: "#111111", fontSize: 27, fontWeight: "900", lineHeight: 34 },
-  companyTagline: { color: Colors.primaryDark, fontSize: 13, fontWeight: "800", lineHeight: 18 },
+  companyTagline: { color: theme.orangeDark, fontSize: 13, fontWeight: "800", lineHeight: 18 },
   companyAddress: { color: "#333333", fontSize: 11, lineHeight: 16 },
   companyMeta: { color: "#555555", fontSize: 11, lineHeight: 16 },
   documentMetaRow: { alignItems: "center", flexDirection: "row", gap: 12, paddingVertical: 12 },
   documentNameInput: { color: "#111111", flex: 1, fontSize: 16, fontWeight: "900", padding: 0 },
-  letterheadNumber: { color: Colors.textSecondary, fontSize: 11, fontWeight: "800" },
-  dateInput: { borderBottomColor: "#CFCFCF", borderBottomWidth: 1, color: Colors.textSecondary, fontSize: 11, fontWeight: "800", padding: 0, textAlign: "right", width: 92 },
+  letterheadNumber: { color: theme.muted, fontSize: 11, fontWeight: "800" },
+  dateInput: { borderBottomColor: "#CFCFCF", borderBottomWidth: 1, color: theme.muted, fontSize: 11, fontWeight: "800", padding: 0, textAlign: "right", width: 92 },
   bodyInput: { color: "#222222", flex: 1, fontSize: 14, minHeight: 710, paddingVertical: 12 },
   signatureStrip: { alignItems: "flex-end", minHeight: 90 },
   signatureControls: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "flex-end", marginBottom: 8 },
-  signaturePill: { borderColor: "#E6E6E6", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
-  signaturePillActive: { backgroundColor: "#FFF4E3", borderColor: Colors.primary },
-  signaturePillText: { color: Colors.textSecondary, fontSize: 10, fontWeight: "800" },
-  signaturePillTextActive: { color: Colors.primaryDark },
+  signaturePill: { borderColor: theme.line, borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
+  signaturePillActive: { backgroundColor: theme.orangeSoft, borderColor: theme.orange },
+  signaturePillText: { color: theme.muted, fontSize: 10, fontWeight: "800" },
+  signaturePillTextActive: { color: theme.orangeDark },
   signatureArea: { alignItems: "center", flexDirection: "row", gap: 10, justifyContent: "flex-end", minHeight: 54 },
   signatureImage: { height: 52, width: 140 },
   stampImage: { height: 58, width: 82 },
   manualSignatureInput: { borderBottomColor: "#BBBBBB", borderBottomWidth: 1, color: "#111111", fontSize: 18, fontStyle: "italic", minWidth: 180, padding: 0, textAlign: "center" },
-  paperFooter: { borderTopColor: Colors.primary, borderTopWidth: 2, paddingTop: 8 },
+  paperFooter: { borderTopColor: theme.orange, borderTopWidth: 2, paddingTop: 8 },
   footerText: { color: "#555555", fontSize: 10, lineHeight: 14, textAlign: "center" },
   pageNumber: { color: "#777777", fontSize: 9, marginTop: 4, textAlign: "right" },
 });

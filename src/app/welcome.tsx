@@ -1,11 +1,15 @@
 import { router } from "expo-router";
+import { useMemo } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
-import { Colors } from "@/theme/colors";
+import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Typography } from "@/theme/typography";
 
 export default function WelcomeScreen() {
+  const { theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
       <Image
@@ -39,10 +43,10 @@ export default function WelcomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: theme.background,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 30,
@@ -56,21 +60,21 @@ const styles = StyleSheet.create({
 
   title: {
     ...Typography.h1,
-    color: Colors.text,
+    color: theme.ink,
     textAlign: "center",
     marginBottom: 16,
   },
 
   subtitle: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    color: theme.muted,
     textAlign: "center",
     lineHeight: 28,
     marginBottom: 50,
   },
 
   button: {
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.orange,
     width: "100%",
     paddingVertical: 18,
     borderRadius: 16,
@@ -85,12 +89,12 @@ const styles = StyleSheet.create({
 
   signIn: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    color: theme.muted,
   },
 
   signInBold: {
     ...Typography.caption,
-    color: Colors.primary,
+    color: theme.orange,
     fontWeight: "700",
   },
 });

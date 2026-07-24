@@ -45,21 +45,12 @@ html, body, #root, #__next {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Dark mode web overrides for input & containers */
+/* Dark mode web overrides for body & root */
 [data-theme="dark"] body,
 [data-theme="dark"] #root,
-[data-theme="dark"] #__next,
-[data-theme="dark"] div[style*="background-color: rgb(251, 250, 247)"],
-[data-theme="dark"] div[style*="background-color: rgb(255, 255, 255)"] {
+[data-theme="dark"] #__next {
   background-color: #0C0D0E !important;
   color: #FFFFFF !important;
-}
-
-[data-theme="dark"] input,
-[data-theme="dark"] textarea {
-  background-color: #16181C !important;
-  color: #FFFFFF !important;
-  border-color: #2A2E38 !important;
 }
 
 /* Glassmorphism & Smooth Animation Utilities */

@@ -34,6 +34,7 @@ import {
   saveBusinessProfile,
 } from "@/services/business-profile";
 import { getCountryOptions, getCountryRule, getCurrencyOptions } from "@/services/country-rules";
+import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Colors } from "@/theme/colors";
 import { Typography } from "@/theme/typography";
 
@@ -63,6 +64,8 @@ const defaultAssetStatuses: AssetStatusState = {
 };
 
 export default function BusinessSetupScreen() {
+  const { theme, isDark } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const params = useLocalSearchParams<{ mode?: string }>();
   const isEditMode = params.mode === "edit";
   const [step, setStep] = useState<Step>(1);
@@ -491,7 +494,7 @@ export default function BusinessSetupScreen() {
             </View>
             <TextInput
               placeholder={placeholder}
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.muted}
               style={styles.searchInput}
               value={searchValue}
               onChangeText={onSearchChange}
@@ -577,7 +580,7 @@ export default function BusinessSetupScreen() {
           <Text style={styles.successSubtitle}>
             Your business profile has been saved successfully. Redirecting you to the dashboard...
           </Text>
-          <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 24 }} />
+          <ActivityIndicator size="small" color={theme.orange} style={{ marginTop: 24 }} />
         </View>
       </Animated.View>
     );
@@ -592,7 +595,7 @@ export default function BusinessSetupScreen() {
               <View style={styles.header}>
                 {step === 1 ? (
                   <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
-                    <Ionicons name="chevron-back" size={20} color={Colors.text} />
+                    <Ionicons name="chevron-back" size={20} color={theme.ink} />
                   </Pressable>
                 ) : null}
                 <View style={styles.stepBadge}>
@@ -636,7 +639,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>Company Name *</Text>
                       <TextInput
                         placeholder="Enter company name"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         style={styles.input}
                         value={businessName}
                         onChangeText={setBusinessName}
@@ -647,7 +650,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>Business Owner Name</Text>
                       <TextInput
                         placeholder="Enter owner name"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         style={styles.input}
                         value={ownerName}
                         onChangeText={setOwnerName}
@@ -660,7 +663,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>Business Email</Text>
                       <TextInput
                         placeholder="Enter business email"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         autoCapitalize="none"
                         keyboardType="email-address"
                         style={styles.input}
@@ -673,7 +676,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>Business Phone</Text>
                       <TextInput
                         placeholder="Enter phone number"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         keyboardType="phone-pad"
                         style={styles.input}
                         value={businessPhone}
@@ -687,7 +690,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>Website (Optional)</Text>
                       <TextInput
                         placeholder="Enter website"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         autoCapitalize="none"
                         keyboardType="url"
                         style={styles.input}
@@ -726,7 +729,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>{stateLabel}</Text>
                       <TextInput
                         placeholder="Enter state or province"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         style={styles.input}
                         value={stateProvince}
                         onChangeText={setStateProvince}
@@ -739,7 +742,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>City</Text>
                       <TextInput
                         placeholder="Enter city"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         style={styles.input}
                         value={city}
                         onChangeText={setCity}
@@ -750,7 +753,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>{postalLabel}</Text>
                       <TextInput
                         placeholder={`Enter ${postalLabel.toLowerCase()}`}
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         style={styles.input}
                         value={zipCode}
                         onChangeText={setZipCode}
@@ -763,7 +766,7 @@ export default function BusinessSetupScreen() {
                       <Text style={styles.fieldLabel}>Full Address</Text>
                       <TextInput
                         placeholder="Enter full address"
-                        placeholderTextColor="#999"
+                        placeholderTextColor={theme.muted}
                         style={styles.input}
                         value={address}
                         onChangeText={setAddress}
@@ -782,7 +785,7 @@ export default function BusinessSetupScreen() {
                   <Text style={styles.fieldLabel}>Tax & Registration Details (Optional)</Text>
                   <TextInput
                     placeholder="Enter an additional tax number if needed"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={theme.muted}
                     style={styles.input}
                     value={taxRegistrationNumber}
                     onChangeText={setTaxRegistrationNumber}
@@ -797,7 +800,7 @@ export default function BusinessSetupScreen() {
                           <Text style={styles.fieldLabel}>{field.label} (Optional)</Text>
                           <TextInput
                             placeholder={field.placeholder}
-                            placeholderTextColor="#999"
+                            placeholderTextColor={theme.muted}
                             style={styles.input}
                             value={taxFields[field.key] || ""}
                             onChangeText={(value) => setTaxFields((current) => ({ ...current, [field.key]: value }))}
@@ -814,7 +817,7 @@ export default function BusinessSetupScreen() {
                           <Text style={styles.fieldLabel}>{field.label} (Optional)</Text>
                           <TextInput
                             placeholder={field.placeholder}
-                            placeholderTextColor="#999"
+                            placeholderTextColor={theme.muted}
                             style={styles.input}
                             value={taxFields[field.key] || ""}
                             onChangeText={(value) => setTaxFields((current) => ({ ...current, [field.key]: value }))}
@@ -927,10 +930,10 @@ export default function BusinessSetupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: theme.background,
   },
   keyboardView: {
     flex: 1,
@@ -942,160 +945,173 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   webContainer: {
-    paddingHorizontal: 40,
-    paddingVertical: 48,
-    backgroundColor: Colors.surface,
+    backgroundColor: theme.wash,
+    paddingVertical: 60,
   },
   card: {
     width: "100%",
     maxWidth: 560,
     alignSelf: "center",
-    backgroundColor: Colors.background,
+    backgroundColor: theme.card,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.line,
     paddingHorizontal: 24,
-    paddingVertical: 28,
+    paddingVertical: 32,
+    ...Platform.select({
+      web: {
+        boxShadow: "0px 16px 48px rgba(15, 16, 13, 0.05)",
+      },
+      default: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.05,
+        shadowRadius: 48,
+        elevation: 6,
+      },
+    }),
   },
   tabletCard: {
-    maxWidth: 720,
-    paddingHorizontal: 34,
-    paddingVertical: 36,
+    paddingHorizontal: 36,
+    paddingVertical: 44,
   },
   desktopCard: {
-    maxWidth: 1040,
-    paddingHorizontal: 44,
-    paddingVertical: 42,
+    maxWidth: 820,
+    paddingHorizontal: 48,
+    paddingVertical: 48,
   },
   header: {
-    marginBottom: 24,
+    alignItems: "center",
+    marginBottom: 32,
+    position: "relative",
+    width: "100%",
   },
   backButton: {
     alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "#FFFFFF",
-    borderColor: Colors.border,
+    backgroundColor: theme.card,
+    borderColor: theme.line,
     borderRadius: 999,
     borderWidth: 1,
     height: 40,
     justifyContent: "center",
-    marginBottom: 12,
+    position: "absolute",
+    left: 0,
+    top: -4,
     width: 40,
   },
   stepBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#FFF5E3",
+    backgroundColor: theme.orangeSoft,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   stepBadgeText: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: "700",
+    color: theme.orange,
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   title: {
     ...Typography.h2,
-    color: Colors.text,
+    color: theme.ink,
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     ...Typography.body,
-    color: Colors.textSecondary,
-    lineHeight: 24,
+    color: theme.muted,
+    textAlign: "center",
+    lineHeight: 22,
+    maxWidth: 480,
   },
   form: {
-    width: "100%",
+    gap: 20,
+  },
+  sectionTitle: {
+    ...Typography.h3,
+    color: theme.ink,
+    marginBottom: 12,
+    fontWeight: "700",
   },
   fieldRow: {
     flexDirection: "row",
-    gap: 18,
+    gap: 16,
   },
   fieldColumn: {
     flex: 1,
   },
-  sectionTitle: {
-    ...Typography.h3,
-    color: Colors.text,
-    marginBottom: 16,
-  },
   fieldLabel: {
-    color: Colors.text,
-    fontSize: 14,
+    ...Typography.caption,
+    color: theme.ink,
     fontWeight: "700",
     marginBottom: 8,
-    marginTop: 2,
   },
   fieldHint: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    marginTop: 4,
-  },
-  searchInput: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 10,
-    fontSize: 15,
+    fontSize: 12,
+    color: theme.muted,
+    marginTop: 2,
   },
   input: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.card,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.line,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 14,
     fontSize: 16,
-    color: Colors.text,
+    color: theme.ink,
   },
   inputRow: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.line,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 14,
   },
   inputRowText: {
-    color: Colors.text,
     fontSize: 16,
+    color: theme.ink,
   },
   inputRowHint: {
-    color: Colors.textSecondary,
-    fontSize: 16,
+    fontSize: 13,
+    color: theme.muted,
   },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 10,
+  searchInput: {
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.line,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+    fontSize: 14,
+    color: theme.ink,
   },
   button: {
-    flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.orange,
+    width: "100%",
+    paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
+    marginTop: 10,
   },
   secondaryButton: {
-    flex: 1,
-    backgroundColor: "#FFF5E3",
+    backgroundColor: theme.orangeSoft,
+    width: "100%",
+    paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
+    marginTop: 10,
   },
   buttonText: {
     ...Typography.button,
@@ -1103,41 +1119,35 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     ...Typography.button,
-    color: Colors.primary,
+    color: theme.orange,
   },
   uploadField: {
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.line,
     borderRadius: 18,
     padding: 14,
     marginBottom: 14,
-    backgroundColor: "#FCFCFC",
+    backgroundColor: theme.wash,
   },
   uploadHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
-  },
-  uploadActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
   },
   uploadButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.orange,
   },
   secondaryUploadButton: {
-    backgroundColor: "#FFF5E3",
+    backgroundColor: theme.orangeSoft,
   },
   retryUploadButton: {
-    backgroundColor: "#EAF7EF",
+    backgroundColor: isDark ? "rgba(36, 161, 72, 0.18)" : "#EAF7EF",
   },
   uploadButtonDisabled: {
-    backgroundColor: "#ECEFF3",
+    backgroundColor: theme.line,
   },
   uploadButtonText: {
     color: "#FFFFFF",
@@ -1145,10 +1155,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   uploadButtonDisabledText: {
-    color: Colors.textSecondary,
+    color: theme.muted,
   },
   secondaryUploadButtonText: {
-    color: Colors.primary,
+    color: theme.orange,
     fontSize: 13,
     fontWeight: "700",
   },
@@ -1158,7 +1168,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   assetStatusText: {
-    color: Colors.textSecondary,
+    color: theme.muted,
     fontSize: 12,
     fontWeight: "700",
     marginTop: 4,
@@ -1167,11 +1177,11 @@ const styles = StyleSheet.create({
     color: "#B42318",
   },
   uploadInfoText: {
-    backgroundColor: "#EAF1FF",
-    borderColor: "#C8D9FF",
+    backgroundColor: isDark ? "rgba(37, 99, 235, 0.15)" : "#EAF1FF",
+    borderColor: isDark ? "#2563EB" : "#C8D9FF",
     borderRadius: 12,
     borderWidth: 1,
-    color: Colors.textSecondary,
+    color: theme.muted,
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 19,
@@ -1191,12 +1201,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   previewText: {
-    color: Colors.textSecondary,
+    color: theme.muted,
     fontSize: 13,
     flex: 1,
   },
   helperText: {
-    color: Colors.textSecondary,
+    color: theme.muted,
     fontSize: 13,
     marginTop: 4,
     marginBottom: 16,
@@ -1208,13 +1218,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(47, 47, 47, 0.35)",
   },
   modalCard: {
-    backgroundColor: Colors.background,
+    backgroundColor: theme.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 28,
-    maxHeight: "70%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -1224,124 +1233,51 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...Typography.h3,
-    color: Colors.text,
+    color: theme.ink,
   },
   modalClose: {
-    color: Colors.primary,
+    color: theme.orange,
     fontWeight: "700",
   },
   modalList: {
     maxHeight: 320,
   },
-  snackbar: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 18,
-    backgroundColor: "#B42318",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    paddingRight: 44,
-    ...Platform.select({
-      web: {
-        boxShadow: "0px 8px 18px rgba(0, 0, 0, 0.16)",
-      },
-      default: {
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.16,
-        shadowRadius: 18,
-        elevation: 8,
-      },
-    }),
-  },
-  snackbarTitle: {
-    color: "#FFFFFF",
-    ...Typography.button,
-    fontSize: 14,
-    marginBottom: 3,
-  },
-  snackbarText: {
-    ...Typography.caption,
-    color: "#FFFFFF",
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  snackbarActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 10,
-  },
-  snackbarRetryButton: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  snackbarRetryText: {
-    color: "#B42318",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  snackbarClose: {
-    alignItems: "center",
-    height: 36,
-    justifyContent: "center",
-    position: "absolute",
-    right: 6,
-    top: 6,
-    width: 36,
-  },
   optionRow: {
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.line,
   },
   optionRowSelected: {
-    backgroundColor: "#FFF8ED",
+    backgroundColor: theme.orangeSoft,
   },
   optionText: {
-    color: Colors.text,
+    color: theme.ink,
     fontSize: 16,
   },
   optionTextSelected: {
-    color: Colors.primary,
+    color: theme.orange,
     fontWeight: "700",
   },
   successContainer: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: theme.background,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
   successCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.card,
     borderRadius: 24,
     padding: 40,
     alignItems: "center",
     maxWidth: 420,
     width: "100%",
-    ...Platform.select({
-      web: {
-        boxShadow: "0px 12px 32px rgba(0, 0, 0, 0.08)",
-      },
-      default: {
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.08,
-        shadowRadius: 32,
-        elevation: 4,
-      },
-    }),
   },
   successIconCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#ECFDF3",
+    backgroundColor: isDark ? "rgba(36, 161, 72, 0.18)" : "#ECFDF3",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,
@@ -1349,13 +1285,13 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: Colors.text,
+    color: theme.ink,
     textAlign: "center",
     marginBottom: 12,
   },
   successSubtitle: {
     fontSize: 15,
-    color: Colors.textSecondary,
+    color: theme.muted,
     textAlign: "center",
     lineHeight: 22,
   },

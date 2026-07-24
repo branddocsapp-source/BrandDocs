@@ -42,7 +42,9 @@ import {
   VisitingCardRecord,
   VisitingCardStatus,
 } from "@/services/visiting-cards";
+import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Colors } from "@/theme/colors";
+import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
 
 const statusOptions: { value: InvoiceStatus; label: string; description: string }[] = [
   { value: "draft", label: "Draft", description: "Still editable" },
@@ -98,6 +100,8 @@ function getVisitingCardStatusLabel(status: VisitingCardStatus) {
 }
 
 export default function PreviewScreen() {
+  const { theme, isDark } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const router = useRouter();
   const { content, type, invoiceId, quotationId, letterheadId, visitingCardId, action } = useLocalSearchParams<{
     content?: string;
@@ -331,7 +335,7 @@ export default function PreviewScreen() {
         <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
           <View style={[styles.header, isWebsite && styles.webHeader]}>
             <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/invoice") as never)}>
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
             </Pressable>
             <Text style={styles.headerTitle}>{invoice ? `${getDocumentLabel(invoice.documentType)} Preview` : "Document Preview"}</Text>
             <View style={styles.headerSpacer} />
@@ -364,16 +368,16 @@ export default function PreviewScreen() {
                     <View style={styles.previewActions}>
                       {selectedStatus === "draft" ? (
                         <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/invoice", { editInvoiceId: invoice.id || "" }) as never)}>
-                          <Ionicons name="create-outline" size={16} color={Colors.text} />
+                          <Ionicons name="create-outline" size={16} color={theme.ink} />
                           <Text style={styles.secondaryActionText}>Edit</Text>
                         </Pressable>
                       ) : null}
                       <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                        <Ionicons name="print-outline" size={16} color={Colors.text} />
+                        <Ionicons name="print-outline" size={16} color={theme.ink} />
                         <Text style={styles.secondaryActionText}>Print</Text>
                       </Pressable>
                       <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                        <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                        <Ionicons name="document-attach-outline" size={16} color={theme.ink} />
                         <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
                       <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleFinalSave} disabled={saving}>
@@ -402,7 +406,7 @@ export default function PreviewScreen() {
         <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
           <View style={[styles.header, isWebsite && styles.webHeader]}>
             <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/quotation") as never)}>
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
             </Pressable>
             <Text style={styles.headerTitle}>{quotation ? `${getQuotationLabel(quotation.documentType)} Preview` : "Quotation Preview"}</Text>
             <View style={styles.headerSpacer} />
@@ -431,22 +435,22 @@ export default function PreviewScreen() {
                     <View style={styles.previewActions}>
                       {selectedQuotationStatus === "draft" ? (
                         <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/quotation", { editQuotationId: quotation.id || "" }) as never)}>
-                          <Ionicons name="create-outline" size={16} color={Colors.text} />
+                          <Ionicons name="create-outline" size={16} color={theme.ink} />
                           <Text style={styles.secondaryActionText}>Edit</Text>
                         </Pressable>
                       ) : null}
                       {selectedQuotationStatus === "accepted" ? (
                         <Pressable style={[styles.secondaryAction, styles.disabledButton]} disabled>
-                          <Ionicons name="swap-horizontal-outline" size={16} color={Colors.textSecondary} />
+                          <Ionicons name="swap-horizontal-outline" size={16} color={theme.muted} />
                           <Text style={styles.secondaryActionText}>Convert to Tax Invoice</Text>
                         </Pressable>
                       ) : null}
                       <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                        <Ionicons name="print-outline" size={16} color={Colors.text} />
+                        <Ionicons name="print-outline" size={16} color={theme.ink} />
                         <Text style={styles.secondaryActionText}>Print</Text>
                       </Pressable>
                       <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                        <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                        <Ionicons name="document-attach-outline" size={16} color={theme.ink} />
                         <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
                       <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleQuotationFinalSave} disabled={saving}>
@@ -475,7 +479,7 @@ export default function PreviewScreen() {
         <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
           <View style={[styles.header, isWebsite && styles.webHeader]}>
             <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/letterhead") as never)}>
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
             </Pressable>
             <Text style={styles.headerTitle}>{letterhead ? "Letterhead Preview" : "Letterhead"}</Text>
             <View style={styles.headerSpacer} />
@@ -504,16 +508,16 @@ export default function PreviewScreen() {
                     <View style={styles.previewActions}>
                       {selectedLetterheadStatus === "bold" || selectedLetterheadStatus === "draft" ? (
                         <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/letterhead", { editLetterheadId: letterhead.id || "" }) as never)}>
-                          <Ionicons name="create-outline" size={16} color={Colors.text} />
+                          <Ionicons name="create-outline" size={16} color={theme.ink} />
                           <Text style={styles.secondaryActionText}>Edit</Text>
                         </Pressable>
                       ) : null}
                       <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                        <Ionicons name="print-outline" size={16} color={Colors.text} />
+                        <Ionicons name="print-outline" size={16} color={theme.ink} />
                         <Text style={styles.secondaryActionText}>Print</Text>
                       </Pressable>
                       <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                        <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                        <Ionicons name="document-attach-outline" size={16} color={theme.ink} />
                         <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
                       <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleLetterheadFinalSave} disabled={saving}>
@@ -542,7 +546,7 @@ export default function PreviewScreen() {
         <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
           <View style={[styles.header, isWebsite && styles.webHeader]}>
             <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/visiting-card") as never)}>
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
             </Pressable>
             <Text style={styles.headerTitle}>{visitingCard ? "Visiting Card Preview" : "Visiting Card"}</Text>
             <View style={styles.headerSpacer} />
@@ -569,23 +573,23 @@ export default function PreviewScreen() {
                   </View>
                   <View style={styles.previewActions}>
                     <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/visiting-card", { editCardId: visitingCard.id || "" }) as never)}>
-                      <Ionicons name="create-outline" size={16} color={Colors.text} />
+                      <Ionicons name="create-outline" size={16} color={theme.ink} />
                       <Text style={styles.secondaryActionText}>Edit</Text>
                     </Pressable>
                     <Pressable style={styles.secondaryAction} onPress={handleVisitingCardDuplicate}>
-                      <Ionicons name="copy-outline" size={16} color={Colors.text} />
+                      <Ionicons name="copy-outline" size={16} color={theme.ink} />
                       <Text style={styles.secondaryActionText}>Duplicate</Text>
                     </Pressable>
                     <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                      <Ionicons name="print-outline" size={16} color={Colors.text} />
+                      <Ionicons name="print-outline" size={16} color={theme.ink} />
                       <Text style={styles.secondaryActionText}>Print A4</Text>
                     </Pressable>
                     <Pressable style={styles.secondaryAction} onPress={handlePrint}>
-                      <Ionicons name="document-attach-outline" size={16} color={Colors.text} />
+                      <Ionicons name="document-attach-outline" size={16} color={theme.ink} />
                       <Text style={styles.secondaryActionText}>PDF</Text>
                     </Pressable>
                     <Pressable style={styles.secondaryAction} onPress={handleShare}>
-                      <Ionicons name="share-outline" size={16} color={Colors.text} />
+                      <Ionicons name="share-outline" size={16} color={theme.ink} />
                       <Text style={styles.secondaryActionText}>Share</Text>
                     </Pressable>
                     <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleVisitingCardFinalSave} disabled={saving}>
@@ -1022,38 +1026,38 @@ const shadow = Platform.select({
   },
 });
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-  webSafeArea: { backgroundColor: Colors.surface },
+const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.background },
+  webSafeArea: { backgroundColor: theme.wash },
   header: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   webHeader: { alignSelf: "center", maxWidth: 1040, width: "100%", paddingHorizontal: 40, paddingTop: 22 },
-  backButton: { alignItems: "center", backgroundColor: "#FFFFFF", borderColor: "#EFEFEF", borderRadius: 18, borderWidth: 1, height: 40, justifyContent: "center", width: 40, ...shadow },
-  headerTitle: { color: Colors.text, fontSize: 19, fontWeight: "800" },
+  backButton: { alignItems: "center", backgroundColor: theme.card, borderColor: theme.line, borderRadius: 18, borderWidth: 1, height: 40, justifyContent: "center", width: 40, ...shadow },
+  headerTitle: { color: theme.ink, fontSize: 19, fontWeight: "800" },
   headerSpacer: { width: 40 },
   phoneHorizontalWorkspace: { minWidth: 860 },
   container: { alignSelf: "center", minWidth: 820, padding: 18, width: "100%" },
   webContainer: { maxWidth: 1040, paddingHorizontal: 40, paddingBottom: 56 },
-  loadingText: { color: Colors.textSecondary, textAlign: "center" },
+  loadingText: { color: theme.muted, textAlign: "center" },
   document: { width: "100%", padding: 28, backgroundColor: "#FAFAFA", borderRadius: 12, borderWidth: 1, borderColor: "#E5E5E5" },
   title: { fontSize: 20, fontWeight: "700", marginBottom: 16 },
   divider: { height: 1, backgroundColor: "#222222", marginVertical: 10 },
   content: { fontSize: 16, color: "#333333", lineHeight: 24 },
   emptyCard: { alignItems: "center", backgroundColor: "#FAFAFA", borderRadius: 18, padding: 28 },
-  emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: "800" },
-  emptyText: { color: Colors.textSecondary, marginTop: 6 },
-  workflowBar: { alignSelf: "center", backgroundColor: "#FFFFFF", borderColor: "#E8E8E8", borderRadius: 16, borderWidth: 1, marginBottom: 14, maxWidth: 794, padding: 14, width: "100%", ...shadow },
-  workflowTitle: { color: Colors.text, fontSize: 15, fontWeight: "900", marginBottom: 10 },
+  emptyTitle: { color: theme.ink, fontSize: 18, fontWeight: "800" },
+  emptyText: { color: theme.muted, marginTop: 6 },
+  workflowBar: { alignSelf: "center", backgroundColor: theme.card, borderColor: theme.line, borderRadius: 16, borderWidth: 1, marginBottom: 14, maxWidth: 794, padding: 14, width: "100%", ...shadow },
+  workflowTitle: { color: theme.ink, fontSize: 15, fontWeight: "900", marginBottom: 10 },
   statusGrid: { flexDirection: "row", gap: 10 },
-  statusBox: { borderColor: "#E5E5E5", borderRadius: 12, borderWidth: 1, flex: 1, padding: 11 },
-  statusBoxActive: { backgroundColor: "#FFF4E3", borderColor: Colors.primary },
-  statusLabel: { color: Colors.text, fontSize: 14, fontWeight: "900", marginBottom: 3 },
-  statusLabelActive: { color: Colors.primaryDark },
-  statusDescription: { color: Colors.textSecondary, fontSize: 11 },
+  statusBox: { borderColor: theme.line, borderRadius: 12, borderWidth: 1, flex: 1, padding: 11 },
+  statusBoxActive: { backgroundColor: theme.orangeSoft, borderColor: theme.orange },
+  statusLabel: { color: theme.ink, fontSize: 14, fontWeight: "900", marginBottom: 3 },
+  statusLabelActive: { color: theme.orangeDark },
+  statusDescription: { color: theme.muted, fontSize: 11 },
   previewActions: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "flex-end", marginTop: 12 },
-  primaryAction: { backgroundColor: Colors.primary, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 },
+  primaryAction: { backgroundColor: theme.orange, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 },
   primaryActionText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
-  secondaryAction: { alignItems: "center", borderColor: "#E8E8E8", borderRadius: 999, borderWidth: 1, flexDirection: "row", gap: 5, paddingHorizontal: 12, paddingVertical: 9 },
-  secondaryActionText: { color: Colors.text, fontSize: 12, fontWeight: "800" },
+  secondaryAction: { alignItems: "center", borderColor: theme.line, borderRadius: 999, borderWidth: 1, flexDirection: "row", gap: 5, paddingHorizontal: 12, paddingVertical: 9 },
+  secondaryActionText: { color: theme.ink, fontSize: 12, fontWeight: "800" },
   disabledButton: { opacity: 0.7 },
   invoicePaper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: "#FFFFFF", borderColor: "#8A8A8A", borderRadius: 1, borderWidth: 1.5, maxWidth: 794, minHeight: 1123, padding: 0, width: 794, ...shadow },
   webInvoicePaper: { width: 794 },
@@ -1068,12 +1072,6 @@ const styles = StyleSheet.create({
   companyHeader: { alignItems: "center", borderBottomColor: "#8A8A8A", borderBottomWidth: 1.3, flexDirection: "row", gap: 10, minHeight: 118, paddingHorizontal: 16, paddingVertical: 4 },
   logoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 4, borderWidth: 1, height: 62, justifyContent: "center", overflow: "hidden", width: 74 },
   logoImage: { height: "100%", width: "100%" },
-  companyCopy: { flex: 1 },
-  companyName: { color: "#4A4A4A", fontSize: 44, fontWeight: "900", lineHeight: 52, textAlign: "center" },
-  companyAddress: { color: "#4A4A4A", fontSize: 18, fontWeight: "800", lineHeight: 24, textAlign: "center" },
-  companyEmail: { color: "#4A4A4A", fontSize: 16, fontWeight: "800", textAlign: "center" },
-  muted: { color: "#333333", fontSize: 11, lineHeight: 16 },
-  partiesGrid: { borderBottomColor: "#8A8A8A", borderBottomWidth: 1.3, flexDirection: "row", minHeight: 145 },
   partyBox: { borderRightColor: "#8A8A8A", borderRightWidth: 1.3, flex: 1.55, paddingHorizontal: 16, paddingVertical: 8 },
   invoiceInfoBox: { flex: 1, gap: 13, justifyContent: "center", paddingHorizontal: 16, paddingVertical: 8 },
   sectionTitle: { color: "#606060", fontSize: 13, fontWeight: "800", marginBottom: 8 },
@@ -1117,7 +1115,7 @@ const styles = StyleSheet.create({
   webQuotationPaper: { width: 794 },
   quotationHeader: { borderBottomColor: "#222222", borderBottomWidth: 1, flexDirection: "row", gap: 14, paddingBottom: 16 },
   quotationLogoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 4, borderWidth: 1, height: 70, justifyContent: "center", overflow: "hidden", width: 82 },
-  logoInitials: { color: Colors.primaryDark, fontSize: 20, fontWeight: "900" },
+  logoInitials: { color: theme.orangeDark, fontSize: 20, fontWeight: "900" },
   quotationCompanyCopy: { flex: 1 },
   quotationCompanyName: { color: "#111111", fontSize: 24, fontWeight: "900", marginBottom: 3 },
   quotationTitleBox: { alignItems: "flex-end", width: 180 },
@@ -1138,22 +1136,22 @@ const styles = StyleSheet.create({
   quotationNotes: { flex: 1.05, gap: 8 },
   letterheadPaper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: "#FFFFFF", borderColor: "#D9D9D9", borderRadius: 2, borderWidth: 1, maxWidth: 794, minHeight: 1123, padding: 28, width: 794, ...shadow },
   webLetterheadPaper: { width: 794 },
-  letterheadTop: { borderBottomColor: Colors.primary, borderBottomWidth: 3, flexDirection: "row", gap: 16, paddingBottom: 18 },
+  letterheadTop: { borderBottomColor: theme.orange, borderBottomWidth: 3, flexDirection: "row", gap: 16, paddingBottom: 18 },
   letterheadLogoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 6, borderWidth: 1, height: 78, justifyContent: "center", overflow: "hidden", width: 92 },
   letterheadCompanyBlock: { flex: 1 },
   letterheadCompanyName: { color: "#111111", fontSize: 27, fontWeight: "900", lineHeight: 34 },
-  letterheadTagline: { color: Colors.primaryDark, fontSize: 13, fontWeight: "800", lineHeight: 18 },
+  letterheadTagline: { color: theme.orangeDark, fontSize: 13, fontWeight: "800", lineHeight: 18 },
   letterheadCompanyLine: { color: "#555555", fontSize: 11, lineHeight: 16 },
   letterheadMetaRow: { alignItems: "center", flexDirection: "row", gap: 12, paddingVertical: 12 },
   letterheadDocName: { color: "#111111", flex: 1, fontSize: 16, fontWeight: "900" },
-  letterheadMetaText: { color: Colors.textSecondary, fontSize: 11, fontWeight: "800", textAlign: "right" },
+  letterheadMetaText: { color: theme.muted, fontSize: 11, fontWeight: "800", textAlign: "right" },
   letterheadBody: { color: "#222222", flex: 1, fontSize: 14, minHeight: 710, paddingVertical: 12 },
   letterheadSignatureStrip: { alignItems: "flex-end", minHeight: 90 },
   letterheadSignatureArea: { alignItems: "center", flexDirection: "row", gap: 10, justifyContent: "flex-end", minHeight: 62 },
   letterheadSignatureImage: { height: 52, width: 140 },
   letterheadStampImage: { height: 58, width: 82 },
   letterheadManualSignature: { borderBottomColor: "#BBBBBB", borderBottomWidth: 1, color: "#111111", fontSize: 18, fontStyle: "italic", minWidth: 180, paddingBottom: 4, textAlign: "center" },
-  letterheadFooter: { borderTopColor: Colors.primary, borderTopWidth: 2, paddingTop: 8 },
+  letterheadFooter: { borderTopColor: theme.orange, borderTopWidth: 2, paddingTop: 8 },
   letterheadFooterText: { color: "#555555", fontSize: 10, lineHeight: 14, textAlign: "center" },
   letterheadPageNumber: { color: "#777777", fontSize: 9, marginTop: 4, textAlign: "right" },
   visitingCardPreviewGrid: { alignSelf: "center", gap: 18, maxWidth: 920, width: "100%" },

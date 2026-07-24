@@ -33,7 +33,9 @@ import {
   QuotationRecord,
   saveQuotation,
 } from "@/services/quotations";
+import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Colors } from "@/theme/colors";
+import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
 
 const quotationOptions: { type: QuotationDocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
@@ -154,6 +156,8 @@ function buildDraftQuotation(documentType: QuotationDocumentType, profile: Busin
 }
 
 export default function QuotationScreen() {
+  const { theme, isDark } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const router = useRouter();
   const { editQuotationId, startType } = useLocalSearchParams<{ editQuotationId?: string; startType?: QuotationDocumentType }>();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
@@ -374,7 +378,7 @@ export default function QuotationScreen() {
           <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
             <View style={styles.editorHeader}>
               <Pressable style={styles.headerButton} onPress={() => setDraftQuotation(null)} accessibilityRole="button" accessibilityLabel="Back">
-                <Ionicons name="chevron-back" size={22} color={Colors.text} />
+                <Ionicons name="chevron-back" size={22} color={theme.ink} />
               </Pressable>
               <Text style={styles.editorTitle}>{getQuotationLabel(draftQuotation.documentType)}</Text>
               <View style={styles.editorActions}>
@@ -452,9 +456,9 @@ export default function QuotationScreen() {
                               <CellInput value={item.discount} onChangeText={(value) => updateItem(item.id, "discount", value)} style={styles.smallCell} keyboardType="decimal-pad" />
                               <Text style={[styles.tableCell, styles.amountCell, styles.amountText]}>{formatMoney(getQuotationItemAmount(item), currency)}</Text>
                               <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
-                                <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}><Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : Colors.textSecondary} /></Pressable>
-                                <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftQuotation.items.length - 1}><Ionicons name="chevron-down" size={15} color={index === draftQuotation.items.length - 1 ? "#CFCFCF" : Colors.textSecondary} /></Pressable>
-                                <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={Colors.error} /></Pressable>
+                                <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}><Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : theme.muted} /></Pressable>
+                                <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftQuotation.items.length - 1}><Ionicons name="chevron-down" size={15} color={index === draftQuotation.items.length - 1 ? "#CFCFCF" : theme.muted} /></Pressable>
+                                <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={theme.error} /></Pressable>
                               </View>
                             </View>
                           ))}
@@ -518,7 +522,7 @@ export default function QuotationScreen() {
         <ScrollView contentContainerStyle={[styles.moduleContent, isWebsite && styles.webModuleContent]} showsVerticalScrollIndicator={false}>
           <View style={styles.moduleHeader}>
             <Pressable style={styles.headerButton} onPress={() => router.push(appRoute("/dashboard") as never)} accessibilityRole="button" accessibilityLabel="Dashboard">
-              <Ionicons name="chevron-back" size={22} color={Colors.text} />
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
             </Pressable>
             <Text style={styles.moduleTitle}>Quotation</Text>
             <View style={styles.headerSpacer} />
@@ -535,7 +539,7 @@ export default function QuotationScreen() {
               <Text style={styles.previousTitle}>Previous Quotations</Text>
               <Pressable style={styles.filterButton} onPress={() => setFilterOpen((value) => !value)}>
                 <Text style={styles.filterButtonText}>{previousFilters.find((item) => item.type === previousFilter)?.label}</Text>
-                <Ionicons name={filterOpen ? "chevron-up" : "chevron-down"} size={16} color={Colors.text} />
+                <Ionicons name={filterOpen ? "chevron-up" : "chevron-down"} size={16} color={theme.ink} />
               </Pressable>
             </View>
 
@@ -555,7 +559,7 @@ export default function QuotationScreen() {
               previousQuotations.map((quotation) => (
                 <View key={quotation.id || quotation.quotationNumber} style={styles.previousRow}>
                   <Pressable style={styles.previousMain} onPress={() => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never)}>
-                    <View style={styles.previousIcon}><Ionicons name={quotation.documentType === "table_quotation" ? "grid-outline" : "reader-outline"} size={18} color={Colors.primary} /></View>
+                    <View style={styles.previousIcon}><Ionicons name={quotation.documentType === "table_quotation" ? "grid-outline" : "reader-outline"} size={18} color={theme.orange} /></View>
                     <View style={styles.previousCopy}>
                       <Text style={styles.previousNumber}>{quotation.quotationNumber}</Text>
                       <Text style={styles.previousMeta}>{quotation.quotationDate} • Valid {quotation.validUntil} • {quotation.client.name || "Client"} • {getStatusLabel(quotation.status)}</Text>
@@ -563,17 +567,17 @@ export default function QuotationScreen() {
                     <Text style={styles.previousAmount}>{formatMoney(quotation.grandTotal, quotation.currency)}</Text>
                   </Pressable>
                   <View style={styles.previousActions}>
-                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={Colors.textSecondary} /></Pressable>
-                    {quotation.status === "draft" ? <Pressable style={styles.rowIconButton} onPress={() => setDraftQuotation(quotation)}><Ionicons name="create-outline" size={17} color={Colors.textSecondary} /></Pressable> : null}
-                    <Pressable style={styles.rowIconButton} onPress={() => duplicateQuotation(quotation)}><Ionicons name="copy-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={theme.muted} /></Pressable>
+                    {quotation.status === "draft" ? <Pressable style={styles.rowIconButton} onPress={() => setDraftQuotation(quotation)}><Ionicons name="create-outline" size={17} color={theme.muted} /></Pressable> : null}
+                    <Pressable style={styles.rowIconButton} onPress={() => duplicateQuotation(quotation)}><Ionicons name="copy-outline" size={17} color={theme.muted} /></Pressable>
                     {quotation.status === "accepted" ? <Pressable style={[styles.rowIconButton, styles.disabledRowButton]} disabled><Ionicons name="swap-horizontal-outline" size={17} color="#B8B8B8" /></Pressable> : null}
-                    <Pressable style={styles.rowIconButton} onPress={printQuotation}><Ionicons name="print-outline" size={17} color={Colors.textSecondary} /></Pressable>
+                    <Pressable style={styles.rowIconButton} onPress={printQuotation}><Ionicons name="print-outline" size={17} color={theme.muted} /></Pressable>
                   </View>
                 </View>
               ))
             ) : (
               <View style={styles.emptyState}>
-                <View style={styles.emptyIcon}><Ionicons name="reader-outline" size={28} color={Colors.primary} /></View>
+                <View style={styles.emptyIcon}><Ionicons name="reader-outline" size={28} color={theme.orange} /></View>
                 <Text style={styles.emptyTitle}>No quotations created yet</Text>
                 <Text style={styles.emptyText}>Saved {getQuotationLabel(previousFilter).toLowerCase()} records will appear here with number, client, amount, and status.</Text>
               </View>
@@ -589,16 +593,16 @@ export default function QuotationScreen() {
                   <Text style={styles.selectorTitle}>Create New Quotation</Text>
                   <Text style={styles.selectorSubtitle}>Choose the quotation format you want to create.</Text>
                 </View>
-                <Pressable style={styles.closeButton} onPress={() => setSelectorVisible(false)}><Ionicons name="close" size={20} color={Colors.text} /></Pressable>
+                <Pressable style={styles.closeButton} onPress={() => setSelectorVisible(false)}><Ionicons name="close" size={20} color={theme.ink} /></Pressable>
               </View>
               {quotationOptions.map((option) => (
                 <Pressable key={option.type} style={styles.selectorOption} onPress={() => startQuotation(option.type)}>
-                  <View style={styles.selectorIcon}><Ionicons name={option.icon} size={22} color={Colors.primary} /></View>
+                  <View style={styles.selectorIcon}><Ionicons name={option.icon} size={22} color={theme.orange} /></View>
                   <View style={styles.selectorCopy}>
                     <Text style={styles.selectorOptionTitle}>{option.title}</Text>
                     <Text style={styles.selectorOptionText}>{option.description}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+                  <Ionicons name="chevron-forward" size={18} color={theme.muted} />
                 </Pressable>
               ))}
             </View>
@@ -698,84 +702,64 @@ const shadow = Platform.select({
   },
 });
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.background },
-  webSafeArea: { backgroundColor: Colors.surface },
+const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.background },
+  webSafeArea: { backgroundColor: theme.wash },
   keyboardView: { flex: 1 },
-  moduleContent: { alignSelf: "center", maxWidth: 520, paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12, width: "100%" },
-  webModuleContent: { maxWidth: 1040, paddingHorizontal: 40, paddingTop: 28, paddingBottom: 52 },
-  moduleHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 24 },
-  headerButton: { alignItems: "center", backgroundColor: "#FFFFFF", borderColor: "#EFEFEF", borderRadius: 18, borderWidth: 1, height: 40, justifyContent: "center", width: 40, ...shadow },
-  headerSpacer: { width: 40 },
-  moduleTitle: { color: Colors.text, fontSize: 22, fontWeight: "800" },
-  createButton: {
-    alignItems: "center",
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-    padding: 18,
-    elevation: 5,
-    ...Platform.select({
-      web: {
-        boxShadow: "0px 12px 20px rgba(255, 122, 0, 0.22)",
-      },
-      default: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.22,
-        shadowRadius: 20,
-      },
-    }),
-  },
-  createIcon: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 16, height: 44, justifyContent: "center", width: 44 },
+  moduleContent: { alignSelf: "center", maxWidth: 680, padding: 18, width: "100%" },
+  webModuleContent: { maxWidth: 1040, paddingHorizontal: 40, paddingBottom: 56, paddingTop: 38 },
+  moduleHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  headerButton: { alignItems: "center", backgroundColor: theme.card, borderColor: theme.line, borderRadius: 14, borderWidth: 1, height: 40, justifyContent: "center", width: 40, ...shadow },
+  headerSpacer: { width: 44 },
+  moduleTitle: { color: theme.ink, fontSize: 24, fontWeight: "900" },
+  createButton: { alignItems: "center", backgroundColor: theme.orange, borderRadius: 20, flexDirection: "row", gap: 12, marginBottom: 18, padding: 18 },
+  createIcon: { alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.18)", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
   createText: { color: "#FFFFFF", flex: 1, fontSize: 17, fontWeight: "800" },
-  previousCard: { backgroundColor: "#FFFFFF", borderColor: "#EFEFEF", borderRadius: 20, borderWidth: 1, padding: 18, ...shadow },
+  previousCard: { backgroundColor: theme.card, borderColor: theme.line, borderRadius: 20, borderWidth: 1, padding: 18, ...shadow },
   previousHeader: { alignItems: "flex-start", gap: 10, marginBottom: 12 },
-  previousTitle: { color: Colors.text, fontSize: 18, fontWeight: "800" },
-  filterButton: { alignItems: "center", alignSelf: "stretch", backgroundColor: "#FAFAFA", borderColor: "#EAEAEA", borderRadius: 12, borderWidth: 1, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 10 },
-  filterButtonText: { color: Colors.text, fontSize: 13, fontWeight: "800" },
-  filterMenu: { borderColor: "#EAEAEA", borderRadius: 12, borderWidth: 1, marginBottom: 10, overflow: "hidden" },
+  previousTitle: { color: theme.ink, fontSize: 18, fontWeight: "800" },
+  filterButton: { alignItems: "center", alignSelf: "stretch", backgroundColor: theme.wash, borderColor: theme.line, borderRadius: 12, borderWidth: 1, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 10 },
+  filterButtonText: { color: theme.ink, fontSize: 13, fontWeight: "800" },
+  filterMenu: { borderColor: theme.line, borderRadius: 12, borderWidth: 1, marginBottom: 10, overflow: "hidden" },
   filterOption: { paddingHorizontal: 12, paddingVertical: 11 },
-  filterOptionActive: { backgroundColor: "#FFF4E3" },
-  filterOptionText: { color: Colors.textSecondary, fontSize: 13, fontWeight: "700" },
-  filterOptionTextActive: { color: Colors.primaryDark },
-  previousRow: { borderTopColor: "#EFEFEF", borderTopWidth: 1, paddingVertical: 12 },
+  filterOptionActive: { backgroundColor: theme.orangeSoft },
+  filterOptionText: { color: theme.muted, fontSize: 13, fontWeight: "700" },
+  filterOptionTextActive: { color: theme.orangeDark },
+  previousRow: { borderTopColor: theme.line, borderTopWidth: 1, paddingVertical: 12 },
   previousMain: { alignItems: "center", flexDirection: "row" },
-  previousIcon: { alignItems: "center", backgroundColor: "#FFF4E3", borderRadius: 14, height: 40, justifyContent: "center", marginRight: 12, width: 40 },
+  previousIcon: { alignItems: "center", backgroundColor: theme.orangeSoft, borderRadius: 14, height: 40, justifyContent: "center", marginRight: 12, width: 40 },
   previousCopy: { flex: 1 },
-  previousNumber: { color: Colors.text, fontSize: 14, fontWeight: "800", marginBottom: 3 },
-  previousMeta: { color: Colors.textSecondary, fontSize: 12 },
-  previousAmount: { color: Colors.text, fontSize: 13, fontWeight: "800", marginLeft: 10 },
+  previousNumber: { color: theme.ink, fontSize: 14, fontWeight: "800", marginBottom: 3 },
+  previousMeta: { color: theme.muted, fontSize: 12 },
+  previousAmount: { color: theme.ink, fontSize: 13, fontWeight: "800", marginLeft: 10 },
   previousActions: { flexDirection: "row", gap: 8, justifyContent: "flex-end", marginTop: 10 },
-  rowIconButton: { alignItems: "center", backgroundColor: "#FAFAFA", borderColor: "#EEEEEE", borderRadius: 12, borderWidth: 1, height: 34, justifyContent: "center", width: 34 },
+  rowIconButton: { alignItems: "center", backgroundColor: theme.wash, borderColor: theme.line, borderRadius: 12, borderWidth: 1, height: 34, justifyContent: "center", width: 34 },
   disabledRowButton: { opacity: 0.65 },
-  emptyState: { alignItems: "center", borderColor: "#F1F1F1", borderRadius: 18, borderStyle: "dashed", borderWidth: 1, paddingHorizontal: 18, paddingVertical: 34 },
-  emptyIcon: { alignItems: "center", backgroundColor: "#FFF4E3", borderRadius: 22, height: 56, justifyContent: "center", marginBottom: 14, width: 56 },
-  emptyTitle: { color: Colors.text, fontSize: 17, fontWeight: "800", marginBottom: 6, textAlign: "center" },
-  emptyText: { color: Colors.textSecondary, fontSize: 13, lineHeight: 19, textAlign: "center" },
-  editorHeader: { alignItems: "center", backgroundColor: "#FFFFFF", borderBottomColor: "#EFEFEF", borderBottomWidth: 1, flexDirection: "row", gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  editorTitle: { color: Colors.text, flex: 1, fontSize: 18, fontWeight: "800", textAlign: "center" },
+  emptyState: { alignItems: "center", borderColor: theme.line, borderRadius: 18, borderStyle: "dashed", borderWidth: 1, paddingHorizontal: 18, paddingVertical: 34 },
+  emptyIcon: { alignItems: "center", backgroundColor: theme.orangeSoft, borderRadius: 22, height: 56, justifyContent: "center", marginBottom: 14, width: 56 },
+  emptyTitle: { color: theme.ink, fontSize: 17, fontWeight: "800", marginBottom: 6, textAlign: "center" },
+  emptyText: { color: theme.muted, fontSize: 13, lineHeight: 19, textAlign: "center" },
+  editorHeader: { alignItems: "center", backgroundColor: theme.card, borderBottomColor: theme.line, borderBottomWidth: 1, flexDirection: "row", gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
+  editorTitle: { color: theme.ink, flex: 1, fontSize: 18, fontWeight: "800", textAlign: "center" },
   editorActions: { alignItems: "center", flexDirection: "row", gap: 8 },
-  saveButton: { backgroundColor: Colors.primary, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 },
+  saveButton: { backgroundColor: theme.orange, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 },
   saveButtonText: { color: "#FFFFFF", fontSize: 12, fontWeight: "800" },
-  secondaryButton: { backgroundColor: "#FFFFFF", borderColor: "#EAEAEA", borderRadius: 999, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10 },
-  secondaryButtonText: { color: Colors.text, fontSize: 12, fontWeight: "800" },
+  secondaryButton: { backgroundColor: theme.card, borderColor: theme.line, borderRadius: 999, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10 },
+  secondaryButtonText: { color: theme.ink, fontSize: 12, fontWeight: "800" },
   disabledButton: { opacity: 0.7 },
   phoneHorizontalWorkspace: { minWidth: 860 },
-  editorContent: { alignSelf: "center", minWidth: 820, paddingHorizontal: 14, paddingBottom: 96, paddingTop: 14, width: "100%" },
+  editorContent: { alignSelf: "center", minWidth: 820, paddingHorizontal: 14, paddingBottom: 96, paddingTop: 14, width: "100%", backgroundColor: theme.background },
   webEditorContent: { maxWidth: 1120, paddingHorizontal: 40, paddingTop: 24 },
   errorBox: { alignSelf: "center", backgroundColor: "#FFF2F0", borderColor: "#FFD2CC", borderRadius: 12, borderWidth: 1, marginBottom: 12, maxWidth: 794, padding: 12, width: "100%" },
-  errorText: { color: Colors.error, fontSize: 12, fontWeight: "700", lineHeight: 18 },
+  errorText: { color: theme.orangeDark, fontSize: 12, fontWeight: "700", lineHeight: 18 },
   a4Paper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: "#FFFFFF", borderColor: "#D9D9D9", borderRadius: 2, borderWidth: 1, maxWidth: 794, minHeight: 1123, padding: 22, width: 794, ...shadow },
   webA4Paper: { width: 794 },
   quotationHeader: { borderBottomColor: "#222222", borderBottomWidth: 1, flexDirection: "row", gap: 14, paddingBottom: 16 },
   logoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 4, borderWidth: 1, height: 70, justifyContent: "center", overflow: "hidden", width: 82 },
   logoImage: { height: "100%", width: "100%" },
-  logoInitials: { color: Colors.primaryDark, fontSize: 20, fontWeight: "900" },
+  logoInitials: { color: theme.orangeDark, fontSize: 20, fontWeight: "900" },
   companyBlock: { flex: 1 },
-  inlineInput: { color: Colors.text, padding: 0 },
+  inlineInput: { color: "#111111", padding: 0 },
   companyName: { color: "#111111", fontSize: 24, fontWeight: "900", marginBottom: 3 },
   companyAddress: { color: "#333333", fontSize: 11, lineHeight: 16 },
   companyMeta: { color: "#555555", fontSize: 11, lineHeight: 16 },
@@ -798,25 +782,24 @@ const styles = StyleSheet.create({
   bodyParagraph: { color: "#333333", fontSize: 13, lineHeight: 20 },
   richTextArea: { borderColor: "#E2E2E2", borderRadius: 4, borderWidth: 1, color: "#333333", fontSize: 13, lineHeight: 19, minHeight: 86, padding: 10, textAlignVertical: "top" },
   tableToolbar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingVertical: 10 },
-  addRowButton: { alignItems: "center", backgroundColor: Colors.primary, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
+  addRowButton: { alignItems: "center", backgroundColor: theme.orange, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
   addRowText: { color: "#FFFFFF", fontSize: 11, fontWeight: "800" },
-  itemTable: { borderColor: "#222222", borderWidth: 1, minWidth: 746 },
+  itemTable: { borderColor: "#222222", borderLeftWidth: 0, borderRightWidth: 0, borderTopWidth: 0, minWidth: 750 },
   itemRow: { flexDirection: "row" },
   itemHeaderRow: { backgroundColor: "#F6F6F6" },
-  tableCell: { borderRightColor: "#222222", borderRightWidth: 1, borderTopColor: "#222222", borderTopWidth: 1, color: "#111111", fontSize: 11, minHeight: 38, padding: 6 },
-  serialCell: { textAlign: "center", width: 48 },
-  descriptionCell: { width: 210 },
-  codeCell: { width: 80 },
-  smallCell: { width: 70 },
-  amountCell: { width: 105 },
-  actionCell: { borderRightWidth: 0, width: 72 },
+  tableCell: { borderRightColor: "#222222", borderRightWidth: 1.2, borderTopColor: "#222222", borderTopWidth: 1.2, color: "#333333", fontSize: 13, fontWeight: "700", minHeight: 28, padding: 5 },
+  serialCell: { textAlign: "center", width: 44 },
+  descriptionCell: { width: 236 },
+  codeCell: { width: 94 },
+  smallCell: { textAlign: "center", width: 94 },
+  amountCell: { width: 132 },
+  actionCell: { borderRightWidth: 0, width: 56 },
   cellInput: { paddingVertical: 0 },
   amountText: { fontWeight: "800", textAlign: "right" },
-  rowActions: { alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center", paddingHorizontal: 3 },
-  summaryArea: { borderBottomColor: "#222222", borderBottomWidth: 1, borderTopColor: "#222222", borderTopWidth: 1, flexDirection: "row", gap: 14, paddingVertical: 12 },
-  notesColumn: { flex: 1.05, gap: 8 },
-  textArea: { borderColor: "#E2E2E2", borderRadius: 4, borderWidth: 1, color: "#333333", fontSize: 11, lineHeight: 16, minHeight: 56, padding: 8, textAlignVertical: "top" },
-  totalsBox: { borderColor: "#222222", borderRadius: 4, borderWidth: 1, flex: 0.95, padding: 10 },
+  rowActions: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center", paddingHorizontal: 4 },
+  summaryArea: { borderBottomColor: "#222222", borderBottomWidth: 1.2, flexDirection: "row", gap: 0, paddingVertical: 0 },
+  notesColumn: { borderRightColor: "#222222", borderRightWidth: 1.2, flex: 1.2, minHeight: 92, paddingHorizontal: 12, paddingVertical: 10 },
+  totalsBox: { flex: 0.95, paddingHorizontal: 12, paddingVertical: 4 },
   totalRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 },
   totalLabel: { color: "#333333", flex: 1, fontSize: 11, fontWeight: "700" },
   totalValue: { color: "#111111", fontSize: 11, fontWeight: "900", textAlign: "right" },
@@ -827,27 +810,27 @@ const styles = StyleSheet.create({
   totalDivider: { backgroundColor: "#222222", height: 1, marginVertical: 5 },
   wordsLabel: { color: "#555555", fontSize: 9, fontWeight: "900", marginBottom: 4, marginTop: 8, textTransform: "uppercase" },
   wordsInput: { color: "#222222", fontSize: 11, fontWeight: "700", minHeight: 34, padding: 0, textAlignVertical: "top" },
-  signatureArea: { flexDirection: "row", gap: 14, paddingTop: 12 },
-  closingBox: { flex: 1 },
-  signBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 4, borderWidth: 1, flex: 1, minHeight: 126, padding: 9 },
-  signFor: { color: "#111111", fontSize: 12, fontWeight: "900", marginBottom: 8 },
+  signatureArea: { flexDirection: "row", gap: 0, minHeight: 93 },
+  closingBox: { borderRightColor: "#222222", borderRightWidth: 1.2, flex: 1.2, padding: 9 },
+  signBox: { alignItems: "flex-end", flex: 1, justifyContent: "space-between", minHeight: 93, padding: 12 },
+  signFor: { color: "#4A4A4A", fontSize: 14, fontWeight: "800", marginBottom: 8 },
   assetRow: { flexDirection: "row", gap: 8, width: "100%" },
   assetBox: { alignItems: "center", borderColor: "#EEEEEE", borderRadius: 4, borderWidth: 1, flex: 1, minHeight: 58, padding: 6 },
   assetLabel: { color: "#777777", fontSize: 9, fontWeight: "800", marginBottom: 3 },
   assetImage: { height: 38, width: "100%" },
-  assetPlaceholder: { color: Colors.textSecondary, fontSize: 9 },
-  signLabel: { color: "#333333", fontSize: 11, fontWeight: "900", marginTop: 10 },
+  assetPlaceholder: { color: theme.muted, fontSize: 9 },
+  signLabel: { color: "#4A4A4A", fontSize: 14, fontWeight: "500", marginTop: 10 },
   selectorOverlay: { alignItems: "center", backgroundColor: "rgba(0,0,0,0.34)", flex: 1, justifyContent: "center", padding: 22 },
   selectorOverlayPhone: { justifyContent: "flex-end", padding: 0 },
-  selectorModal: { backgroundColor: "#FFFFFF", borderRadius: 18, maxWidth: 460, padding: 18, width: "100%", ...shadow },
+  selectorModal: { backgroundColor: theme.card, borderRadius: 18, maxWidth: 460, padding: 18, width: "100%", ...shadow },
   selectorSheet: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, maxWidth: "100%", paddingBottom: 26 },
   selectorHeader: { alignItems: "flex-start", flexDirection: "row", justifyContent: "space-between", marginBottom: 14 },
-  selectorTitle: { color: Colors.text, fontSize: 20, fontWeight: "900", marginBottom: 4 },
-  selectorSubtitle: { color: Colors.textSecondary, fontSize: 13, lineHeight: 18 },
-  closeButton: { alignItems: "center", backgroundColor: "#FAFAFA", borderColor: "#EEEEEE", borderRadius: 14, borderWidth: 1, height: 34, justifyContent: "center", width: 34 },
-  selectorOption: { alignItems: "center", borderColor: "#EEEEEE", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 12, marginTop: 10, padding: 14 },
-  selectorIcon: { alignItems: "center", backgroundColor: "#FFF4E3", borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
+  selectorTitle: { color: theme.ink, fontSize: 20, fontWeight: "900", marginBottom: 4 },
+  selectorSubtitle: { color: theme.muted, fontSize: 13, lineHeight: 18 },
+  closeButton: { alignItems: "center", backgroundColor: theme.wash, borderColor: theme.line, borderRadius: 14, borderWidth: 1, height: 34, justifyContent: "center", width: 34 },
+  selectorOption: { alignItems: "center", borderColor: theme.line, borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 12, marginTop: 10, padding: 14 },
+  selectorIcon: { alignItems: "center", backgroundColor: theme.orangeSoft, borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
   selectorCopy: { flex: 1 },
-  selectorOptionTitle: { color: Colors.text, fontSize: 15, fontWeight: "900", marginBottom: 3 },
-  selectorOptionText: { color: Colors.textSecondary, fontSize: 12, lineHeight: 17 },
+  selectorOptionTitle: { color: theme.ink, fontSize: 15, fontWeight: "900", marginBottom: 3 },
+  selectorOptionText: { color: theme.muted, fontSize: 12, lineHeight: 17 },
 });
