@@ -1,19 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useAppTheme, ThemePalette } from "@/theme/theme-context";
@@ -122,6 +122,9 @@ export default function LetterheadScreen() {
   const [redoHistory, setRedoHistory] = useState<string[]>([]);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
+  const baseWidth = 794;
+  const baseHeight = 1123;
+  const scale = width < 820 ? (width - 28) / baseWidth : 1;
 
   function appRoute(pathname: string, params?: Record<string, string>) {
     if (!isAppPreview) return params ? { pathname, params } : pathname;
@@ -276,14 +279,6 @@ export default function LetterheadScreen() {
     }
   }
 
-  function printLetterhead() {
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      window.print();
-      return;
-    }
-    Alert.alert("Print", "Native PDF/print requires Expo print support; web print is available in this build.");
-  }
-
   if (draftLetterhead) {
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
@@ -323,16 +318,28 @@ export default function LetterheadScreen() {
               <ToolbarButton label="2x" active={draftLetterhead.bodyFormatting.spacing === "relaxed"} onPress={() => setSpacing("relaxed")} />
             </View>
 
-            <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <LetterheadPaper
-                  letterhead={draftLetterhead}
-                  updateLetterheadField={updateLetterheadField}
-                  updateCompanyField={updateCompanyField}
-                  updateBody={updateBody}
-                />
+            <View style={{ flex: 1 }}>
+              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <View style={
+                  width < 820 ? {
+                    width: baseWidth * scale,
+                    height: baseHeight * scale,
+                    overflow: "hidden",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    alignSelf: "center",
+                  } : undefined
+                }>
+                  <LetterheadPaper
+                    letterhead={draftLetterhead}
+                    updateLetterheadField={updateLetterheadField}
+                    updateCompanyField={updateCompanyField}
+                    updateBody={updateBody}
+                    scale={width < 820 ? scale : undefined}
+                  />
+                </View>
               </ScrollView>
-            </ScrollView>
+            </View>
           </KeyboardAvoidingView>
         </Animated.View>
       </SafeAreaView>
@@ -409,16 +416,24 @@ function LetterheadPaper({
   updateLetterheadField,
   updateCompanyField,
   updateBody,
+  scale,
 }: {
   letterhead: LetterheadRecord;
   updateLetterheadField: (field: keyof LetterheadRecord, value: string | boolean) => void;
   updateCompanyField: (field: keyof LetterheadRecord["company"], value: string) => void;
   updateBody: (value: string) => void;
+  scale?: number;
 }) {
   const lineHeight = letterhead.bodyFormatting.spacing === "compact" ? 20 : letterhead.bodyFormatting.spacing === "relaxed" ? 30 : 24;
 
   return (
-    <View style={styles.a4Paper}>
+    <View style={[
+      styles.a4Paper,
+      scale !== undefined && {
+        transform: [{ scale: scale }],
+        position: "absolute",
+      }
+    ]}>
       <View style={styles.paperHeader}>
         <View style={styles.logoBox}>
           {letterhead.company.logoUrl ? <Image source={{ uri: letterhead.company.logoUrl }} style={styles.logoImage} contentFit="contain" /> : <Text style={styles.logoInitials}>{getCompanyInitials(letterhead.company.name)}</Text>}

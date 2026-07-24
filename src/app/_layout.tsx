@@ -2,6 +2,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useAppTheme } from "@/theme/theme-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 function RootLayoutContent() {
   const { isDark, theme } = useAppTheme();
@@ -24,8 +25,10 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutContent />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <RootLayoutContent />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

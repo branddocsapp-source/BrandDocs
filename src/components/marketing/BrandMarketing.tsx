@@ -247,7 +247,7 @@ function Header({
           onPress={() => goToRoute("/")}
           style={styles.logoButton}
         >
-          <BrandLogo size="medium" />
+          <BrandLogo size="medium" disableNavigation />
         </Pressable>
 
         {isMobile ? (

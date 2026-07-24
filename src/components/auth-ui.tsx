@@ -116,7 +116,7 @@ function BrandPanel({ compact }: { compact: boolean }) {
   return (
     <View style={[styles.brandPanel, { backgroundColor: isDark ? "#121419" : authBrand.wash, borderColor: theme.line }, compact && styles.brandPanelCompact]}>
       <View style={styles.brandTop}>
-        <BrandLogo size="large" />
+        <BrandLogo size="large" disableNavigation />
         <View style={[styles.badge, { backgroundColor: isDark ? "#261D10" : theme.orangeSoft, borderColor: theme.line }]}>
           <Ionicons name="globe-outline" size={16} color={theme.orangeDark} />
           <Text style={[styles.badgeText, { color: theme.orangeDark }]}>Made for businesses worldwide</Text>
@@ -210,7 +210,7 @@ export function AuthHeader({ title, subtitle, onLogoPress }: AuthHeaderProps) {
   return (
     <View style={styles.header}>
       <Pressable onPress={onLogoPress} accessibilityRole="link" accessibilityLabel="BrandDocs home">
-        <BrandLogo size="medium" />
+        <BrandLogo size="medium" disableNavigation />
       </Pressable>
       <View style={styles.titleGroup}>
         <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>

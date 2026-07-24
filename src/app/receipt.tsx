@@ -7,12 +7,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import {
@@ -97,6 +97,9 @@ export default function ReceiptScreen() {
   const [deleteTarget, setDeleteTarget] = useState<ReceiptRecord | null>(null);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
+  const baseWidth = 794;
+  const baseHeight = 1123;
+  const scale = width < 820 ? (width - 28) / baseWidth : 1;
 
   const appRoute = useCallback((pathname: string, params?: Record<string, string>) => {
     if (!isAppPreview) return params ? { pathname, params } : pathname;

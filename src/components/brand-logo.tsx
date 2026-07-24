@@ -1,13 +1,18 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useAppTheme } from "@/theme/theme-context";
+import { useRouter } from "expo-router";
+import { auth } from "@/firebase";
 
 type BrandLogoProps = {
   size?: "small" | "medium" | "large";
+  onPress?: () => void;
+  disableNavigation?: boolean;
 };
 
-export function BrandLogo({ size = "medium" }: BrandLogoProps) {
+export function BrandLogo({ size = "medium", onPress, disableNavigation = false }: BrandLogoProps) {
   const { isDark } = useAppTheme();
+  const router = useRouter();
 
   const isSmall = size === "small";
   const isLarge = size === "large";
@@ -16,7 +21,16 @@ export function BrandLogo({ size = "medium" }: BrandLogoProps) {
   const subtitleFontSize = isSmall ? 7 : isLarge ? 9.5 : 8.5;
   const iconSize = isSmall ? 34 : isLarge ? 50 : 42;
 
-  return (
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
+    const target = auth.currentUser ? "/dashboard" : "/";
+    router.push(target as any);
+  };
+
+  const content = (
     <View style={styles.container}>
       {/* Brand Icon Mark */}
       <View style={[styles.iconOuter, { width: iconSize, height: iconSize }]}>
@@ -42,6 +56,23 @@ export function BrandLogo({ size = "medium" }: BrandLogoProps) {
         </Text>
       </View>
     </View>
+  );
+
+  if (disableNavigation) {
+    return content;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="BrandDocs Home"
+      onPress={handlePress}
+      style={({ pressed }) => [
+        { opacity: pressed ? 0.75 : 1 }
+      ]}
+    >
+      {content}
+    </Pressable>
   );
 }
 

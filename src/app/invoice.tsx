@@ -8,13 +8,13 @@ import {
   Modal,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { auth } from "@/firebase";
@@ -208,6 +208,9 @@ export default function InvoiceScreen() {
   const [fieldErrors, setFieldErrors] = useState<string[]>([]);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
+  const baseWidth = 794;
+  const baseHeight = 1123;
+  const scale = width < 820 ? (width - 28) / baseWidth : 1;
 
   const currency = draftDocument?.company.currency || profile?.defaultCurrency || "INR";
   const isTaxDocument = draftDocument?.documentType === "tax_invoice";
@@ -482,12 +485,8 @@ export default function InvoiceScreen() {
               </View>
             </View>
 
-            <ScrollView
-              horizontal={isPhone}
-              contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined}
-              showsHorizontalScrollIndicator={isPhone}
-            >
-              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <View style={{ flex: 1 }}>
+              <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 {fieldErrors.length ? (
                   <View style={styles.errorBox}>
                     {fieldErrors.map((error) => (
@@ -496,7 +495,24 @@ export default function InvoiceScreen() {
                   </View>
                 ) : null}
 
-                <View style={[styles.a4Paper, isDesktop && styles.webA4Paper]}>
+                <View style={
+                  width < 820 ? {
+                    width: baseWidth * scale,
+                    height: baseHeight * scale,
+                    overflow: "hidden",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    alignSelf: "center",
+                  } : undefined
+                }>
+                  <View style={[
+                    styles.a4Paper,
+                    isDesktop && styles.webA4Paper,
+                    width < 820 && {
+                      transform: [{ scale: scale }],
+                      position: "absolute",
+                    }
+                  ]}>
                   <View style={styles.topStrip}>
                     <View style={styles.stripBlock}>
                       <InlineInput value={`GSTIN: ${draftDocument.company.taxRegistrationNumber}`} onChangeText={(value) => updateCompanyField("taxRegistrationNumber", value.replace(/^GSTIN:\s*/i, ""))} textStyle={styles.stripText} />
@@ -718,8 +734,9 @@ export default function InvoiceScreen() {
                     </View>
                   </View>
                 </View>
-              </ScrollView>
+              </View>
             </ScrollView>
+          </View>
           </KeyboardAvoidingView>
         </Animated.View>
       </SafeAreaView>

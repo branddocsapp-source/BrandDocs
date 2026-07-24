@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleProp,
   StyleSheet,
@@ -16,6 +15,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
@@ -536,8 +536,8 @@ export function AppShell({
       <View style={[styles.shell, { backgroundColor: theme.background }]}>
         {usesSidebar ? <DesktopSidebar /> : null}
         <View style={[styles.workspace, { backgroundColor: theme.wash }]}>
-          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }]}>
-            {!usesSidebar ? <AppLogo /> : <View />}
+          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg }]}>
+            {!usesSidebar ? <AppLogo compact /> : <View />}
             <View style={styles.topActions}>
               {showSearch ? <IconButton icon="search-outline" accessibilityLabel="Search" /> : null}
               <IconButton

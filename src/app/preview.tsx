@@ -2,7 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { auth } from "@/firebase";
@@ -139,6 +140,9 @@ export default function PreviewScreen() {
   const [saving, setSaving] = useState(false);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
+  const baseWidth = 794;
+  const baseHeight = 1123;
+  const scale = width < 820 ? (width - 28) / baseWidth : 1;
 
   function appRoute(pathname: string, params?: Record<string, string>) {
     if (!isAppPreview) return params ? { pathname, params } : pathname;
@@ -390,12 +394,8 @@ export default function PreviewScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView
-            horizontal={isPhone}
-            contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined}
-            showsHorizontalScrollIndicator={isPhone}
-          >
-            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false}>
               {loading ? (
                 <Text style={styles.loadingText}>Loading document...</Text>
               ) : invoice ? (
@@ -434,7 +434,25 @@ export default function PreviewScreen() {
                       </Pressable>
                     </View>
                   </View>
-                  <InvoicePreview invoice={{ ...invoice, status: selectedStatus }} isDesktop={isDesktop} />
+                  <View style={
+                    width < 820 ? {
+                      width: baseWidth * scale,
+                      height: baseHeight * scale,
+                      overflow: "hidden",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      alignSelf: "center",
+                    } : undefined
+                  }>
+                    <View style={
+                      width < 820 ? {
+                        transform: [{ scale: scale }],
+                        position: "absolute",
+                      } : undefined
+                    }>
+                      <InvoicePreview invoice={{ ...invoice, status: selectedStatus }} isDesktop={isDesktop} />
+                    </View>
+                  </View>
                 </>
               ) : (
                 <View style={styles.emptyCard}>
@@ -443,7 +461,7 @@ export default function PreviewScreen() {
                 </View>
               )}
             </ScrollView>
-          </ScrollView>
+          </View>
         </Animated.View>
       </SafeAreaView>
     );
@@ -461,8 +479,8 @@ export default function PreviewScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false}>
               {loading ? (
                 <Text style={styles.loadingText}>Loading quotation...</Text>
               ) : quotation ? (
@@ -507,7 +525,25 @@ export default function PreviewScreen() {
                       </Pressable>
                     </View>
                   </View>
-                  <QuotationPreview quotation={{ ...quotation, status: selectedQuotationStatus }} isDesktop={isDesktop} />
+                  <View style={
+                    width < 820 ? {
+                      width: baseWidth * scale,
+                      height: baseHeight * scale,
+                      overflow: "hidden",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      alignSelf: "center",
+                    } : undefined
+                  }>
+                    <View style={
+                      width < 820 ? {
+                        transform: [{ scale: scale }],
+                        position: "absolute",
+                      } : undefined
+                    }>
+                      <QuotationPreview quotation={{ ...quotation, status: selectedQuotationStatus }} isDesktop={isDesktop} />
+                    </View>
+                  </View>
                 </>
               ) : (
                 <View style={styles.emptyCard}>
@@ -516,7 +552,7 @@ export default function PreviewScreen() {
                 </View>
               )}
             </ScrollView>
-          </ScrollView>
+          </View>
         </Animated.View>
       </SafeAreaView>
     );
@@ -534,8 +570,8 @@ export default function PreviewScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false}>
               {loading ? (
                 <Text style={styles.loadingText}>Loading letterhead...</Text>
               ) : letterhead ? (
@@ -574,7 +610,25 @@ export default function PreviewScreen() {
                       </Pressable>
                     </View>
                   </View>
-                  <LetterheadPreview letterhead={{ ...letterhead, status: selectedLetterheadStatus }} isDesktop={isDesktop} />
+                  <View style={
+                    width < 820 ? {
+                      width: baseWidth * scale,
+                      height: baseHeight * scale,
+                      overflow: "hidden",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      alignSelf: "center",
+                    } : undefined
+                  }>
+                    <View style={
+                      width < 820 ? {
+                        transform: [{ scale: scale }],
+                        position: "absolute",
+                      } : undefined
+                    }>
+                      <LetterheadPreview letterhead={{ ...letterhead, status: selectedLetterheadStatus }} isDesktop={isDesktop} />
+                    </View>
+                  </View>
                 </>
               ) : (
                 <View style={styles.emptyCard}>
@@ -583,7 +637,7 @@ export default function PreviewScreen() {
                 </View>
               )}
             </ScrollView>
-          </ScrollView>
+          </View>
         </Animated.View>
       </SafeAreaView>
     );
@@ -601,8 +655,9 @@ export default function PreviewScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
-            {loading ? (
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+              {loading ? (
               <Text style={styles.loadingText}>Loading visiting card...</Text>
             ) : visitingCard ? (
               <>
@@ -666,7 +721,8 @@ export default function PreviewScreen() {
                 <Text style={styles.emptyText}>We could not load this saved visiting card.</Text>
               </View>
             )}
-          </ScrollView>
+            </ScrollView>
+          </View>
         </Animated.View>
       </SafeAreaView>
     );
@@ -684,8 +740,8 @@ export default function PreviewScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
-            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false}>
               {loading ? (
                 <Text style={styles.loadingText}>Loading receipt...</Text>
               ) : receipt ? (
@@ -724,7 +780,25 @@ export default function PreviewScreen() {
                       </Pressable>
                     </View>
                   </View>
-                  <ReceiptPreview receipt={{ ...receipt, status: selectedReceiptStatus }} isDesktop={isDesktop} />
+                  <View style={
+                    width < 820 ? {
+                      width: baseWidth * scale,
+                      height: baseHeight * scale,
+                      overflow: "hidden",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      alignSelf: "center",
+                    } : undefined
+                  }>
+                    <View style={
+                      width < 820 ? {
+                        transform: [{ scale: scale }],
+                        position: "absolute",
+                      } : undefined
+                    }>
+                      <ReceiptPreview receipt={{ ...receipt, status: selectedReceiptStatus }} isDesktop={isDesktop} />
+                    </View>
+                  </View>
                 </>
               ) : (
                 <View style={styles.emptyCard}>
@@ -733,7 +807,7 @@ export default function PreviewScreen() {
                 </View>
               )}
             </ScrollView>
-          </ScrollView>
+          </View>
         </Animated.View>
       </SafeAreaView>
     );
