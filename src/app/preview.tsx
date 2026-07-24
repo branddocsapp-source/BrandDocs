@@ -34,6 +34,13 @@ import {
   loadLetterheadById,
   saveLetterhead,
 } from "@/services/letterheads";
+import {
+  ReceiptRecord,
+  ReceiptStatus,
+  loadReceiptById,
+  saveReceipt,
+  getPaymentMethodLabel,
+} from "@/services/receipts";
 import { VisitingCardPreview } from "@/components/visiting-card/VisitingCardPreview";
 import {
   duplicateVisitingCardRecord,
@@ -65,6 +72,11 @@ const letterheadStatusOptions: { value: LetterheadStatus; label: string; descrip
 ];
 
 const visitingCardStatusOptions: { value: VisitingCardStatus; label: string; description: string }[] = [
+  { value: "draft", label: "Draft", description: "Still editable" },
+  { value: "final", label: "Final", description: "Ready to share" },
+];
+
+const receiptStatusOptions: { value: ReceiptStatus; label: string; description: string }[] = [
   { value: "draft", label: "Draft", description: "Still editable" },
   { value: "final", label: "Final", description: "Ready to share" },
 ];
@@ -103,24 +115,27 @@ export default function PreviewScreen() {
   const { theme, isDark } = useAppTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const router = useRouter();
-  const { content, type, invoiceId, quotationId, letterheadId, visitingCardId, action } = useLocalSearchParams<{
+  const { content, type, invoiceId, quotationId, letterheadId, visitingCardId, receiptId, action } = useLocalSearchParams<{
     content?: string;
     type?: string;
     invoiceId?: string;
     quotationId?: string;
     letterheadId?: string;
     visitingCardId?: string;
+    receiptId?: string;
     action?: string;
   }>();
   const [invoice, setInvoice] = useState<InvoiceRecord | null>(null);
   const [quotation, setQuotation] = useState<QuotationRecord | null>(null);
   const [letterhead, setLetterhead] = useState<LetterheadRecord | null>(null);
   const [visitingCard, setVisitingCard] = useState<VisitingCardRecord | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptRecord | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<InvoiceStatus>("draft");
   const [selectedQuotationStatus, setSelectedQuotationStatus] = useState<QuotationStatus>("draft");
   const [selectedLetterheadStatus, setSelectedLetterheadStatus] = useState<LetterheadStatus>("draft");
   const [selectedVisitingCardStatus, setSelectedVisitingCardStatus] = useState<VisitingCardStatus>("draft");
-  const [loading, setLoading] = useState(type === "invoice" || type === "quotation" || type === "letterhead" || type === "visitingCard");
+  const [selectedReceiptStatus, setSelectedReceiptStatus] = useState<ReceiptStatus>("draft");
+  const [loading, setLoading] = useState(type === "invoice" || type === "quotation" || type === "letterhead" || type === "visitingCard" || type === "receipt");
   const [saving, setSaving] = useState(false);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
@@ -185,15 +200,29 @@ export default function PreviewScreen() {
       }
     }
 
+    async function hydrateReceiptPreview() {
+      if (type !== "receipt" || !receiptId) return;
+
+      const profile = await loadBusinessProfile(auth.currentUser);
+      const savedReceipt = await loadReceiptById(auth.currentUser, profile, receiptId);
+
+      if (isMounted) {
+        setReceipt(savedReceipt);
+        setSelectedReceiptStatus(savedReceipt?.status || "draft");
+        setLoading(false);
+      }
+    }
+
     hydrateInvoicePreview();
     hydrateQuotationPreview();
     hydrateLetterheadPreview();
     hydrateVisitingCardPreview();
+    hydrateReceiptPreview();
 
     return () => {
       isMounted = false;
     };
-  }, [invoiceId, quotationId, letterheadId, visitingCardId, type]);
+  }, [invoiceId, quotationId, letterheadId, visitingCardId, receiptId, type]);
 
   useEffect(() => {
     if (type !== "letterhead" || !letterhead || (action !== "print" && action !== "pdf")) return;
@@ -281,6 +310,26 @@ export default function PreviewScreen() {
     } catch (error: any) {
       console.error("BrandDocs visiting card preview save failed.", error);
       Alert.alert("Save Failed", error?.message || "We could not save this visiting card status. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleReceiptFinalSave() {
+    if (!receipt) return;
+
+    try {
+      setSaving(true);
+      const profile = await loadBusinessProfile(auth.currentUser);
+      const result = await saveReceipt(auth.currentUser, profile, { ...receipt, status: selectedReceiptStatus });
+      setReceipt(result.receipt);
+
+      Alert.alert(
+        "Receipt Saved",
+        `${result.receipt.receiptNumber} is saved as ${result.receipt.status === "final" ? "Final" : "Draft"}.`
+      );
+    } catch (error: any) {
+      Alert.alert("Save Failed", error?.message || "We could not save this receipt status. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -623,6 +672,73 @@ export default function PreviewScreen() {
     );
   }
 
+  if (type === "receipt") {
+    return (
+      <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
+        <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+          <View style={[styles.header, isWebsite && styles.webHeader]}>
+            <Pressable style={styles.backButton} onPress={() => router.replace(appRoute("/receipt") as never)}>
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
+            </Pressable>
+            <Text style={styles.headerTitle}>{receipt ? "Receipt Preview" : "Receipt"}</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
+          <ScrollView horizontal={isPhone} contentContainerStyle={isPhone ? styles.phoneHorizontalWorkspace : undefined} showsHorizontalScrollIndicator={isPhone}>
+            <ScrollView contentContainerStyle={[styles.container, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+              {loading ? (
+                <Text style={styles.loadingText}>Loading receipt...</Text>
+              ) : receipt ? (
+                <>
+                  <View style={styles.workflowBar}>
+                    <Text style={styles.workflowTitle}>Set Status</Text>
+                    <View style={styles.statusGrid}>
+                      {receiptStatusOptions.map((option) => (
+                        <Pressable
+                          key={option.value}
+                          style={[styles.statusBox, selectedReceiptStatus === option.value && styles.statusBoxActive]}
+                          onPress={() => setSelectedReceiptStatus(option.value)}
+                        >
+                          <Text style={[styles.statusLabel, selectedReceiptStatus === option.value && styles.statusLabelActive]}>{option.label}</Text>
+                          <Text style={styles.statusDescription}>{option.description}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <View style={styles.previewActions}>
+                      {selectedReceiptStatus === "draft" ? (
+                        <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/receipt", { editReceiptId: receipt.id || "" }) as never)}>
+                          <Ionicons name="create-outline" size={16} color={theme.ink} />
+                          <Text style={styles.secondaryActionText}>Edit</Text>
+                        </Pressable>
+                      ) : null}
+                      <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                        <Ionicons name="print-outline" size={16} color={theme.ink} />
+                        <Text style={styles.secondaryActionText}>Print</Text>
+                      </Pressable>
+                      <Pressable style={styles.secondaryAction} onPress={handlePrint}>
+                        <Ionicons name="document-attach-outline" size={16} color={theme.ink} />
+                        <Text style={styles.secondaryActionText}>PDF</Text>
+                      </Pressable>
+                      <Pressable style={[styles.primaryAction, saving && styles.disabledButton]} onPress={handleReceiptFinalSave} disabled={saving}>
+                        <Text style={styles.primaryActionText}>{saving ? "Saving" : "Final Save"}</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                  <ReceiptPreview receipt={{ ...receipt, status: selectedReceiptStatus }} isDesktop={isDesktop} />
+                </>
+              ) : (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyTitle}>Receipt not found</Text>
+                  <Text style={styles.emptyText}>We could not load this saved receipt.</Text>
+                </View>
+              )}
+            </ScrollView>
+          </ScrollView>
+        </Animated.View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
       <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
@@ -635,6 +751,100 @@ export default function PreviewScreen() {
         </ScrollView>
       </Animated.View>
     </SafeAreaView>
+  );
+}
+
+function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesktop: boolean }) {
+  return (
+    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 36, minHeight: 900, aspectRatio: undefined }]}>
+      <View style={styles.letterheadTop}>
+        <View style={styles.letterheadLogoBox}>
+          {receipt.company.logoUrl ? (
+            <Image source={{ uri: receipt.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
+          ) : (
+            <Text style={styles.logoInitials}>{receipt.company.name.slice(0, 2).toUpperCase()}</Text>
+          )}
+        </View>
+        <View style={styles.letterheadCompanyBlock}>
+          <Text style={styles.letterheadCompanyName}>{receipt.company.name}</Text>
+          <Text style={[styles.letterheadCompanyLine, { fontSize: 13, marginTop: 4 }]}>{receipt.company.address}</Text>
+          <Text style={[styles.letterheadCompanyLine, { fontSize: 12, marginTop: 2 }]}>
+            {[receipt.company.phone, receipt.company.email, receipt.company.website].filter(Boolean).join(" • ")}
+          </Text>
+          {receipt.company.taxRegistrationNumber ? (
+            <Text style={[styles.letterheadCompanyLine, { fontSize: 12, marginTop: 2 }]}>Tax Registration: {receipt.company.taxRegistrationNumber}</Text>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={{ marginTop: 28, paddingVertical: 14, borderBottomWidth: 2, borderBottomColor: "#FF7A00", borderTopWidth: 1, borderTopColor: "#E8EAED", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <Text style={{ fontSize: 24, fontWeight: "900", color: "#FF7A00" }}>{receipt.receiptTitle}</Text>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 14, fontWeight: "800", color: "#232323" }}>Number: {receipt.receiptNumber}</Text>
+          <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 4 }}>Date: {receipt.receiptDate}</Text>
+        </View>
+      </View>
+
+      <View style={{ marginVertical: 36, gap: 24 }}>
+        <View style={{ flexDirection: "row", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E8EAED" }}>
+          <Text style={{ width: 140, fontSize: 14, fontWeight: "800", color: "#6F7378" }}>Received From:</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, fontWeight: "900", color: "#232323" }}>{receipt.receivedFrom.name}</Text>
+            {receipt.receivedFrom.phone ? <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 4 }}>Phone: {receipt.receivedFrom.phone}</Text> : null}
+            {receipt.receivedFrom.email ? <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 2 }}>Email: {receipt.receivedFrom.email}</Text> : null}
+            {receipt.receivedFrom.address ? <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 2 }}>Address: {receipt.receivedFrom.address}</Text> : null}
+          </View>
+        </View>
+
+        <View style={{ flexDirection: "row", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E8EAED", alignItems: "center" }}>
+          <Text style={{ width: 140, fontSize: 14, fontWeight: "800", color: "#6F7378" }}>Payment Method:</Text>
+          <Text style={{ flex: 1, fontSize: 15, fontWeight: "800", color: "#232323" }}>
+            {getPaymentMethodLabel(receipt.paymentMethod)}
+            {receipt.paymentReference ? ` (Ref: ${receipt.paymentReference})` : ""}
+          </Text>
+        </View>
+
+        {receipt.notes ? (
+          <View style={{ flexDirection: "row", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E8EAED" }}>
+            <Text style={{ width: 140, fontSize: 14, fontWeight: "800", color: "#6F7378" }}>Payment For:</Text>
+            <Text style={{ flex: 1, fontSize: 14, color: "#232323", lineHeight: 22 }}>{receipt.notes}</Text>
+          </View>
+        ) : null}
+
+        <View style={{ backgroundColor: "#FFF7EA", borderRadius: 14, padding: 22, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 12, fontWeight: "900", color: "#FF7A00", textTransform: "uppercase", letterSpacing: 0.5 }}>Amount Received</Text>
+            {receipt.amountInWords ? (
+              <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 6, fontStyle: "italic", fontWeight: "600" }}>
+                {receipt.amountInWords}
+              </Text>
+            ) : null}
+          </View>
+          <Text style={{ fontSize: 28, fontWeight: "900", color: "#FF7A00" }}>
+            {receipt.company.currency} {receipt.amount.toFixed(2)}
+          </Text>
+        </View>
+      </View>
+
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#E8EAED", paddingTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <View>
+          <Text style={{ fontSize: 11, color: "#9EA3A9", fontWeight: "600" }}>Issued by: {receipt.company.name}</Text>
+          <Text style={{ fontSize: 10, color: "#9EA3A9", marginTop: 4 }}>This is a system generated document</Text>
+        </View>
+
+        <View style={{ alignItems: "center", width: 180 }}>
+          {receipt.company.stampUrl ? (
+            <Image source={{ uri: receipt.company.stampUrl }} style={{ width: 64, height: 64, marginBottom: 8 }} contentFit="contain" />
+          ) : null}
+          {receipt.company.signatureUrl ? (
+            <Image source={{ uri: receipt.company.signatureUrl }} style={{ width: 100, height: 44, marginBottom: 4 }} contentFit="contain" />
+          ) : (
+            <View style={{ height: 44, width: 100, borderBottomWidth: 1, borderBottomColor: "#6F7378", marginBottom: 4 }} />
+          )}
+          <Text style={{ fontSize: 12, fontWeight: "800", color: "#6F7378" }}>Authorized Signatory</Text>
+        </View>
+      </View>
+    </View>
   );
 }
 
