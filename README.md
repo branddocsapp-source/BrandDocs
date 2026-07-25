@@ -37,7 +37,6 @@ If you want to use your own Firebase project:
    EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
    EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=your-measurement-id
    ```
-
 ---
 
 ### Step 3: Launch the Development Server
