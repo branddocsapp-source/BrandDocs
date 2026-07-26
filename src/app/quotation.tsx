@@ -155,9 +155,14 @@ function buildDraftQuotation(documentType: QuotationDocumentType, profile: Busin
   };
 }
 
-export default function QuotationScreen() {
+function useQuotationStyles() {
   const { theme, isDark } = useAppTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  return { theme, styles, isDark };
+}
+
+export default function QuotationScreen() {
+  const { theme, styles } = useQuotationStyles();
   const router = useRouter();
   const { editQuotationId, startType } = useLocalSearchParams<{ editQuotationId?: string; startType?: QuotationDocumentType }>();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
