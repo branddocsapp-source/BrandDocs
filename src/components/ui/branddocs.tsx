@@ -501,6 +501,7 @@ export function AppShell({
   const { isWebsite, usesSidebar } = useResponsiveLayout();
   const { isDark, theme, toggleTheme } = useAppTheme();
   const [profile, setProfile] = useState<BusinessProfile | null>(() => getCachedBusinessProfile(auth.currentUser?.uid));
+  const [commandPaletteVisible, setCommandPaletteVisible] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -540,13 +541,23 @@ export function AppShell({
           <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg }]}>
             {!usesSidebar ? <AppLogo compact /> : <View />}
             <View style={styles.topActions}>
-              {showSearch ? <IconButton icon="search-outline" accessibilityLabel="Search" /> : null}
+              <Pressable
+                onPress={() => setCommandPaletteVisible(true)}
+                style={({ pressed }) => [
+                  styles.searchPill,
+                  { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7", borderColor: theme.line },
+                  pressed && styles.pressed,
+                ]}
+                accessibilityLabel="Open Quick Search & Command Palette"
+              >
+                <Ionicons name="search-outline" size={16} color={theme.muted} />
+                <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
+              </Pressable>
               <IconButton
                 icon={isDark ? "sunny-outline" : "moon-outline"}
                 accessibilityLabel="Toggle Theme Mode"
                 onPress={toggleTheme}
               />
-              <IconButton icon="notifications-outline" accessibilityLabel="Notifications" />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Open profile menu"
@@ -568,11 +579,13 @@ export function AppShell({
             </ScrollView>
           ) : content}
           {!usesSidebar ? <MobileBottomNavigation /> : null}
+          <CommandPalette visible={commandPaletteVisible} onClose={() => setCommandPaletteVisible(false)} />
         </View>
       </View>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -612,6 +625,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: BrandSpacing.sm,
   },
+  searchPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: BrandRadius.pill,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchPillText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+
   profileMenuSlot: {
     alignItems: "flex-end",
     paddingHorizontal: BrandSpacing["3xl"],
