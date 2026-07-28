@@ -292,6 +292,70 @@ export default function DashboardScreen() {
         ))}
       </View>
 
+      {/* Revenue Breakdown & Payment Overview Bar */}
+      <AppCard style={styles.revenueCard}>
+        <View style={styles.revenueHeader}>
+          <View>
+            <Text style={[styles.revenueTitle, { color: theme.ink }]}>Revenue Overview & Collections</Text>
+            <Text style={[styles.revenueSubtitle, { color: theme.muted }]}>
+              Ratio of collected vs. pending client invoices
+            </Text>
+          </View>
+          <Text style={[styles.revenueTotalText, { color: theme.ink }]}>
+            Total: {formatDashboardMoney(paidAmount + pendingAmount, dashboardCurrency)}
+          </Text>
+        </View>
+
+        {/* Multi-segment progress bar */}
+        <View style={[styles.progressBarTrack, { backgroundColor: isDark ? "#2A2E38" : "#EBE8E1" }]}>
+          {paidAmount + pendingAmount > 0 ? (
+            <>
+              <View
+                style={[
+                  styles.progressSegment,
+                  {
+                    backgroundColor: BrandColors.success,
+                    width: `${Math.round((paidAmount / (paidAmount + pendingAmount)) * 100)}%`,
+                    borderTopLeftRadius: 6,
+                    borderBottomLeftRadius: 6,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.progressSegment,
+                  {
+                    backgroundColor: BrandColors.warning,
+                    width: `${Math.round((pendingAmount / (paidAmount + pendingAmount)) * 100)}%`,
+                    borderTopRightRadius: 6,
+                    borderBottomRightRadius: 6,
+                  },
+                ]}
+              />
+            </>
+          ) : (
+            <View style={[styles.progressSegment, { backgroundColor: theme.muted, width: "100%", borderRadius: 6 }]} />
+          )}
+        </View>
+
+        {/* Legend Row */}
+        <View style={styles.legendRow}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: BrandColors.success }]} />
+            <Text style={[styles.legendText, { color: theme.ink }]}>
+              Paid: {formatDashboardMoney(paidAmount, dashboardCurrency)} ({paidAmount + pendingAmount > 0 ? Math.round((paidAmount / (paidAmount + pendingAmount)) * 100) : 0}%)
+            </Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: BrandColors.warning }]} />
+            <Text style={[styles.legendText, { color: theme.ink }]}>
+              Pending: {formatDashboardMoney(pendingAmount, dashboardCurrency)} ({paidAmount + pendingAmount > 0 ? Math.round((pendingAmount / (paidAmount + pendingAmount)) * 100) : 0}%)
+            </Text>
+          </View>
+        </View>
+      </AppCard>
+
+
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.ink }]}>Quick Actions</Text>
       </View>
