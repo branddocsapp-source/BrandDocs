@@ -495,6 +495,58 @@ const styles = StyleSheet.create({
     ...BrandTypography.sectionHeading,
     color: BrandColors.text,
   },
+  revenueCard: {
+    marginBottom: BrandSpacing["3xl"],
+    padding: BrandSpacing.xl,
+  },
+  revenueHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: BrandSpacing.md,
+  },
+  revenueTitle: {
+    ...BrandTypography.cardTitle,
+    fontSize: 17,
+  },
+  revenueSubtitle: {
+    ...BrandTypography.caption,
+    marginTop: 2,
+  },
+  revenueTotalText: {
+    ...BrandTypography.cardTitle,
+    fontWeight: "700",
+  },
+  progressBarTrack: {
+    height: 12,
+    borderRadius: 6,
+    flexDirection: "row",
+    overflow: "hidden",
+    marginVertical: BrandSpacing.md,
+  },
+  progressSegment: {
+    height: "100%",
+  },
+  legendRow: {
+    flexDirection: "row",
+    gap: BrandSpacing.xl,
+    marginTop: BrandSpacing.xs,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    ...BrandTypography.caption,
+    fontWeight: "600",
+  },
+
   sectionHeader: {
     marginBottom: BrandSpacing.md,
   },
