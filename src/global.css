@@ -91,12 +91,44 @@ html, body, #root, #__next {
   50% { opacity: 0.7; transform: scale(1.05); }
 }
 
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .animate-float {
   animation: floatSlow 6s ease-in-out infinite;
 }
 
 .animate-glow {
   animation: pulseGlow 4s ease-in-out infinite;
+}
+
+.animate-toast {
+  animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal {
+  animation: fadeInModal 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Print utility for crisp document export */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
 }
 
 /* Custom Scrollbar */
@@ -120,3 +152,4 @@ html, body, #root, #__next {
 ::-webkit-scrollbar-thumb:hover {
   background: #F6A21A;
 }
+

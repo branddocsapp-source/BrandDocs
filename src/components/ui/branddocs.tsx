@@ -31,6 +31,7 @@ import {
 } from "@/theme/tokens";
 import { auth } from "@/firebase";
 import { loadBusinessProfile, BusinessProfile, getCompanyInitials, getCachedBusinessProfile } from "@/services/business-profile";
+import { CommandPalette } from "@/components/ui/command-palette";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type RouteValue = string | { pathname: string; params?: Record<string, string> };

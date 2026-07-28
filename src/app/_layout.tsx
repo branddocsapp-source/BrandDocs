@@ -1,8 +1,8 @@
-// Metro trigger for logo assets
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useAppTheme } from "@/theme/theme-context";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ToastProvider } from "@/components/ui/toast-context";
 
 function RootLayoutContent() {
   const { isDark, theme } = useAppTheme();
@@ -27,8 +27,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <RootLayoutContent />
+        <ToastProvider>
+          <RootLayoutContent />
+        </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
-}
+}

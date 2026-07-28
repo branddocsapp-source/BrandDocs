@@ -14,7 +14,6 @@ Open your terminal inside the project root directory (`BrandDocs`) and run:
 ```bash
 npm install
 ```
-
 > **Note**: If you ever modify or reset dependencies, ensure `@expo/vector-icons` is set to `^15.1.1` for Expo 57 compatibility.
 
 ---
