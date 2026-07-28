@@ -196,6 +196,7 @@ export default function InvoiceScreen() {
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const router = useRouter();
   const { editInvoiceId } = useLocalSearchParams<{ editInvoiceId?: string }>();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [allDocuments, setAllDocuments] = useState<InvoiceRecord[]>([]);
   const [previousDocuments, setPreviousDocuments] = useState<InvoiceRecord[]>([]);
