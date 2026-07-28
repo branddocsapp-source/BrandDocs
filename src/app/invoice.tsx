@@ -36,6 +36,7 @@ import {
 import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Colors } from "@/theme/colors";
 import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
+import { useToast } from "@/components/ui/toast-context";
 
 const documentOptions: { type: DocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
