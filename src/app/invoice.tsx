@@ -437,8 +437,13 @@ export default function InvoiceScreen() {
       setDraftDocument(goToPreview ? draftDocument : null);
 
       if (goToPreview) {
+        showToast({ message: `${getDocumentLabel(result.invoice.documentType)} saved! Opening preview...`, type: "success" });
         router.push(appRoute("/preview", { type: "invoice", invoiceId: result.invoice.id || "" }) as never);
       } else {
+        showToast({
+          message: `${getDocumentLabel(result.invoice.documentType)} saved successfully!`,
+          type: "success",
+        });
         Alert.alert(
           `${getDocumentLabel(result.invoice.documentType)} Saved`,
           result.source === "firebase"
