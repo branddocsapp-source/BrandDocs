@@ -958,13 +958,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     width: "100%",
   },
-  socialButtonHover: {
-    backgroundColor: authBrand.wash,
-    borderColor: "#CDCBC2",
-    transform: [{ translateY: -1 }],
+    alignSelf: "center",
+    backgroundColor: authBrand.ink,
+    borderRadius: 999,
+    height: 4,
+    marginBottom: 18,
+    width: 34,
   },
-  socialButtonPressed: {
-    opacity: 0.86,
   phoneLineWide: {
     backgroundColor: authBrand.orangeSoft,
     borderRadius: 999,
