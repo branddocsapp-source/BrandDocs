@@ -1,325 +1,146 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useState } from "react";
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { signOut } from "firebase/auth";
 
-import { AppCard, AppShell, PageHeader, PrimaryButton, SecondaryButton } from "@/components/ui/branddocs";
+import { AppShell, PrimaryButton, SecondaryButton } from "@/components/ui/branddocs";
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
-import { BusinessProfile, loadBusinessProfile, saveBusinessProfile } from "@/services/business-profile";
 import { useAppTheme } from "@/theme/theme-context";
-import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
-
-type CurrencyOption = { code: string; symbol: string; name: string };
-
-const CURRENCIES: CurrencyOption[] = [
-  { code: "INR", symbol: "₹", name: "Indian Rupee" },
-  { code: "USD", symbol: "$", name: "United States Dollar" },
-  { code: "EUR", symbol: "€", name: "Euro" },
-  { code: "GBP", symbol: "£", name: "British Pound Sterling" },
-  { code: "AED", symbol: "AED", name: "United Arab Emirates Dirham" },
-  { code: "CAD", symbol: "CA$", name: "Canadian Dollar" },
-  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
-  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
-];
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const [profile, setProfile] = useState<BusinessProfile | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-
-  // Modals state
-  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const [taxModalVisible, setTaxModalVisible] = useState(false);
-
-  // Form states
-  const [selectedCurrency, setSelectedCurrency] = useState("INR");
-  const [taxNumber, setTaxNumber] = useState("");
-  const [savingSettings, setSavingSettings] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
-
   const { isAppPreview } = useResponsiveLayout();
-  const { isDark, theme, toggleTheme } = useAppTheme();
+  const { isDark, theme } = useAppTheme();
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  function appRoute(pathname: string, params?: Record<string, string>) {
-    if (!isAppPreview) return params ? { pathname, params } : pathname;
-    return { pathname, params: { ...params, appPreview: "1" } };
+  const [taxModalVisible, setTaxModalVisible] = useState(false);
+  const [taxNumber, setTaxNumber] = useState("");
+
+  function appRoute(pathname: string) {
+    if (!isAppPreview) return pathname;
+    return { pathname, params: { appPreview: "1" } };
   }
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function hydrate() {
-      setLoadingProfile(true);
-      const savedProfile = await loadBusinessProfile(auth.currentUser);
-      if (isMounted && savedProfile) {
-        setProfile(savedProfile);
-        setSelectedCurrency(savedProfile.defaultCurrency || savedProfile.currencyCode || "INR");
-        setTaxNumber(savedProfile.taxRegistrationNumber || "");
-      }
-      setLoadingProfile(false);
-    }
-
-    hydrate();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  async function handleSaveCurrency(code: string) {
-    if (!auth.currentUser || !profile) {
-      setSelectedCurrency(code);
-      setCurrencyModalVisible(false);
-      return;
-    }
-
+  async function handleLogOut() {
+    if (loggingOut) return;
+    setLoggingOut(true);
     try {
-      setSavingSettings(true);
-      const updated: BusinessProfile = {
-        ...profile,
-        defaultCurrency: code,
-        currencyCode: code,
-      };
-      const result = await saveBusinessProfile(auth.currentUser, updated);
-      setProfile(result.profile);
-      setSelectedCurrency(code);
-      setSaveMessage(`Currency updated to ${code}`);
-    } catch (err: any) {
-      setSaveMessage(err?.message || "Failed to update currency.");
+      await signOut(auth);
+    } catch (e) {
+      console.warn("Sign out error", e);
     } finally {
-      setSavingSettings(false);
-      setCurrencyModalVisible(false);
-    }
-  }
-
-  async function handleSaveTaxInfo() {
-    if (!auth.currentUser || !profile) {
-      setTaxModalVisible(false);
-      return;
-    }
-
-    try {
-      setSavingSettings(true);
-      const updated: BusinessProfile = {
-        ...profile,
-        taxRegistrationNumber: taxNumber.trim(),
-      };
-      const result = await saveBusinessProfile(auth.currentUser, updated);
-      setProfile(result.profile);
-      setSaveMessage("Tax Registration Number updated.");
-    } catch (err: any) {
-      setSaveMessage(err?.message || "Failed to update tax details.");
-    } finally {
-      setSavingSettings(false);
-      setTaxModalVisible(false);
+      setLoggingOut(false);
+      router.replace(appRoute("/signin") as never);
     }
   }
 
   const settingsItems = [
     {
-      id: "theme",
-      title: "Appearance & Theme",
-      subtitle: isDark ? "Dark Mode is active (click to switch to Light Mode)" : "Light Mode is active (click to switch to Dark Mode)",
-      icon: isDark ? "sunny-outline" : "moon-outline",
-      action: () => toggleTheme(),
-    },
-    {
-      id: "profile",
-      title: "Business Profile & Details",
-      subtitle: profile?.name ? `${profile.name} • ${profile.ownerName || "Edit details"}` : "View or edit business information",
-      icon: "business-outline",
+      title: "Profile Settings",
+      subtitle: "Update your personal details",
+      icon: "person-outline",
+      iconBg: "#E0F2FE",
+      iconColor: "#0284C7",
       action: () => router.push(appRoute("/profile") as never),
     },
     {
-      id: "assets",
-      title: "Logo, Stamp & Digital Signature",
-      subtitle: "Upload or manage brand assets",
-      icon: "image-outline",
-      action: () => router.push(appRoute("/business-setup", { mode: "edit" }) as never),
+      title: "Business Details",
+      subtitle: "Update business name, address, logo",
+      icon: "business-outline",
+      iconBg: "#FFEDD5",
+      iconColor: "#EA580C",
+      action: () => router.push(appRoute("/business-setup") as never),
     },
     {
-      id: "currency",
-      title: "Default Currency",
-      subtitle: `Current document currency: ${selectedCurrency}`,
-      icon: "cash-outline",
-      action: () => setCurrencyModalVisible(true),
-    },
-    {
-      id: "tax",
-      title: "Tax Registration & Compliance",
-      subtitle: taxNumber ? `GSTIN / Tax ID: ${taxNumber}` : "Configure tax registration number",
+      title: "Tax & Invoice",
+      subtitle: "Manage GST, prefixes, terms",
       icon: "receipt-outline",
+      iconBg: "#DCFCE7",
+      iconColor: "#16A34A",
       action: () => setTaxModalVisible(true),
     },
     {
-      id: "consent",
-      title: "Privacy & Consent Preferences",
-      subtitle: "Withdraw optional choices & marketing preferences",
-      icon: "shield-checkmark-outline",
-      action: () => router.push(appRoute("/privacy-consent") as never),
+      title: "Notifications",
+      subtitle: "Manage alerts and emails",
+      icon: "notifications-outline",
+      iconBg: "#F3E8FF",
+      iconColor: "#9333EA",
+      action: () => router.push(appRoute("/settings") as never),
     },
     {
-      id: "privacy_sec",
-      title: "Privacy Rights & Data Controls",
-      subtitle: "Data export, account settings and privacy rights",
-      icon: "lock-closed-outline",
-      action: () => router.push(appRoute("/privacy-security") as never),
-    },
-    {
-      id: "security",
-      title: "Security & Passwords",
-      subtitle: "Reset password and security controls",
-      icon: "key-outline",
+      title: "Security",
+      subtitle: "Change password, 2FA",
+      icon: "shield-outline",
+      iconBg: "#F1F5F9",
+      iconColor: "#475569",
       action: () => router.push(appRoute("/security") as never),
-    },
-    {
-      id: "export",
-      title: "Data Export",
-      subtitle: "Request an export copy of your data",
-      icon: "download-outline",
-      action: () => router.push(appRoute("/data-export") as never),
-    },
-    {
-      id: "delete",
-      title: "Delete Account",
-      subtitle: "Permanent account deletion flow",
-      icon: "warning-outline",
-      action: () => router.push(appRoute("/delete-account") as never),
-    },
-    {
-      id: "terms",
-      title: "Terms of Service",
-      subtitle: "Read application terms & conditions",
-      icon: "document-text-outline",
-      action: () => router.push(appRoute("/terms") as never),
-    },
-    {
-      id: "privacy",
-      title: "Privacy Policy",
-      subtitle: "Read privacy statement",
-      icon: "reader-outline",
-      action: () => router.push(appRoute("/privacy") as never),
     },
   ];
 
   return (
     <AppShell>
-      <PageHeader
-        title="Settings"
-        subtitle="Manage business document preferences, theme, currency, tax info, and privacy controls."
-      />
+      {/* Title & Subtitle */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.pageTitleText, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Settings</Text>
+        <Text style={[styles.pageSubtitleText, { color: theme.muted }]}>Manage your application preferences</Text>
+      </View>
 
-      {saveMessage ? (
-        <View style={[styles.toast, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
-          <Ionicons name="checkmark-circle-outline" size={18} color={BrandColors.primary} />
-          <Text style={[styles.toastText, { color: theme.ink }]}>{saveMessage}</Text>
-        </View>
-      ) : null}
-
-      <AppCard style={styles.card}>
-        {loadingProfile ? (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator color={BrandColors.primary} />
-          </View>
-        ) : (
-          settingsItems.map((item, index) => (
-            <Pressable
-              key={item.id}
-              accessibilityRole="button"
-              accessibilityLabel={item.title}
-              style={({ pressed }) => [
-                styles.row,
-                index < settingsItems.length - 1 && [styles.rowDivider, { borderBottomColor: theme.line }],
-                pressed && styles.pressed,
-              ]}
-              onPress={item.action}
-            >
-              <View style={[styles.rowIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
-                <Ionicons name={item.icon as never} size={20} color={BrandColors.primary} />
-              </View>
-
-              <View style={styles.rowCopy}>
-                <Text style={[styles.rowTitle, { color: theme.ink }]}>{item.title}</Text>
-                <Text style={[styles.rowSubtitle, { color: theme.muted }]}>{item.subtitle}</Text>
-              </View>
-
-              <Ionicons
-                name={item.id === "theme" ? (isDark ? "sunny" : "moon") : "chevron-forward"}
-                size={18}
-                color={BrandColors.primary}
-              />
-            </Pressable>
-          ))
-        )}
-      </AppCard>
-
-      {/* Currency Selector Modal */}
-      <Modal transparent visible={currencyModalVisible} animationType="fade" onRequestClose={() => setCurrencyModalVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setCurrencyModalVisible(false)}>
-          <Pressable style={[styles.modalCard, { backgroundColor: theme.card, borderColor: theme.line }]} onPress={(e) => e.stopPropagation()}>
-            <Text style={[styles.modalTitle, { color: theme.ink }]}>Select Default Currency</Text>
-            <Text style={[styles.modalSubtitle, { color: theme.muted }]}>Choose the currency symbol used across new invoices and quotations.</Text>
-
-            <ScrollView style={styles.currencyList}>
-              {CURRENCIES.map((c) => (
-                <Pressable
-                  key={c.code}
-                  onPress={() => handleSaveCurrency(c.code)}
-                  style={({ pressed }) => [
-                    styles.currencyRow,
-                    { borderBottomColor: theme.line },
-                    selectedCurrency === c.code && { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft },
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.currencyLeft}>
-                    <Text style={[styles.currencySymbol, { color: BrandColors.primary }]}>{c.symbol}</Text>
-                    <View>
-                      <Text style={[styles.currencyCode, { color: theme.ink }]}>{c.code}</Text>
-                      <Text style={[styles.currencyName, { color: theme.muted }]}>{c.name}</Text>
-                    </View>
-                  </View>
-                  {selectedCurrency === c.code ? <Ionicons name="checkmark" size={20} color={BrandColors.primary} /> : null}
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <View style={styles.modalActions}>
-              <SecondaryButton label="Cancel" onPress={() => setCurrencyModalVisible(false)} />
+      {/* Settings Items Stack */}
+      <View style={styles.settingsStack}>
+        {settingsItems.map((item) => (
+          <Pressable
+            key={item.title}
+            onPress={item.action}
+            style={({ pressed }) => [
+              styles.settingRowCard,
+              { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" },
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <View style={[styles.settingIconBox, { backgroundColor: item.iconBg }]}>
+              <Ionicons name={item.icon as never} size={22} color={item.iconColor} />
             </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{item.title}</Text>
+              <Text style={[styles.settingSubtitle, { color: theme.muted }]}>{item.subtitle}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
           </Pressable>
-        </Pressable>
-      </Modal>
+        ))}
+      </View>
 
-      {/* Tax Registration Modal */}
+      {/* Log Out Button */}
+      <Pressable
+        onPress={handleLogOut}
+        disabled={loggingOut}
+        style={({ pressed }) => [
+          styles.logoutButton,
+          { backgroundColor: isDark ? "rgba(220, 38, 38, 0.15)" : "#FEF2F2" },
+          pressed && { opacity: 0.8 },
+        ]}
+      >
+        <Ionicons name="log-out-outline" size={22} color="#DC2626" />
+        <Text style={styles.logoutText}>{loggingOut ? "Logging out..." : "Log Out"}</Text>
+      </Pressable>
+
+      {/* Tax Info Modal */}
       <Modal transparent visible={taxModalVisible} animationType="fade" onRequestClose={() => setTaxModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setTaxModalVisible(false)}>
-          <Pressable style={[styles.modalCard, { backgroundColor: theme.card, borderColor: theme.line }]} onPress={(e) => e.stopPropagation()}>
-            <Text style={[styles.modalTitle, { color: theme.ink }]}>Tax Registration Details</Text>
-            <Text style={[styles.modalSubtitle, { color: theme.muted }]}>Update your business GSTIN, VAT, or Tax Identification Number.</Text>
-
-            <Text style={[styles.fieldLabel, { color: theme.ink }]}>Tax Registration / GSTIN / VAT Number</Text>
+          <Pressable style={[styles.modalCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF" }]} onPress={(e) => e.stopPropagation()}>
+            <Text style={[styles.modalTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Tax & Invoice Settings</Text>
+            <Text style={[styles.modalSubtitle, { color: theme.muted }]}>Set up your GSTIN / Tax Registration Number</Text>
             <TextInput
-              style={[styles.fieldInput, { color: theme.ink, borderColor: theme.line, backgroundColor: theme.card }]}
               value={taxNumber}
               onChangeText={setTaxNumber}
-              placeholder="e.g. 22AAAAA0000A1Z5 / VAT123456"
+              placeholder="e.g. 22AAAAA0000A1Z5"
               placeholderTextColor={theme.muted}
+              style={[styles.modalInput, { color: isDark ? "#FFFFFF" : "#0F172A", borderColor: theme.line }]}
             />
-
             <View style={styles.modalActions}>
-              <SecondaryButton label="Cancel" onPress={() => setTaxModalVisible(false)} disabled={savingSettings} />
-              <PrimaryButton label="Save Tax Number" icon="checkmark" onPress={handleSaveTaxInfo} loading={savingSettings} />
+              <SecondaryButton label="Cancel" onPress={() => setTaxModalVisible(false)} />
+              <PrimaryButton label="Save" onPress={() => setTaxModalVisible(false)} />
             </View>
           </Pressable>
         </Pressable>
@@ -329,125 +150,92 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    maxWidth: 840,
-    paddingHorizontal: BrandSpacing.md,
-    width: "100%",
+  pageTitleText: {
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.5,
   },
-  loadingBox: {
-    padding: BrandSpacing.xl,
-  },
-  toast: {
-    alignItems: "center",
-    borderRadius: BrandRadius.medium,
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-    marginBottom: BrandSpacing.md,
-    maxWidth: 840,
-    padding: BrandSpacing.md,
-  },
-  toastText: {
-    ...BrandTypography.caption,
-    fontWeight: "700",
-  },
-  row: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-    minHeight: 72,
-    paddingVertical: BrandSpacing.md,
-  },
-  rowDivider: {
-    borderBottomWidth: 1,
-  },
-  rowIcon: {
-    alignItems: "center",
-    borderRadius: BrandRadius.medium,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
-  rowCopy: {
-    flex: 1,
-  },
-  rowTitle: {
-    ...BrandTypography.cardTitle,
-  },
-  rowSubtitle: {
-    ...BrandTypography.caption,
-    marginTop: 3,
-  },
-  pressed: {
-    opacity: 0.76,
-  },
-  modalOverlay: {
-    alignItems: "center",
-    backgroundColor: "rgba(17, 24, 39, 0.45)",
-    flex: 1,
-    justifyContent: "center",
-    padding: BrandSpacing.xl,
-  },
-  modalCard: {
-    borderRadius: BrandRadius.large,
-    borderWidth: 1,
-    maxWidth: 500,
-    padding: BrandSpacing.xl,
-    width: "100%",
-  },
-  modalTitle: {
-    ...BrandTypography.sectionHeading,
-    fontSize: 20,
-  },
-  modalSubtitle: {
-    ...BrandTypography.body,
+  pageSubtitleText: {
     fontSize: 14,
-    marginBottom: BrandSpacing.lg,
+    fontWeight: "500",
     marginTop: 4,
   },
-  currencyList: {
-    maxHeight: 280,
+  settingsStack: {
+    gap: 12,
+    marginBottom: 24,
   },
-  currencyRow: {
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderRadius: BrandRadius.medium,
+  settingRowCard: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    padding: BrandSpacing.md,
-  },
-  currencyLeft: {
     alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.md,
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 14,
   },
-  currencySymbol: {
+  settingIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  settingSubtitle: {
+    fontSize: 12.5,
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderRadius: 18,
+    gap: 10,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#DC2626",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 400,
+    padding: 20,
+    borderRadius: 20,
+    gap: 12,
+  },
+  modalTitle: {
     fontSize: 18,
     fontWeight: "800",
-    width: 36,
   },
-  currencyCode: {
-    ...BrandTypography.cardTitle,
-    fontSize: 15,
+  modalSubtitle: {
+    fontSize: 13,
+    fontWeight: "500",
   },
-  currencyName: {
-    ...BrandTypography.caption,
-    fontSize: 12,
-  },
-  fieldLabel: {
-    ...BrandTypography.formLabel,
-    marginBottom: BrandSpacing.xs,
-  },
-  fieldInput: {
-    ...BrandTypography.body,
-    borderRadius: BrandRadius.medium,
+  modalInput: {
     borderWidth: 1,
-    minHeight: 48,
-    paddingHorizontal: BrandSpacing.md,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 15,
+    marginTop: 8,
   },
   modalActions: {
     flexDirection: "row",
-    gap: BrandSpacing.sm,
     justifyContent: "flex-end",
-    marginTop: BrandSpacing.xl,
+    gap: 10,
+    marginTop: 12,
   },
 });

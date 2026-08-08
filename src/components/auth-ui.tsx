@@ -21,14 +21,14 @@ import { BrandLogo } from "@/components/brand-logo";
 import { useAppTheme } from "@/theme/theme-context";
 
 const authBrand = {
-  orange: Colors.primary,
-  orangeDark: Colors.primaryDark,
-  orangeSoft: "#FFF6E8",
-  ink: "#171813",
-  text: "#343631",
-  muted: "#666B63",
-  line: "#E8E5DE",
-  wash: "#FBFAF7",
+  orange: "#EA580C",
+  orangeDark: "#C2410C",
+  orangeSoft: "#FFF7ED",
+  ink: "#0F172A",
+  text: "#334155",
+  muted: "#64748B",
+  line: "#E2E8F0",
+  wash: "#F8FAFC",
   white: "#FFFFFF",
 };
 

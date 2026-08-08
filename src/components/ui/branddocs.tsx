@@ -393,11 +393,35 @@ export function AppLogo({ compact }: { compact?: boolean }) {
   return <BrandLogo size={compact ? "small" : "medium"} />;
 }
 
+export function MobileHeaderLogo() {
+  const { isDark } = useAppTheme();
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <Text style={{ fontSize: 22, fontWeight: "900", color: isDark ? "#FFFFFF" : "#0F172A", letterSpacing: -0.5 }}>
+        Brand<Text style={{ color: "#EA580C" }}>Docs</Text>
+      </Text>
+    </View>
+  );
+}
+
+export function TipCard({ text }: { text: string }) {
+  const { isDark } = useAppTheme();
+  return (
+    <View style={[styles.tipCard, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFFBF5", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
+      <Ionicons name="bulb-outline" size={22} color="#EA580C" style={{ marginTop: 1 }} />
+      <Text style={[styles.tipText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>
+        <Text style={{ fontWeight: "700" }}>Tip: </Text>
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 const mainNavigation: { label: string; icon: IconName; route: string; aliases?: string[] }[] = [
-  { label: "Dashboard", icon: "home-outline", route: "/dashboard" },
-  { label: "Documents", icon: "folder-open-outline", route: "/documents", aliases: ["/invoice", "/quotation", "/table-quotation", "/letterhead", "/receipt", "/visiting-card", "/scan-receipt"] },
-  { label: "Businesses", icon: "business-outline", route: "/profile", aliases: ["/business-setup", "/profile"] },
-  { label: "Reports", icon: "bar-chart-outline", route: "/reports" },
+  { label: "Dashboard", icon: "grid-outline", route: "/dashboard" },
+  { label: "Documents", icon: "document-text-outline", route: "/documents", aliases: ["/invoice", "/quotation", "/table-quotation", "/letterhead", "/receipt", "/visiting-card", "/scan-receipt"] },
+  { label: "Customers", icon: "people-outline", route: "/customers", aliases: ["/customers"] },
+  { label: "Reports", icon: "copy-outline", route: "/reports" },
   { label: "Settings", icon: "settings-outline", route: "/settings" },
 ];
 
@@ -454,25 +478,34 @@ export function MobileBottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const appRoute = usePreviewRoute();
-  const { theme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
 
   return (
-    <View style={[styles.bottomNav, { backgroundColor: theme.card, borderColor: theme.line }]}>
-      {mainNavigation.map((item) => {
-        const active = isActiveRoute(pathname, item);
-        return (
-          <Pressable
-            key={item.label}
-            accessibilityRole="button"
-            accessibilityLabel={item.label}
-            onPress={() => router.push(appRoute(item.route) as never)}
-            style={({ pressed }) => [styles.bottomNavItem, pressed && styles.pressed]}
-          >
-            <Ionicons name={active ? (item.icon.replace("-outline", "") as IconName) : item.icon} size={21} color={active ? BrandColors.primary : theme.muted} />
-            <Text style={[styles.bottomNavLabel, { color: active ? BrandColors.primary : theme.muted }]} numberOfLines={1}>{item.label}</Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.floatingNavWrapper} pointerEvents="box-none">
+      <View style={[styles.floatingBottomNav, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.1)" : "#F1F5F9" }]}>
+        {mainNavigation.map((item) => {
+          const active = isActiveRoute(pathname, item);
+          return (
+            <Pressable
+              key={item.label}
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
+              onPress={() => router.push(appRoute(item.route) as never)}
+              style={({ pressed }) => [
+                styles.floatingNavItem,
+                active && { backgroundColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FFF7ED" },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name={active ? (item.icon.replace("-outline", "") as IconName) : item.icon}
+                size={22}
+                color={active ? "#EA580C" : isDark ? "#94A3B8" : "#64748B"}
+              />
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -538,39 +571,51 @@ export function AppShell({
       <View style={[styles.shell, { backgroundColor: theme.background }]}>
         {usesSidebar ? <DesktopSidebar /> : null}
         <View style={[styles.workspace, { backgroundColor: theme.wash }]}>
-          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg }]}>
-            {!usesSidebar ? <AppLogo compact /> : <View />}
-            <View style={styles.topActions}>
-              <Pressable
-                onPress={() => setCommandPaletteVisible(true)}
-                style={({ pressed }) => [
-                  styles.searchPill,
-                  { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7", borderColor: theme.line },
-                  pressed && styles.pressed,
-                ]}
-                accessibilityLabel="Open Quick Search & Command Palette"
-              >
-                <Ionicons name="search-outline" size={16} color={theme.muted} />
-                <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
-              </Pressable>
-              <IconButton
-                icon={isDark ? "sunny-outline" : "moon-outline"}
-                accessibilityLabel="Toggle Theme Mode"
-                onPress={toggleTheme}
-              />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Open profile menu"
-                onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
-                style={({ pressed }) => [styles.avatarButton, pressed && styles.pressed]}
-              >
-                {resolvedLogoUrl ? (
-                  <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
-                ) : (
-                  <Text style={styles.avatarText}>{resolvedInitials}</Text>
-                )}
-              </Pressable>
-            </View>
+          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg, height: 60 }]}>
+            {!usesSidebar ? (
+              <View style={styles.mobileTopBarRow}>
+                <Pressable onPress={() => setCommandPaletteVisible(true)} style={styles.mobileHeaderIconBtn}>
+                  <Ionicons name="menu-outline" size={24} color={isDark ? "#F8FAFC" : "#0F172A"} />
+                </Pressable>
+                <MobileHeaderLogo />
+                <Pressable onPress={toggleTheme} style={styles.mobileHeaderIconBtn}>
+                  <Ionicons name="notifications-outline" size={22} color={isDark ? "#F8FAFC" : "#0F172A"} />
+                  <View style={styles.notificationDot} />
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.topActions}>
+                <Pressable
+                  onPress={() => setCommandPaletteVisible(true)}
+                  style={({ pressed }) => [
+                    styles.searchPill,
+                    { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7", borderColor: theme.line },
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityLabel="Open Quick Search & Command Palette"
+                >
+                  <Ionicons name="search-outline" size={16} color={theme.muted} />
+                  <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
+                </Pressable>
+                <IconButton
+                  icon={isDark ? "sunny-outline" : "moon-outline"}
+                  accessibilityLabel="Toggle Theme Mode"
+                  onPress={toggleTheme}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open profile menu"
+                  onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
+                  style={({ pressed }) => [styles.avatarButton, pressed && styles.pressed]}
+                >
+                  {resolvedLogoUrl ? (
+                    <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
+                  ) : (
+                    <Text style={styles.avatarText}>{resolvedInitials}</Text>
+                  )}
+                </Pressable>
+              </View>
+            )}
           </View>
           {profileMenu ? <View style={styles.profileMenuSlot}>{profileMenu}</View> : null}
           {scroll ? (
@@ -1036,5 +1081,69 @@ const styles = StyleSheet.create({
     height: 4,
     marginBottom: BrandSpacing.xl,
     width: 44,
+  },
+  floatingNavWrapper: {
+    position: "absolute",
+    bottom: 16,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99,
+    paddingHorizontal: 20,
+  },
+  floatingBottomNav: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 36,
+    borderWidth: 1,
+    maxWidth: 380,
+    width: "100%",
+    ...BrandShadows.raised,
+  },
+  floatingNavItem: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+  },
+  mobileTopBarRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  mobileHeaderIconBtn: {
+    padding: 6,
+    borderRadius: 20,
+    position: "relative",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#EA580C",
+  },
+  tipCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
   },
 });

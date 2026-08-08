@@ -274,143 +274,131 @@ export default function DashboardScreen() {
       profileMenu={profileMenu}
       showSearch={usesSidebar}
     >
-      <PageHeader
-        title={`Hi, ${profile?.ownerName || companyName}`}
-        subtitle="Here is what is happening across your business documents."
-        action={usesSidebar ? <StatusBadge status="Workspace" /> : undefined}
-      />
-
-      <View style={[styles.statsGrid, isWideDesktop && styles.statsGridWide]}>
-        {stats.map((item) => (
-          <AppCard key={item.label} style={[styles.statCard, isPhone && { minWidth: 140 }]}>
-            <View style={[styles.statIcon, statToneStyle(item.tone, isDark, theme)]}>
-              <Ionicons name={item.icon as never} size={21} color={BrandColors.primary} />
-            </View>
-            <Text style={[styles.statLabel, { color: theme.muted }]}>{item.label}</Text>
-            <Text style={[styles.statValue, { color: theme.ink }]} numberOfLines={1} adjustsFontSizeToFit>{item.value}</Text>
-          </AppCard>
-        ))}
-      </View>
-
-      {/* Revenue Breakdown & Payment Overview Bar */}
-      <AppCard style={styles.revenueCard}>
-        <View style={styles.revenueHeader}>
-          <View>
-            <Text style={[styles.revenueTitle, { color: theme.ink }]}>Revenue Overview & Collections</Text>
-            <Text style={[styles.revenueSubtitle, { color: theme.muted }]}>
-              Ratio of collected vs. pending client invoices
-            </Text>
-          </View>
-          <Text style={[styles.revenueTotalText, { color: theme.ink }]}>
-            Total: {formatDashboardMoney(paidAmount + pendingAmount, dashboardCurrency)}
+      {/* Business Profile Selector Card */}
+      <Pressable
+        onPress={() => router.push(appRoute("/profile") as never)}
+        style={({ pressed }) => [
+          styles.businessProfileBanner,
+          { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFFBF5", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" },
+          pressed && { opacity: 0.8 },
+        ]}
+      >
+        <View style={styles.businessProfileIconBox}>
+          <Ionicons name="business" size={22} color="#EA580C" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.businessProfileTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+            {companyName}
           </Text>
+          <Text style={styles.businessProfileSubtitle}>View Profile</Text>
         </View>
+        <Ionicons name="chevron-down" size={18} color="#EA580C" />
+      </Pressable>
 
-        {/* Multi-segment progress bar */}
-        <View style={[styles.progressBarTrack, { backgroundColor: isDark ? "#2A2E38" : "#EBE8E1" }]}>
-          {paidAmount + pendingAmount > 0 ? (
-            <>
-              <View
-                style={[
-                  styles.progressSegment,
-                  {
-                    backgroundColor: BrandColors.success,
-                    width: `${Math.round((paidAmount / (paidAmount + pendingAmount)) * 100)}%`,
-                    borderTopLeftRadius: 6,
-                    borderBottomLeftRadius: 6,
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.progressSegment,
-                  {
-                    backgroundColor: BrandColors.warning,
-                    width: `${Math.round((pendingAmount / (paidAmount + pendingAmount)) * 100)}%`,
-                    borderTopRightRadius: 6,
-                    borderBottomRightRadius: 6,
-                  },
-                ]}
-              />
-            </>
-          ) : (
-            <View style={[styles.progressSegment, { backgroundColor: theme.muted, width: "100%", borderRadius: 6 }]} />
-          )}
-        </View>
-
-        {/* Legend Row */}
-        <View style={styles.legendRow}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: BrandColors.success }]} />
-            <Text style={[styles.legendText, { color: theme.ink }]}>
-              Paid: {formatDashboardMoney(paidAmount, dashboardCurrency)} ({paidAmount + pendingAmount > 0 ? Math.round((paidAmount / (paidAmount + pendingAmount)) * 100) : 0}%)
-            </Text>
+      {/* 2x2 Metrics Cards */}
+      <View style={styles.metricsGrid}>
+        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: "#E0F2FE" }]}>
+            <Ionicons name="document-text" size={20} color="#0284C7" />
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: BrandColors.warning }]} />
-            <Text style={[styles.legendText, { color: theme.ink }]}>
-              Pending: {formatDashboardMoney(pendingAmount, dashboardCurrency)} ({paidAmount + pendingAmount > 0 ? Math.round((pendingAmount / (paidAmount + pendingAmount)) * 100) : 0}%)
-            </Text>
-          </View>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>Invoices</Text>
+          <Text style={[styles.metricValue, { color: theme.ink }]}>24</Text>
+          <Text style={styles.metricSubtext}>This Month</Text>
         </View>
-      </AppCard>
 
+        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: "#DCFCE7" }]}>
+            <Ionicons name="document-text" size={20} color="#16A34A" />
+          </View>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>Quotations</Text>
+          <Text style={[styles.metricValue, { color: theme.ink }]}>18</Text>
+          <Text style={styles.metricSubtext}>This Month</Text>
+        </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.ink }]}>Quick Actions</Text>
+        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: "#CCFBF1" }]}>
+            <Ionicons name="document-text-outline" size={20} color="#0D9488" />
+          </View>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>Receipts</Text>
+          <Text style={[styles.metricValue, { color: theme.ink }]}>12</Text>
+          <Text style={styles.metricSubtext}>This Month</Text>
+        </View>
+
+        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: "#FFEDD5" }]}>
+            <Ionicons name="scan-outline" size={20} color="#EA580C" />
+          </View>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>Scan Receipts</Text>
+          <Text style={[styles.metricValue, { color: theme.ink }]}>32</Text>
+          <Text style={styles.metricSubtext}>This Month</Text>
+        </View>
       </View>
-      <View style={styles.quickGrid}>
-        {quickActions.map((action) => (
+
+      {/* Quick Actions Grid */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Quick Actions</Text>
+      </View>
+
+      <View style={styles.quickActions3x2}>
+        {[
+          { title: "Create Invoice", icon: "document-text", route: "/invoice" },
+          { title: "Create Quotation", icon: "document-text", route: "/quotation" },
+          { title: "Create Receipt", icon: "document-text", route: "/receipt" },
+          { title: "Create Letterhead", icon: "newspaper", route: "/letterhead" },
+          { title: "Create Visiting Card", icon: "id-card", route: "/visiting-card" },
+          { title: "Scan Receipt", icon: "scan", route: "/scan-receipt" },
+        ].map((action) => (
           <Pressable
             key={action.title}
-            style={({ pressed }) => [
-              styles.actionCard,
-              isPhone && { minWidth: 135 },
-              { backgroundColor: theme.card, borderColor: theme.line },
-              pressed && styles.pressedCard,
-            ]}
             onPress={() => router.push(appRoute(action.route) as never)}
-            accessibilityRole="button"
-            accessibilityLabel={action.title}
+            style={({ pressed }) => [
+              styles.quickActionPill,
+              { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED" },
+              pressed && { opacity: 0.75 },
+            ]}
           >
-            <View style={[styles.actionIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
-              <Ionicons name={action.icon as never} size={21} color={BrandColors.primary} />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>{action.title}</Text>
-            <Text style={[styles.actionSubtitle, { color: theme.muted }]}>{action.subtitle}</Text>
+            <Ionicons name={action.icon as never} size={22} color="#EA580C" />
+            <Text style={styles.quickActionLabel}>{action.title}</Text>
           </Pressable>
         ))}
       </View>
 
-      <View style={styles.recentHeader}>
-        <View>
-          <Text style={[styles.sectionTitle, { color: theme.ink }]}>Recent Documents</Text>
-          <Text style={[styles.sectionSubtitle, { color: theme.muted }]}>Real saved invoices and quotations from this workspace.</Text>
-        </View>
-        <SecondaryButton label="View all" icon="folder-open-outline" onPress={() => router.push(appRoute("/documents") as never)} />
+      {/* Recent Documents */}
+      <View style={styles.recentHeaderRow}>
+        <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Recent Documents</Text>
+        <Pressable onPress={() => router.push(appRoute("/documents") as never)}>
+          <Text style={styles.viewAllLink}>View All</Text>
+        </Pressable>
       </View>
 
-      <View style={styles.recentList}>
-        {recentDocuments.length ? (
-          recentDocuments.map((document) => (
-            <DocumentCard
-              key={document.key}
-              title={document.title}
-              subtitle={document.subtitle}
-              meta={formatDate(document.date)}
-              amount={document.amount}
-              status={document.status}
-              icon={document.icon as never}
-              onOpen={document.onOpen}
-            />
-          ))
-        ) : (
-          <EmptyState
-            title="No documents yet"
-            message="Create your first invoice, quotation, receipt, or letterhead when you are ready."
-            action={<PrimaryButton label="Create document" icon="add" onPress={() => router.push(appRoute("/documents") as never)} />}
-          />
-        )}
+      <View style={styles.recentItemsList}>
+        <Pressable
+          onPress={() => router.push(appRoute("/invoice") as never)}
+          style={[styles.recentRowItem, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }]}
+        >
+          <View style={[styles.recentIconBox, { backgroundColor: "#CCFBF1" }]}>
+            <Ionicons name="document-text-outline" size={20} color="#0D9488" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.recentItemTitle, { color: theme.ink }]}>INV-042</Text>
+            <Text style={[styles.recentItemSubtitle, { color: theme.muted }]}>Today</Text>
+          </View>
+          <Text style={[styles.recentItemAmount, { color: "#0D9488" }]}>Rs. 1,440.00</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push(appRoute("/scan-receipt") as never)}
+          style={[styles.recentRowItem, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }]}
+        >
+          <View style={[styles.recentIconBox, { backgroundColor: "#FEE2E2" }]}>
+            <Ionicons name="scan-outline" size={20} color="#DC2626" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.recentItemTitle, { color: theme.ink }]}>SCN-142</Text>
+            <Text style={[styles.recentItemSubtitle, { color: theme.muted }]}>Yesterday</Text>
+          </View>
+          <Text style={[styles.recentItemAmount, { color: "#DC2626" }]}>Rs. 140.00</Text>
+        </Pressable>
       </View>
 
       <ConfirmationModal
@@ -644,5 +632,143 @@ const styles = StyleSheet.create({
   deleteError: {
     ...BrandTypography.helperText,
     color: BrandColors.error,
+  },
+  businessProfileBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 12,
+    marginBottom: 20,
+  },
+  businessProfileIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "#FFEDD5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  businessProfileTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  businessProfileSubtitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#EA580C",
+    marginTop: 2,
+  },
+  metricsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 24,
+  },
+  metricCard: {
+    width: "48%",
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 4,
+  },
+  metricIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  metricLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  metricValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  metricSubtext: {
+    fontSize: 11,
+    color: "#94A3B8",
+    fontWeight: "500",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  sectionTitleText: {
+    fontSize: 18,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+  },
+  quickActions3x2: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 24,
+  },
+  quickActionPill: {
+    width: "31.5%",
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  quickActionLabel: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#0F172A",
+    textAlign: "center",
+    lineHeight: 14,
+  },
+  recentHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  viewAllLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#EA580C",
+  },
+  recentItemsList: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  recentRowItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
+  recentIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recentItemTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  recentItemSubtitle: {
+    fontSize: 12,
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  recentItemAmount: {
+    fontSize: 15,
+    fontWeight: "800",
   },
 });

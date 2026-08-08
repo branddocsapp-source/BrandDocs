@@ -1,297 +1,106 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState, useMemo } from "react";
-import { Pressable, StyleSheet, Text, View, TextInput } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppCard, AppShell, EmptyState, PageHeader, PrimaryButton, SecondaryButton, IconButton } from "@/components/ui/branddocs";
+import { AppShell, TipCard } from "@/components/ui/branddocs";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useAppTheme } from "@/theme/theme-context";
-import { BrandColors, BrandRadius, BrandShadows, BrandSpacing, BrandTypography } from "@/theme/tokens";
 
-const modules = [
-  { title: "Tax Invoice", category: "invoices", route: "/invoice", icon: "receipt-outline", previous: "Tax Invoices Generator", empty: "Create compliant client tax invoices with automatic tax & totals." },
-  { title: "Bill of Supply", category: "invoices", route: "/invoice", icon: "document-text-outline", previous: "Bill of Supply Document", empty: "Create tax-exempt or composition scheme bills of supply." },
-  { title: "Standard Quotation", category: "quotations", route: "/quotation", icon: "reader-outline", previous: "Client Price Proposals", empty: "Prepare clear proposals & cost estimates for your business." },
-  { title: "Table Quotation", category: "quotations", route: "/table-quotation", icon: "grid-outline", previous: "Tabular Price Lists", empty: "Create clean multi-column product price sheets and rate cards." },
-  { title: "Letterhead", category: "branding", route: "/letterhead", icon: "newspaper-outline", previous: "Official Letterhead Generator", empty: "Draft executive correspondence with company headers & seals." },
-  { title: "Receipt", category: "receipts", route: "/receipt", icon: "receipt-outline", previous: "Cash & Payment Receipts", empty: "Issue instant receipts for cash, bank transfers, or card deposits." },
-  { title: "Visiting Card", category: "branding", route: "/visiting-card", icon: "id-card-outline", previous: "Digital Visiting Cards", empty: "Design digital contact cards complete with vCard QR codes." },
-  { title: "Receipt Scanner", category: "receipts", route: "/scan-receipt", icon: "scan-circle-outline", previous: "OCR Document Scanner", empty: "Capture paper bills and automatically extract amounts & dates." },
+const documentItems = [
+  { title: "Invoices", subtitle: "Create and manage invoices", route: "/invoice", icon: "document-text", iconBg: "#E0F2FE", iconColor: "#0284C7" },
+  { title: "Quotations", subtitle: "Create and manage quotations", route: "/quotation", icon: "document-text", iconBg: "#DCFCE7", iconColor: "#16A34A" },
+  { title: "Receipts", subtitle: "Create and manage receipts", route: "/receipt", icon: "document-text-outline", iconBg: "#CCFBF1", iconColor: "#0D9488" },
+  { title: "Letterheads", subtitle: "Create and manage letterheads", route: "/letterhead", icon: "newspaper", iconBg: "#F3E8FF", iconColor: "#9333EA" },
+  { title: "Visiting Cards", subtitle: "Create and manage visiting cards", route: "/visiting-card", icon: "id-card", iconBg: "#FCE7F3", iconColor: "#DB2777" },
+  { title: "Scan Receipt", subtitle: "Scan and save receipt documents", route: "/scan-receipt", icon: "scan", iconBg: "#FFEDD5", iconColor: "#EA580C" },
 ];
 
 export default function DocumentsScreen() {
   const router = useRouter();
-  const { isAppPreview, isPhone } = useResponsiveLayout();
+  const { isAppPreview } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   function appRoute(pathname: string) {
     if (!isAppPreview) return pathname;
     return { pathname, params: { appPreview: "1" } };
   }
 
-  const filteredModules = useMemo(() => {
-    return modules.filter((mod) => {
-      const matchesCategory = activeCategory === "all" || mod.category === activeCategory;
-      const matchesQuery =
-        !searchQuery.trim() ||
-        mod.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mod.empty.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesQuery;
-    });
-  }, [activeCategory, searchQuery]);
-
   return (
     <AppShell>
-      <PageHeader
-        title="Document Workspaces"
-        subtitle="Create, manage, and export every document module from one central workspace."
-        action={
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <IconButton
-              icon={viewMode === "grid" ? "list-outline" : "grid-outline"}
-              accessibilityLabel="Toggle Grid or List View"
-              active={false}
-              onPress={() => setViewMode((m) => (m === "grid" ? "list" : "grid"))}
-            />
-          </View>
-        }
-      />
-
-      {/* Search & Filter Toolbar */}
-      <View style={[styles.filterBar, { backgroundColor: theme.card, borderColor: theme.line }]}>
-        <View style={styles.searchInputWrapper}>
-          <Ionicons name="search-outline" size={18} color={theme.muted} />
-          <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search document tools..."
-            placeholderTextColor={theme.muted}
-            style={[styles.searchInput, { color: theme.ink }]}
-          />
-          {searchQuery.length > 0 ? (
-            <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
-              <Ionicons name="close-circle" size={16} color={theme.muted} />
-            </Pressable>
-          ) : null}
-        </View>
-
-        {/* Category Pills */}
-        <View style={styles.categoryPills}>
-          {[
-            { id: "all", label: "All Modules" },
-            { id: "invoices", label: "Invoices & Bills" },
-            { id: "quotations", label: "Quotations" },
-            { id: "branding", label: "Cards & Letterhead" },
-            { id: "receipts", label: "Receipts & OCR" },
-          ].map((cat) => {
-            const isActive = activeCategory === cat.id;
-            return (
-              <Pressable
-                key={cat.id}
-                onPress={() => setActiveCategory(cat.id)}
-                style={({ pressed }) => [
-                  styles.pill,
-                  {
-                    backgroundColor: isActive
-                      ? BrandColors.primary
-                      : isDark
-                      ? "rgba(255,255,255,0.06)"
-                      : "#F0F2F5",
-                  },
-                  pressed && { opacity: 0.8 },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.pillText,
-                    { color: isActive ? "#FFFFFF" : theme.ink },
-                  ]}
-                >
-                  {cat.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+      {/* Page Title Header */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={[styles.docPageTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Documents</Text>
+        <Text style={[styles.docPageSubtitle, { color: theme.muted }]}>Create and manage all your business documents</Text>
       </View>
 
-      {/* Module Grid or List */}
-      <View style={viewMode === "grid" ? styles.moduleList : styles.listView}>
-        {filteredModules.map((module) => (
-          <AppCard
-            key={module.title}
-            style={[
-              styles.moduleCard,
-              viewMode === "list" && styles.listCard,
-              isPhone && { width: "100%" },
+      {/* Document Items List */}
+      <View style={styles.documentListStack}>
+        {documentItems.map((item) => (
+          <Pressable
+            key={item.title}
+            onPress={() => router.push(appRoute(item.route) as never)}
+            style={({ pressed }) => [
+              styles.documentRowCard,
+              { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" },
+              pressed && { opacity: 0.8 },
             ]}
           >
-            <View style={styles.moduleTop}>
-              <View
-                style={[
-                  styles.moduleIcon,
-                  { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft },
-                ]}
-              >
-                <Ionicons name={module.icon as never} size={22} color={BrandColors.primary} />
-              </View>
-              <View style={styles.moduleCopy}>
-                <Text style={[styles.moduleTitle, { color: theme.ink }]}>{module.title}</Text>
-                <Text style={[styles.moduleSubtitle, { color: theme.muted }]}>
-                  {module.previous}
-                </Text>
-              </View>
-              <PrimaryButton
-                label="Launch"
-                icon="arrow-forward"
-                onPress={() => router.push(appRoute(module.route) as never)}
-              />
+            <View style={[styles.docIconBox, { backgroundColor: item.iconBg }]}>
+              <Ionicons name={item.icon as never} size={22} color={item.iconColor} />
             </View>
-
-            {viewMode === "grid" ? (
-              <View style={styles.moduleDescBox}>
-                <Text style={[styles.moduleDescText, { color: theme.muted }]}>
-                  {module.empty}
-                </Text>
-              </View>
-            ) : null}
-          </AppCard>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.docItemTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{item.title}</Text>
+              <Text style={[styles.docItemSubtitle, { color: theme.muted }]}>{item.subtitle}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
+          </Pressable>
         ))}
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Back to dashboard"
-        style={({ pressed }) => [
-          styles.backLink,
-          { backgroundColor: theme.card, borderColor: theme.line },
-          pressed && styles.pressed,
-        ]}
-        onPress={() => router.push(appRoute("/dashboard") as never)}
-      >
-        <Ionicons name="arrow-back" size={18} color={BrandColors.primary} />
-        <Text style={styles.backLinkText}>Back to dashboard</Text>
-      </Pressable>
+      {/* Tip Card */}
+      <TipCard text="Keep all your business documents in one place. Create, manage and share with ease!" />
     </AppShell>
   );
 }
 
-
 const styles = StyleSheet.create({
-  filterBar: {
-    padding: BrandSpacing.lg,
-    borderRadius: BrandRadius.large,
-    borderWidth: 1,
-    marginBottom: BrandSpacing.xl,
-    gap: BrandSpacing.md,
+  docPageTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.5,
   },
-  searchInputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: BrandRadius.medium,
-    backgroundColor: "rgba(0,0,0,0.03)",
-    gap: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    padding: 0,
+  docPageSubtitle: {
+    fontSize: 14,
     fontWeight: "500",
+    marginTop: 4,
   },
-  categoryPills: {
+  documentListStack: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  documentRowCard: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: BrandRadius.pill,
-  },
-  pillText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  moduleList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: BrandSpacing.md,
-  },
-  listView: {
-    flexDirection: "column",
-    gap: BrandSpacing.md,
-  },
-  moduleCard: {
-    flexGrow: 1,
-    minWidth: 300,
-    width: "48%",
-  },
-  listCard: {
-    width: "100%",
-  },
-  moduleTop: {
     alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.md,
-  },
-  moduleIcon: {
-    alignItems: "center",
-    backgroundColor: BrandColors.primarySoft,
-    borderRadius: BrandRadius.medium,
-    height: 46,
-    justifyContent: "center",
-    width: 46,
-  },
-  moduleCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  moduleTitle: {
-    ...BrandTypography.cardTitle,
-    color: BrandColors.text,
-  },
-  moduleSubtitle: {
-    ...BrandTypography.caption,
-    color: BrandColors.textSecondary,
-    marginTop: 2,
-  },
-  moduleDescBox: {
-    marginTop: BrandSpacing.md,
-    paddingTop: BrandSpacing.md,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.06)",
-  },
-  moduleDescText: {
-    ...BrandTypography.caption,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  backLink: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: BrandColors.background,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.pill,
+    padding: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-    marginTop: BrandSpacing["2xl"],
-    minHeight: 44,
-    paddingHorizontal: BrandSpacing.lg,
-    ...BrandShadows.subtle,
+    gap: 14,
   },
-  backLinkText: {
-    ...BrandTypography.buttonLabel,
-    color: BrandColors.primary,
+  docIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  pressed: {
-    opacity: 0.72,
+  docItemTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  docItemSubtitle: {
+    fontSize: 12.5,
+    fontWeight: "500",
+    marginTop: 2,
   },
 });
 
