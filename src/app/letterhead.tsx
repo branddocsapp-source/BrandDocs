@@ -412,6 +412,14 @@ function ToolbarButton({ label, icon, active, onPress }: { label?: string; icon?
   );
 }
 
+function HexagonLogo({ size = 48 }: { size?: number }) {
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Ionicons name="document-text" size={size * 0.7} color="#EA580C" />
+    </View>
+  );
+}
+
 function LetterheadPaper({
   letterhead,
   updateLetterheadField,
@@ -432,57 +440,74 @@ function LetterheadPaper({
   return (
     <View style={[
       styles.a4Paper,
+      { padding: 32, backgroundColor: "#FFFFFF", position: "relative" },
       scale !== undefined && {
         transform: [{ scale: scale }],
         position: "absolute",
       }
     ]}>
-      <View style={styles.paperHeader}>
-        <View style={styles.logoBox}>
-          {letterhead.company.logoUrl ? <Image source={{ uri: letterhead.company.logoUrl }} style={styles.logoImage} contentFit="contain" /> : <Text style={styles.logoInitials}>{getCompanyInitials(letterhead.company.name)}</Text>}
+      {/* Background Watermark */}
+      <View style={{ position: "absolute", bottom: 40, right: 40, opacity: 0.06, pointerEvents: "none" }}>
+        <HexagonLogo size={320} />
+      </View>
+
+      {/* Top Header */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 14 }}>
+        <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
+          <HexagonLogo size={52} />
+          <View style={{ flex: 1 }}>
+            <InlineInput value={letterhead.company.name || "ABC ENTERPRISES PVT. LTD."} onChangeText={(val) => updateCompanyField("name", val)} textStyle={{ fontSize: 20, fontWeight: "900", color: "#0F172A" }} />
+            <InlineInput value={letterhead.company.tagline || "Building Solutions. Delivering Trust."} onChangeText={(val) => updateCompanyField("tagline", val)} textStyle={{ fontSize: 11, color: "#64748B", marginTop: 2 }} placeholder="Business Tagline" />
+          </View>
         </View>
-        <View style={styles.companyBlock}>
-          <InlineInput value={letterhead.company.name} onChangeText={(value) => updateCompanyField("name", value)} textStyle={styles.companyName} />
-          <InlineInput value={letterhead.company.tagline} onChangeText={(value) => updateCompanyField("tagline", value)} textStyle={styles.companyTagline} placeholder="Business Tagline" />
-          <InlineInput value={letterhead.company.address} onChangeText={(value) => updateCompanyField("address", value)} textStyle={styles.companyAddress} multiline />
-          <View style={styles.inlineRow}>
-            <InlineInput value={letterhead.company.city} onChangeText={(value) => updateCompanyField("city", value)} textStyle={styles.companyMeta} placeholder="City" />
-            <InlineInput value={letterhead.company.state} onChangeText={(value) => updateCompanyField("state", value)} textStyle={styles.companyMeta} placeholder="State" />
-            <InlineInput value={letterhead.company.country} onChangeText={(value) => updateCompanyField("country", value)} textStyle={styles.companyMeta} placeholder="Country" />
-            <InlineInput value={letterhead.company.postalCode} onChangeText={(value) => updateCompanyField("postalCode", value)} textStyle={styles.companyMeta} placeholder="Postal Code" />
-          </View>
-          <View style={styles.inlineRow}>
-            <InlineInput value={letterhead.company.phone} onChangeText={(value) => updateCompanyField("phone", value)} textStyle={styles.companyMeta} placeholder="Phone" />
-            <InlineInput value={letterhead.company.email} onChangeText={(value) => updateCompanyField("email", value)} textStyle={styles.companyMeta} placeholder="Email" />
-            <InlineInput value={letterhead.company.website} onChangeText={(value) => updateCompanyField("website", value)} textStyle={styles.companyMeta} placeholder="Website" />
-          </View>
-          {letterhead.company.taxNumber ? <InlineInput value={`Tax ID: ${letterhead.company.taxNumber}`} onChangeText={(value) => updateCompanyField("taxNumber", value.replace(/^Tax ID:\s*/i, ""))} textStyle={styles.companyMeta} /> : null}
+
+        <View style={{ width: 1, backgroundColor: "#E2E8F0", marginHorizontal: 12 }} />
+
+        <View style={{ width: 250, gap: 2 }}>
+          <InlineInput value={letterhead.company.address || "123, Business Park, Andheri East, Mumbai"} onChangeText={(val) => updateCompanyField("address", val)} textStyle={{ fontSize: 11, color: "#475569" }} multiline />
+          <InlineInput value={letterhead.company.phone || "+91 98765 43210"} onChangeText={(val) => updateCompanyField("phone", val)} textStyle={{ fontSize: 11, color: "#475569" }} />
+          <InlineInput value={letterhead.company.email || "info@abcenterprises.com"} onChangeText={(val) => updateCompanyField("email", val)} textStyle={{ fontSize: 11, color: "#475569" }} />
+          <InlineInput value={letterhead.company.website || "www.abcenterprises.com"} onChangeText={(val) => updateCompanyField("website", val)} textStyle={{ fontSize: 11, color: "#475569" }} />
         </View>
       </View>
 
-      <View style={styles.documentMetaRow}>
-        <TextInput style={styles.documentNameInput} value={letterhead.documentName} onChangeText={(value) => updateLetterheadField("documentName", value)} />
-        <Text style={styles.letterheadNumber}>{letterhead.letterheadNumber}</Text>
-        <TextInput style={styles.dateInput} value={letterhead.documentDate} onChangeText={(value) => updateLetterheadField("documentDate", value)} />
+      {/* Sub-header Bar with Tax Badges */}
+      <View style={{ flexDirection: "row", justifyContent: "space-around", backgroundColor: "#FFF7ED", paddingVertical: 6, marginVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: "#FFEDD5" }}>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{letterhead.company.taxNumber || "27ABCDE1234F1Z5"}</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
       </View>
 
+      {/* Document Meta Row */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <TextInput style={{ fontSize: 16, fontWeight: "900", color: "#0F172A", flex: 1 }} value={letterhead.documentName} onChangeText={(value) => updateLetterheadField("documentName", value)} />
+        <Text style={{ fontSize: 11, fontWeight: "800", color: "#64748B", marginRight: 12 }}>{letterhead.letterheadNumber}</Text>
+        <TextInput style={{ fontSize: 11, fontWeight: "800", color: "#64748B", borderBottomWidth: 1, borderBottomColor: "#CBD5E1", width: 90, textAlign: "right" }} value={letterhead.documentDate} onChangeText={(value) => updateLetterheadField("documentDate", value)} />
+      </View>
+
+      {/* Editable Letter Body */}
       <TextInput
-        style={[
-          styles.bodyInput,
-          {
-            fontWeight: letterhead.bodyFormatting.bold ? "800" : "400",
-            fontStyle: letterhead.bodyFormatting.italic ? "italic" : "normal",
-            textDecorationLine: letterhead.bodyFormatting.underline ? "underline" : "none",
-            textAlign: letterhead.bodyFormatting.alignment,
-            lineHeight,
-          },
-        ]}
+        style={{
+          color: "#0F172A",
+          flex: 1,
+          fontSize: 14,
+          minHeight: 520,
+          paddingVertical: 12,
+          fontWeight: letterhead.bodyFormatting.bold ? "800" : "400",
+          fontStyle: letterhead.bodyFormatting.italic ? "italic" : "normal",
+          textDecorationLine: letterhead.bodyFormatting.underline ? "underline" : "none",
+          textAlign: letterhead.bodyFormatting.alignment,
+          lineHeight,
+        }}
         value={letterhead.body}
         onChangeText={updateBody}
         multiline
+        placeholder="Type official letterhead body content here..."
+        placeholderTextColor="#94A3B8"
         textAlignVertical="top"
       />
 
+      {/* Signature Area */}
       <View style={styles.signatureStrip}>
         <View style={styles.signatureControls}>
           {(["none", "business", "manual"] as SignatureMode[]).map((mode) => (
@@ -501,11 +526,10 @@ function LetterheadPaper({
         </View>
       </View>
 
-      <View style={styles.paperFooter}>
-        <Text style={styles.footerText}>{letterhead.company.address} {letterhead.company.city} {letterhead.company.state} {letterhead.company.country} {letterhead.company.postalCode}</Text>
-        <Text style={styles.footerText}>{letterhead.company.phone} • {letterhead.company.email} • {letterhead.company.website}</Text>
-        {letterhead.company.taxNumber ? <Text style={styles.footerText}>Tax ID: {letterhead.company.taxNumber}</Text> : null}
-        {letterhead.showPageNumber ? <Text style={styles.pageNumber}>Page 1</Text> : null}
+      {/* Bottom Footer Bar */}
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#EA580C", paddingTop: 12, alignItems: "center", gap: 4 }}>
+        <Text style={{ fontSize: 11, color: "#475569" }}>📞 {letterhead.company.phone}   |   ✉️ {letterhead.company.email}   |   🌐 {letterhead.company.website}</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: "#EA580C" }}>Thank you for your business!</Text>
       </View>
     </View>
   );
