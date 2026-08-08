@@ -872,6 +872,11 @@ function DetailsStep({
   );
 }
 
+function hasContrastWarning(bg?: string, fg?: string): boolean {
+  if (!bg || !fg) return false;
+  return bg.trim().toLowerCase() === fg.trim().toLowerCase();
+}
+
 function DesignStep({
   draft,
   sideMode,
