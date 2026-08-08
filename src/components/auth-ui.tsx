@@ -217,26 +217,6 @@ export function AuthHeader({ title, subtitle, onLogoPress }: AuthHeaderProps) {
   );
 }
 
-type AuthInputProps = {
-  placeholder: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  autoComplete?: "email" | "password" | "new-password";
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
-  keyboardType?: KeyboardTypeOptions;
-  secureTextEntry?: boolean;
-  leftIcon?: keyof typeof Ionicons.glyphMap;
-  rightAction?: ReactNode;
-};
-
-type AuthPrimaryButtonProps = {
-  label: string;
-  loading?: boolean;
-  disabled?: boolean;
-  showArrow?: boolean;
-  onPress: () => void;
-};
-
 export function AuthInput({
   placeholder,
   value,
