@@ -1004,7 +1004,7 @@ function SaveStep({
       <Text style={styles.panelTitle}>Save / Export / Share</Text>
       <Text style={styles.helperLine}>Filename base: {filename}</Text>
       <View style={styles.saveGrid}>
-        <SecondaryButton label="Save Draft" icon="save-outline" onPress={onSaveDraft} loading={saving} />
+        <SecondaryButton label="Save Draft" icon="save-outline" onPress={onSave} loading={saving} />
         <PrimaryButton label="Save as Final" icon="checkmark-circle-outline" onPress={onSaveFinal} disabled={saving} />
         <SecondaryButton label="Preview" icon="eye-outline" onPress={onPreview} disabled={saving} />
         <SecondaryButton label="Print / Save PDF" icon="print-outline" onPress={onPrint} />
@@ -1037,6 +1037,7 @@ function SavedCardRow({
   onShare: () => void;
   onDelete: () => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   const isList = viewMode === "list";
   return (
     <AppCard style={[styles.savedCard, isList && styles.savedCardList]}>
@@ -1078,6 +1079,7 @@ function ToggleRow({
   value: boolean;
   onValueChange: (value: boolean) => void;
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.toggleRow}>
       <View style={styles.toggleCopy}>
@@ -1100,6 +1102,7 @@ function SegmentedControl({
   onChange: (value: string) => void;
   disabledValues?: string[];
 }) {
+  const { theme, styles } = useVisitingCardStyles();
   return (
     <View style={styles.segmented}>
       {options.map((option) => {
