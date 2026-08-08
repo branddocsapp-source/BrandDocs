@@ -75,38 +75,31 @@ type AuthCheckboxProps = {
 };
 
 export function AuthLayout({ children }: AuthLayoutProps) {
-  const { isWebsite, width, isPhone } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
-  const isWide = width >= 1040;
-  const isTablet = width >= 720 && width < 1040;
-  const isCompact = width < 390;
 
   return (
     <ScrollView
-      style={[styles.page, { backgroundColor: theme.background }]}
-      contentContainerStyle={[
-        styles.pageContent,
-        isWide && styles.pageContentWide,
-        isTablet && styles.pageContentTablet,
-        isCompact && styles.pageContentCompact,
-      ]}
+      style={[styles.page, { backgroundColor: isDark ? "#0F172A" : "#FAF8F5" }]}
+      contentContainerStyle={{
+        flexGrow: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={[styles.shell, isWide && styles.shellWide, isTablet && styles.shellTablet]}>
-        {!isPhone ? <BrandPanel compact={!isWide} /> : null}
-        <Animated.View
-          entering={FadeIn.duration(350)}
-          style={[
-            styles.card,
-            { backgroundColor: theme.white, borderColor: theme.line },
-            isWebsite && isWide && styles.cardWide,
-            isTablet && styles.cardTablet,
-            isCompact && styles.cardCompact,
-          ]}
-        >
-          {children}
-        </Animated.View>
-      </View>
+      <Animated.View
+        entering={FadeIn.duration(350)}
+        style={[
+          styles.authCardContainer,
+          {
+            backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
+            borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0",
+          },
+        ]}
+      >
+        {children}
+      </Animated.View>
     </ScrollView>
   );
 }
