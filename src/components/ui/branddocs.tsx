@@ -394,14 +394,7 @@ export function AppLogo({ compact }: { compact?: boolean }) {
 }
 
 export function MobileHeaderLogo() {
-  const { isDark } = useAppTheme();
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center" }}>
-      <Text style={{ fontSize: 22, fontWeight: "900", color: isDark ? "#FFFFFF" : "#0F172A", letterSpacing: -0.5 }}>
-        Brand<Text style={{ color: "#EA580C" }}>Docs</Text>
-      </Text>
-    </View>
-  );
+  return <BrandLogo size="small" />;
 }
 
 export function TipCard({ text }: { text: string }) {

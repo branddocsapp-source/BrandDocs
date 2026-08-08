@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/theme/theme-context";
 import { useRouter } from "expo-router";
 import { auth } from "@/firebase";
@@ -18,8 +19,8 @@ export function BrandLogo({ size = "medium", onPress, disableNavigation = false 
   const isLarge = size === "large";
 
   const titleFontSize = isSmall ? 20 : isLarge ? 32 : 26;
-  const subtitleFontSize = isSmall ? 7 : isLarge ? 9.5 : 8.5;
-  const iconSize = isSmall ? 34 : isLarge ? 50 : 42;
+  const subtitleFontSize = isSmall ? 7.5 : isLarge ? 10 : 8.5;
+  const iconSize = isSmall ? 36 : isLarge ? 54 : 44;
 
   const handlePress = () => {
     if (onPress) {
@@ -33,25 +34,19 @@ export function BrandLogo({ size = "medium", onPress, disableNavigation = false 
   const content = (
     <View style={styles.container}>
       {/* Brand Icon Mark */}
-      <View style={[styles.iconOuter, { width: iconSize, height: iconSize }]}>
-        <View style={styles.iconBBack}>
-          <View style={[styles.iconPaper, { backgroundColor: isDark ? "#14161B" : "#FFFFFF" }]}>
-            <View style={styles.iconLine} />
-            <View style={styles.iconLine} />
-            <View style={styles.iconLineShort} />
-          </View>
-        </View>
+      <View style={[styles.iconOuter, { width: iconSize, height: iconSize, borderRadius: iconSize * 0.28 }]}>
+        <Ionicons name="document-text" size={iconSize * 0.58} color="#FFFFFF" />
       </View>
 
       {/* Brand Typography */}
       <View style={styles.textGroup}>
         <View style={styles.titleRow}>
           <Text style={[styles.brandOrange, { fontSize: titleFontSize }]}>Brand</Text>
-          <Text style={[styles.docsText, { fontSize: titleFontSize, color: isDark ? "#FFFFFF" : "#1D1F24" }]}>
+          <Text style={[styles.docsText, { fontSize: titleFontSize, color: isDark ? "#FFFFFF" : "#0F172A" }]}>
             Docs
           </Text>
         </View>
-        <Text style={[styles.subtitleText, { fontSize: subtitleFontSize, color: isDark ? "#D0D4DC" : "#676B63" }]}>
+        <Text style={[styles.subtitleText, { fontSize: subtitleFontSize, color: isDark ? "#94A3B8" : "#64748B" }]}>
           DOCUMENTS • BRANDING • BUSINESS
         </Text>
       </View>
@@ -84,38 +79,13 @@ const styles = StyleSheet.create({
   },
   iconOuter: {
     alignItems: "center",
-    backgroundColor: "#F6A21A",
-    borderRadius: 12,
+    backgroundColor: "#EA580C",
     justifyContent: "center",
-    position: "relative",
-  },
-  iconBBack: {
-    alignItems: "center",
-    backgroundColor: "#F6A21A",
-    borderRadius: 10,
-    height: "85%",
-    justifyContent: "center",
-    width: "85%",
-  },
-  iconPaper: {
-    borderRadius: 4,
-    gap: 3,
-    height: "65%",
-    justifyContent: "center",
-    padding: 3,
-    width: "55%",
-  },
-  iconLine: {
-    backgroundColor: "#F6A21A",
-    borderRadius: 2,
-    height: 2.5,
-    width: "100%",
-  },
-  iconLineShort: {
-    backgroundColor: "#F6A21A",
-    borderRadius: 2,
-    height: 2.5,
-    width: "65%",
+    shadowColor: "#EA580C",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   textGroup: {
     justifyContent: "center",
@@ -125,17 +95,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   brandOrange: {
-    color: "#F6A21A",
+    color: "#EA580C",
     fontWeight: "900",
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
   },
   docsText: {
     fontWeight: "900",
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
   },
   subtitleText: {
     fontWeight: "800",
-    letterSpacing: 1.1,
+    letterSpacing: 1.2,
     marginTop: -2,
     textTransform: "uppercase",
   },
