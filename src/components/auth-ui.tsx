@@ -222,6 +222,26 @@ export function AuthHeader({ title, subtitle, onLogoPress }: AuthHeaderProps) {
   );
 }
 
+type AuthInputProps = {
+  placeholder: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  autoComplete?: "email" | "password" | "new-password";
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  keyboardType?: KeyboardTypeOptions;
+  secureTextEntry?: boolean;
+  leftIcon?: keyof typeof Ionicons.glyphMap;
+  rightAction?: ReactNode;
+};
+
+type AuthPrimaryButtonProps = {
+  label: string;
+  loading?: boolean;
+  disabled?: boolean;
+  showArrow?: boolean;
+  onPress: () => void;
+};
+
 export function AuthInput({
   placeholder,
   value,
@@ -230,17 +250,19 @@ export function AuthInput({
   autoCapitalize = "sentences",
   keyboardType,
   secureTextEntry,
+  leftIcon,
   rightAction,
 }: AuthInputProps) {
   const [focused, setFocused] = useState(false);
-  const { theme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
 
   return (
     <View style={[
       styles.inputFrame,
-      { backgroundColor: theme.wash, borderColor: theme.line },
-      focused && { borderColor: theme.orange },
+      { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: isDark ? "rgba(255,255,255,0.12)" : "#E2E8F0" },
+      focused && { borderColor: "#EA580C", backgroundColor: isDark ? "#1E293B" : "#FFFFFF" },
     ]}>
+      {leftIcon ? <Ionicons name={leftIcon} size={19} color="#64748B" style={{ marginLeft: 14, marginRight: -4 }} /> : null}
       <TextInput
         accessibilityLabel={placeholder}
         placeholder={placeholder}
@@ -284,7 +306,7 @@ export function AuthCheckbox({ checked, onPress, children }: AuthCheckboxProps) 
       onPress={onPress}
       style={({ pressed }) => [styles.checkboxRow, pressed && styles.checkboxPressed]}
     >
-      <View style={[styles.checkboxBox, { borderColor: theme.line }, checked && { backgroundColor: theme.orange, borderColor: theme.orange }]}>
+      <View style={[styles.checkboxBox, { borderColor: theme.line }, checked && { backgroundColor: "#EA580C", borderColor: "#EA580C" }]}>
         {checked ? <Ionicons name="checkmark" size={15} color="#FFFFFF" /> : null}
       </View>
       <View style={styles.checkboxContent}>{children}</View>
@@ -292,15 +314,14 @@ export function AuthCheckbox({ checked, onPress, children }: AuthCheckboxProps) 
   );
 }
 
-export function AuthPrimaryButton({ label, loading, disabled, onPress }: AuthPrimaryButtonProps) {
-  const { theme } = useAppTheme();
+export function AuthPrimaryButton({ label, loading, disabled, showArrow, onPress }: AuthPrimaryButtonProps) {
   return (
     <Pressable
       style={({ hovered, pressed }) => [
         styles.primaryButton,
-        { backgroundColor: theme.orange },
+        { backgroundColor: "#EA580C", borderRadius: 24, height: 50 },
         hovered && !disabled && styles.primaryButtonHover,
-        pressed && !disabled && styles.primaryButtonPressed,
+        pressed && !disabled && { opacity: 0.85 },
         disabled && styles.primaryButtonDisabled,
       ]}
       onPress={onPress}
@@ -308,8 +329,40 @@ export function AuthPrimaryButton({ label, loading, disabled, onPress }: AuthPri
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>{label}</Text>}
+      {loading ? (
+        <ActivityIndicator color="#FFFFFF" />
+      ) : (
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <Text style={[styles.primaryButtonText, { fontSize: 16, fontWeight: "700" }]}>{label}</Text>
+          {showArrow ? <Ionicons name="arrow-forward" size={19} color="#FFFFFF" /> : null}
+        </View>
+      )}
     </Pressable>
+  );
+}
+
+export function InfoBox({ text }: { text: string }) {
+  const { isDark } = useAppTheme();
+  return (
+    <View style={[styles.infoBox, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
+      <Ionicons name="information-circle" size={20} color="#EA580C" style={{ marginTop: 1 }} />
+      <Text style={[styles.infoBoxText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>{text}</Text>
+    </View>
+  );
+}
+
+export function ConfettiSuccess({ title, subtitle }: { title: string; subtitle: string }) {
+  const { isDark } = useAppTheme();
+  return (
+    <View style={{ alignItems: "center", marginVertical: 24, gap: 14 }}>
+      <View style={{ width: 90, height: 90, borderRadius: 45, backgroundColor: isDark ? "rgba(22, 163, 74, 0.2)" : "#DCFCE7", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 66, height: 66, borderRadius: 33, backgroundColor: "#16A34A", alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="checkmark" size={40} color="#FFFFFF" />
+        </View>
+      </View>
+      <Text style={{ fontSize: 24, fontWeight: "800", color: isDark ? "#FFFFFF" : "#0F172A", textAlign: "center", marginTop: 8 }}>{title}</Text>
+      <Text style={{ fontSize: 14, fontWeight: "500", color: "#64748B", textAlign: "center", maxWidth: 320, lineHeight: 20 }}>{subtitle}</Text>
+    </View>
   );
 }
 
@@ -954,9 +1007,22 @@ const styles = StyleSheet.create({
   },
   socialButtonText: {
     color: authBrand.ink,
-    fontSize: 15,
-    fontWeight: "850" as never,
-    lineHeight: 20,
-    textAlign: "center",
+    fontSize: 14.5,
+    fontWeight: "900",
+  },
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+    marginVertical: 14,
+  },
+  infoBoxText: {
+    flex: 1,
+    fontSize: 12.5,
+    lineHeight: 18,
+    fontWeight: "500",
   },
 });
