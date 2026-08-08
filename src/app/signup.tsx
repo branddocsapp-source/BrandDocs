@@ -183,8 +183,8 @@ export default function SignUpScreen() {
   return (
     <AuthLayout>
       <AuthHeader
-        title="Create Account"
-        subtitle="Create your BrandDocs account and start managing your business professionally."
+        title="Create your account"
+        subtitle="Start creating professional business documents in minutes."
         onLogoPress={() => router.push(withPreviewRoute("/") as never)}
       />
 
@@ -200,7 +200,7 @@ export default function SignUpScreen() {
         {errors.fullName ? <Text style={authStyles.errorText}>{errors.fullName}</Text> : null}
 
         <AuthInput
-          placeholder="Email Address"
+          placeholder="Business Email"
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
@@ -210,6 +210,21 @@ export default function SignUpScreen() {
           }}
         />
         {errors.email ? <Text style={authStyles.errorText}>{errors.email}</Text> : null}
+
+        {/* Mobile Number with country code flag pill */}
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          <View style={{ paddingHorizontal: 12, height: 48, borderRadius: 20, borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#FAFAFA", flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={{ fontSize: 14 }}>🇺🇸 +1</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <AuthInput
+              placeholder="Mobile Number"
+              keyboardType="phone-pad"
+              value={confirmPassword}
+              onChangeText={(val) => {}}
+            />
+          </View>
+        </View>
 
         <AuthInput
           placeholder="Password"
