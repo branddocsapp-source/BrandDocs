@@ -233,6 +233,35 @@ export default function ReceiptScreen() {
               {/* Receipt Metadata */}
               <AppCard style={styles.formSection}>
                 <Text style={[styles.sectionTitle, { color: theme.ink }]}>Receipt Info</Text>
+                
+                <Text style={[styles.inputLabel, { color: theme.ink, marginBottom: 6 }]}>Receipt Type</Text>
+                <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+                  <Pressable
+                    style={[
+                      styles.methodBox,
+                      { flex: 1 },
+                      (draft.receiptTitle || "").includes("PAID") && styles.methodBoxSelected,
+                    ]}
+                    onPress={() => updateDraftField("receiptTitle", "MONEY PAID RECEIPT")}
+                  >
+                    <Text style={[styles.methodText, (draft.receiptTitle || "").includes("PAID") && styles.methodTextSelected]}>
+                      Money Paid Receipt
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.methodBox,
+                      { flex: 1 },
+                      !(draft.receiptTitle || "").includes("PAID") && styles.methodBoxSelected,
+                    ]}
+                    onPress={() => updateDraftField("receiptTitle", "MONEY RECEIVED RECEIPT")}
+                  >
+                    <Text style={[styles.methodText, !(draft.receiptTitle || "").includes("PAID") && styles.methodTextSelected]}>
+                      Money Received Receipt
+                    </Text>
+                  </Pressable>
+                </View>
+
                 <View style={styles.row}>
                   <View style={styles.col}>
                     <InputField

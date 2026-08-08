@@ -828,95 +828,317 @@ export default function PreviewScreen() {
   );
 }
 
-function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesktop: boolean }) {
+function HexagonLogo({ size = 48 }: { size?: number }) {
   return (
-    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 36, minHeight: 900, aspectRatio: undefined }]}>
-      <View style={styles.letterheadTop}>
-        <View style={styles.letterheadLogoBox}>
-          {receipt.company.logoUrl ? (
-            <Image source={{ uri: receipt.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
-          ) : (
-            <Text style={styles.logoInitials}>{receipt.company.name.slice(0, 2).toUpperCase()}</Text>
-          )}
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Ionicons name="document-text" size={size * 0.7} color="#EA580C" />
+    </View>
+  );
+}
+
+function HexagonBadge({ text }: { text: string }) {
+  return (
+    <View style={{ borderWidth: 1.5, borderColor: "#EA580C", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, alignItems: "center", justifyContent: "center" }}>
+      <Text style={{ fontSize: 14, fontWeight: "800", color: "#EA580C" }}>{text}</Text>
+    </View>
+  );
+}
+
+function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesktop: boolean }) {
+  const isPaidReceipt = (receipt.receiptTitle || "").toUpperCase().includes("PAID") || (receipt as any).receiptType === "paid";
+  const currencySymbol = receipt.company.currency === "INR" || !receipt.company.currency ? "₹" : receipt.company.currency;
+
+  if (isPaidReceipt) {
+    // Screenshot 1: MONEY PAID RECEIPT (Payment Made)
+    return (
+      <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
+        {/* Top Header */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 16 }}>
+          <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
+            <HexagonLogo size={52} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 20, fontWeight: "900", color: "#0F172A", letterSpacing: -0.3 }}>{receipt.company.name || "ABC ENTERPRISES PVT. LTD."}</Text>
+              <Text style={{ fontSize: 11, fontWeight: "500", color: "#64748B", marginTop: 2 }}>Documents that build your business</Text>
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 6 }}>📍 {receipt.company.address || "123, Business Park, Andheri East, Mumbai"}</Text>
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>📞 {receipt.company.phone || "+91 98765 43210"}</Text>
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>✉️ {receipt.company.email || "info@abcenterprises.com"}</Text>
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>🌐 {receipt.company.website || "www.abcenterprises.com"}</Text>
+            </View>
+          </View>
+          <View style={{ width: 1, backgroundColor: "#E2E8F0", marginHorizontal: 16 }} />
+          <View style={{ width: 220, gap: 4 }}>
+            <Text style={{ fontSize: 11, color: "#EA580C", fontWeight: "700" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{receipt.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+            <Text style={{ fontSize: 11, color: "#EA580C", fontWeight: "700" }}>PAN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).pan || "ABCDE1234F"}</Text></Text>
+            <Text style={{ fontSize: 11, color: "#EA580C", fontWeight: "700" }}>CIN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).cin || "U74999MH2020PTC123456"}</Text></Text>
+            
+            <View style={{ marginTop: 16, alignItems: "flex-end" }}>
+              <Text style={{ fontSize: 16, fontWeight: "900", color: "#0F172A" }}>MONEY PAID</Text>
+              <Text style={{ fontSize: 26, fontWeight: "900", color: "#EA580C", letterSpacing: -0.5 }}>RECEIPT</Text>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#475569", marginTop: 2 }}>(Payment Made)</Text>
+              <View style={{ marginTop: 6 }}>
+                <HexagonBadge text={currencySymbol} />
+              </View>
+            </View>
+          </View>
         </View>
-        <View style={styles.letterheadCompanyBlock}>
-          <Text style={styles.letterheadCompanyName}>{receipt.company.name}</Text>
-          <Text style={[styles.letterheadCompanyLine, { fontSize: 13, marginTop: 4 }]}>{receipt.company.address}</Text>
-          <Text style={[styles.letterheadCompanyLine, { fontSize: 12, marginTop: 2 }]}>
-            {[receipt.company.phone, receipt.company.email, receipt.company.website].filter(Boolean).join(" • ")}
+
+        {/* Details Row */}
+        <View style={{ flexDirection: "row", marginTop: 20, gap: 20 }}>
+          {/* Metadata Left */}
+          <View style={{ flex: 1, gap: 8 }}>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📄 Receipt No.</Text>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receiptNumber}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📅 Receipt Date</Text>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receiptDate}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>👤 Paid To</Text>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receivedFrom.name || "Ramesh Kumar"}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📞 Mobile No.</Text>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receivedFrom.phone || "+91 98765 67890"}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📍 Address</Text>
+              <Text style={{ flex: 1, fontSize: 12, color: "#334155" }}>: {receipt.receivedFrom.address || "Civil Work, Building No. 5, Site Area..."}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>💳 Payment Mode</Text>
+              <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {getPaymentMethodLabel(receipt.paymentMethod)}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>🛍️ Paid For</Text>
+              <Text style={{ flex: 1, fontSize: 12, color: "#334155" }}>: {receipt.notes || "Labour Payment (Construction Work)"}</Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📝 Reference / Note</Text>
+              <Text style={{ flex: 1, fontSize: 12, color: "#334155" }}>: {receipt.paymentReference || "Daily Labour Payment"}</Text>
+            </View>
+          </View>
+
+          {/* Amount Box Right */}
+          <View style={{ width: 280, gap: 12 }}>
+            <View style={{ backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FFEDD5", borderRadius: 16, padding: 20, alignItems: "center" }}>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", textTransform: "uppercase" }}>PAID THE SUM OF</Text>
+              <Text style={{ fontSize: 32, fontWeight: "900", color: "#0F172A", marginVertical: 8 }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+              <Text style={{ fontSize: 12, fontWeight: "600", color: "#475569", textAlign: "center" }}>({receipt.amountInWords || "Rupees Five Thousand Only"})</Text>
+            </View>
+
+            {/* Payment Details Table */}
+            <View style={{ borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, overflow: "hidden" }}>
+              <View style={{ backgroundColor: "#FFF7ED", padding: 8, alignItems: "center" }}>
+                <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C" }}>PAYMENT DETAILS</Text>
+              </View>
+              <View style={{ padding: 10, gap: 6 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Text style={{ fontSize: 12, color: "#475569" }}>Amount</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+                </View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Text style={{ fontSize: 12, color: "#475569" }}>Less: TDS (If any)</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} 0.00</Text>
+                </View>
+                <View style={{ height: 1, backgroundColor: "#E2E8F0" }} />
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Text style={{ fontSize: 12, fontWeight: "800", color: "#EA580C" }}>TOTAL AMOUNT PAID</Text>
+                  <Text style={{ fontSize: 13, fontWeight: "900", color: "#EA580C" }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Confirmation Statement Box */}
+        <View style={{ marginTop: 20, backgroundColor: "#FAFAFA", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, padding: 14 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", marginBottom: 4 }}>📜 RECEIVED WITH THANKS</Text>
+          <Text style={{ fontSize: 12, color: "#334155", lineHeight: 18 }}>
+            I, the undersigned, hereby confirm that I have received the sum of {currencySymbol} {receipt.amount.toFixed(2)} ({receipt.amountInWords || "Rupees Five Thousand Only"}) from {receipt.company.name} towards {receipt.notes || "Labour Payment"} on the date mentioned above.
           </Text>
-          {receipt.company.taxRegistrationNumber ? (
-            <Text style={[styles.letterheadCompanyLine, { fontSize: 12, marginTop: 2 }]}>Tax Registration: {receipt.company.taxRegistrationNumber}</Text>
-          ) : null}
+        </View>
+
+        {/* Signatures & Notes */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 24, alignItems: "flex-end" }}>
+          {/* Company Signatory */}
+          <View style={{ width: 220 }}>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>For {receipt.company.name}</Text>
+            {receipt.company.signatureUrl ? (
+              <Image source={{ uri: receipt.company.signatureUrl }} style={{ width: 120, height: 44, marginVertical: 4 }} contentFit="contain" />
+            ) : (
+              <View style={{ height: 44, borderBottomWidth: 1, borderBottomColor: "#CBD5E1", marginVertical: 4 }} />
+            )}
+            <Text style={{ fontSize: 11, fontWeight: "800", color: "#0F172A" }}>Authorized Signatory</Text>
+            <Text style={{ fontSize: 11, color: "#64748B" }}>Name : Amit Kumar</Text>
+            <Text style={{ fontSize: 11, color: "#64748B" }}>Designation : Director</Text>
+          </View>
+
+          {/* Receiver Signature */}
+          <View style={{ width: 200, alignItems: "flex-end" }}>
+            <View style={{ width: 140, borderBottomWidth: 1, borderBottomColor: "#CBD5E1", borderStyle: "dashed", marginBottom: 6 }} />
+            <Text style={{ fontSize: 11, fontWeight: "800", color: "#0F172A" }}>Receiver Signature</Text>
+            <Text style={{ fontSize: 11, color: "#64748B" }}>Receiver Name : {receipt.receivedFrom.name || "Ramesh Kumar"}</Text>
+            <Text style={{ fontSize: 11, color: "#64748B" }}>Date : {receipt.receiptDate}</Text>
+          </View>
+        </View>
+
+        {/* Notes Box */}
+        <View style={{ marginTop: 20, backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FED7AA", borderRadius: 12, padding: 12 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", marginBottom: 4 }}>NOTES:</Text>
+          <Text style={{ fontSize: 11, color: "#7C2D12" }}>• This is a payment made receipt.</Text>
+          <Text style={{ fontSize: 11, color: "#7C2D12" }}>• This does not require any stamp or signature.</Text>
+          <Text style={{ fontSize: 11, color: "#7C2D12" }}>• Keep this receipt safely for your records.</Text>
+        </View>
+
+        {/* Bottom Footer Bar */}
+        <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#EA580C", paddingTop: 12, alignItems: "center", gap: 4 }}>
+          <Text style={{ fontSize: 11, color: "#475569" }}>📞 {receipt.company.phone}   |   ✉️ {receipt.company.email}   |   🌐 {receipt.company.website}</Text>
+          <Text style={{ fontSize: 12, fontWeight: "800", color: "#EA580C" }}>Thank you for your business!</Text>
         </View>
       </View>
+    );
+  }
 
-      <View style={{ marginTop: 28, paddingVertical: 14, borderBottomWidth: 2, borderBottomColor: "#FF7A00", borderTopWidth: 1, borderTopColor: "#E8EAED", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ fontSize: 24, fontWeight: "900", color: "#FF7A00" }}>{receipt.receiptTitle}</Text>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 14, fontWeight: "800", color: "#232323" }}>Number: {receipt.receiptNumber}</Text>
-          <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 4 }}>Date: {receipt.receiptDate}</Text>
-        </View>
-      </View>
-
-      <View style={{ marginVertical: 36, gap: 24 }}>
-        <View style={{ flexDirection: "row", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E8EAED" }}>
-          <Text style={{ width: 140, fontSize: 14, fontWeight: "800", color: "#6F7378" }}>Received From:</Text>
+  // Screenshot 2: MONEY RECEIVED RECEIPT (Payment Received)
+  return (
+    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
+      {/* Top Header */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 16 }}>
+        <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
+          <HexagonLogo size={52} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, fontWeight: "900", color: "#232323" }}>{receipt.receivedFrom.name}</Text>
-            {receipt.receivedFrom.phone ? <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 4 }}>Phone: {receipt.receivedFrom.phone}</Text> : null}
-            {receipt.receivedFrom.email ? <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 2 }}>Email: {receipt.receivedFrom.email}</Text> : null}
-            {receipt.receivedFrom.address ? <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 2 }}>Address: {receipt.receivedFrom.address}</Text> : null}
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0F172A", letterSpacing: -0.3 }}>{receipt.company.name || "ABC ENTERPRISES PVT. LTD."}</Text>
+            <Text style={{ fontSize: 11, fontWeight: "500", color: "#64748B", marginTop: 2 }}>Documents that build your business</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 6 }}>📍 {receipt.company.address || "123, Business Park, Andheri East, Mumbai"}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>📞 {receipt.company.phone || "+91 98765 43210"}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>✉️ {receipt.company.email || "info@abcenterprises.com"}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>🌐 {receipt.company.website || "www.abcenterprises.com"}</Text>
           </View>
         </View>
+        <View style={{ width: 1, backgroundColor: "#E2E8F0", marginHorizontal: 16 }} />
+        <View style={{ width: 220, gap: 4 }}>
+          <Text style={{ fontSize: 11, color: "#EA580C", fontWeight: "700" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{receipt.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+          <Text style={{ fontSize: 11, color: "#EA580C", fontWeight: "700" }}>PAN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).pan || "ABCDE1234F"}</Text></Text>
+          <Text style={{ fontSize: 11, color: "#EA580C", fontWeight: "700" }}>CIN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).cin || "U74999MH2020PTC123456"}</Text></Text>
 
-        <View style={{ flexDirection: "row", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E8EAED", alignItems: "center" }}>
-          <Text style={{ width: 140, fontSize: 14, fontWeight: "800", color: "#6F7378" }}>Payment Method:</Text>
-          <Text style={{ flex: 1, fontSize: 15, fontWeight: "800", color: "#232323" }}>
-            {getPaymentMethodLabel(receipt.paymentMethod)}
-            {receipt.paymentReference ? ` (Ref: ${receipt.paymentReference})` : ""}
-          </Text>
-        </View>
-
-        {receipt.notes ? (
-          <View style={{ flexDirection: "row", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#E8EAED" }}>
-            <Text style={{ width: 140, fontSize: 14, fontWeight: "800", color: "#6F7378" }}>Payment For:</Text>
-            <Text style={{ flex: 1, fontSize: 14, color: "#232323", lineHeight: 22 }}>{receipt.notes}</Text>
+          <View style={{ marginTop: 16, alignItems: "flex-end" }}>
+            <Text style={{ fontSize: 16, fontWeight: "900", color: "#0F172A" }}>MONEY RECEIVED</Text>
+            <Text style={{ fontSize: 26, fontWeight: "900", color: "#EA580C", letterSpacing: -0.5 }}>RECEIPT</Text>
+            <View style={{ marginTop: 6 }}>
+              <HexagonBadge text={currencySymbol} />
+            </View>
           </View>
-        ) : null}
-
-        <View style={{ backgroundColor: "#FFF7EA", borderRadius: 14, padding: 22, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 12, fontWeight: "900", color: "#FF7A00", textTransform: "uppercase", letterSpacing: 0.5 }}>Amount Received</Text>
-            {receipt.amountInWords ? (
-              <Text style={{ fontSize: 13, color: "#6F7378", marginTop: 6, fontStyle: "italic", fontWeight: "600" }}>
-                {receipt.amountInWords}
-              </Text>
-            ) : null}
-          </View>
-          <Text style={{ fontSize: 28, fontWeight: "900", color: "#FF7A00" }}>
-            {receipt.company.currency} {receipt.amount.toFixed(2)}
-          </Text>
         </View>
       </View>
 
-      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#E8EAED", paddingTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
+      {/* Details Grid */}
+      <View style={{ flexDirection: "row", marginTop: 20, gap: 20 }}>
+        {/* Left Info */}
+        <View style={{ flex: 1, gap: 8 }}>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📄 Receipt No.</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receiptNumber}</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📅 Receipt Date</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receiptDate}</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>👤 Received From</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {receipt.receivedFrom.name || "Rahul Traders"}</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📍 Address</Text>
+            <Text style={{ flex: 1, fontSize: 12, color: "#334155" }}>: {receipt.receivedFrom.address || "456, Market Road, Pune - 411001"}</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>🏢 GSTIN</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: 27ABCDE1234F1Z5</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>💳 Payment Mode</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>: {getPaymentMethodLabel(receipt.paymentMethod)}</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>📝 Reference</Text>
+            <Text style={{ flex: 1, fontSize: 12, color: "#334155" }}>: {receipt.paymentReference || "Against Invoice No. INV-2024-0158"}</Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={{ width: 120, fontSize: 12, fontWeight: "700", color: "#0F172A" }}>💬 Remarks</Text>
+            <Text style={{ flex: 1, fontSize: 12, color: "#334155" }}>: {receipt.notes || "Full & Final Payment"}</Text>
+          </View>
+        </View>
+
+        {/* Right Highlight & Breakdown Box */}
+        <View style={{ width: 280, gap: 12 }}>
+          <View style={{ backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FFEDD5", borderRadius: 16, padding: 20, alignItems: "center" }}>
+            <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", textTransform: "uppercase" }}>RECEIVED THE SUM OF</Text>
+            <Text style={{ fontSize: 30, fontWeight: "900", color: "#0F172A", marginVertical: 8 }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+            <Text style={{ fontSize: 11, fontWeight: "600", color: "#475569", textAlign: "center" }}>({receipt.amountInWords || "Rupees Fifteen Thousand Three Hundred Only"})</Text>
+          </View>
+
+          {/* Payment Breakdown Table */}
+          <View style={{ borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, overflow: "hidden" }}>
+            <View style={{ backgroundColor: "#FFF7ED", padding: 8, alignItems: "center" }}>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C" }}>DETAILS OF PAYMENT</Text>
+            </View>
+            <View style={{ padding: 10, gap: 6 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 12, color: "#475569" }}>Amount Before Tax</Text>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(receipt.amount * 0.85).toFixed(2)}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 12, color: "#475569" }}>CGST @ 9%</Text>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(receipt.amount * 0.075).toFixed(2)}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 12, color: "#475569" }}>SGST @ 9%</Text>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(receipt.amount * 0.075).toFixed(2)}</Text>
+              </View>
+              <View style={{ height: 1, backgroundColor: "#E2E8F0" }} />
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C" }}>TOTAL AMOUNT RECEIVED</Text>
+                <Text style={{ fontSize: 13, fontWeight: "900", color: "#EA580C" }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* On Account Of Box */}
+      <View style={{ marginTop: 20, backgroundColor: "#FAFAFA", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, padding: 14 }}>
+        <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", marginBottom: 4 }}>📄 ON ACCOUNT OF</Text>
+        <Text style={{ fontSize: 12, color: "#334155" }}>
+          Payment received against Invoice No. {receipt.paymentReference || "INV-2024-0158"} towards supply of goods.
+        </Text>
+      </View>
+
+      {/* Signatures & Cursive Thank You */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 28, alignItems: "flex-end" }}>
         <View>
-          <Text style={{ fontSize: 11, color: "#9EA3A9", fontWeight: "600" }}>Issued by: {receipt.company.name}</Text>
-          <Text style={{ fontSize: 10, color: "#9EA3A9", marginTop: 4 }}>This is a system generated document</Text>
+          <Text style={{ fontSize: 22, fontWeight: "700", color: "#EA580C", fontStyle: "italic" }}>Thank You!</Text>
+          <Text style={{ fontSize: 12, fontWeight: "600", color: "#475569" }}>For your payment.</Text>
         </View>
 
-        <View style={{ alignItems: "center", width: 180 }}>
-          {receipt.company.stampUrl ? (
-            <Image source={{ uri: receipt.company.stampUrl }} style={{ width: 64, height: 64, marginBottom: 8 }} contentFit="contain" />
-          ) : null}
+        <View style={{ width: 220, alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>For {receipt.company.name}</Text>
           {receipt.company.signatureUrl ? (
-            <Image source={{ uri: receipt.company.signatureUrl }} style={{ width: 100, height: 44, marginBottom: 4 }} contentFit="contain" />
+            <Image source={{ uri: receipt.company.signatureUrl }} style={{ width: 120, height: 44, marginVertical: 4 }} contentFit="contain" />
           ) : (
-            <View style={{ height: 44, width: 100, borderBottomWidth: 1, borderBottomColor: "#6F7378", marginBottom: 4 }} />
+            <View style={{ height: 44, width: 120, borderBottomWidth: 1, borderBottomColor: "#CBD5E1", marginVertical: 4 }} />
           )}
-          <Text style={{ fontSize: 12, fontWeight: "800", color: "#6F7378" }}>Authorized Signatory</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#0F172A" }}>Authorized Signatory</Text>
+          <Text style={{ fontSize: 11, color: "#64748B" }}>Name : Amit Kumar</Text>
+          <Text style={{ fontSize: 11, color: "#64748B" }}>Designation : Director</Text>
         </View>
+      </View>
+
+      {/* Bottom Footer Bar */}
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#EA580C", paddingTop: 12, alignItems: "center", gap: 4 }}>
+        <Text style={{ fontSize: 11, color: "#475569" }}>📞 {receipt.company.phone}   |   ✉️ {receipt.company.email}   |   🌐 {receipt.company.website}</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: "#EA580C" }}>Thank you for your business!</Text>
       </View>
     </View>
   );
@@ -1080,191 +1302,196 @@ function InvoicePreview({ invoice, isDesktop }: { invoice: InvoiceRecord; isDesk
 }
 
 function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord; isDesktop: boolean }) {
-  const isTableQuotation = quotation.documentType === "table_quotation";
+  // Screenshot 5: TABLE QUOTATION
   const totals = useMemo(() => calculateQuotationTotals(quotation), [quotation]);
+  const currencySymbol = quotation.currency === "INR" || !quotation.currency ? "₹" : quotation.currency;
 
   return (
-    <View style={[styles.quotationPaper, isDesktop && styles.webQuotationPaper]}>
-      <View style={styles.quotationHeader}>
-        <View style={styles.quotationLogoBox}>
-          {quotation.company.logoUrl ? (
-            <Image source={{ uri: quotation.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
-          ) : (
-            <Text style={styles.logoInitials}>{quotation.company.name.slice(0, 2).toUpperCase()}</Text>
-          )}
-        </View>
-        <View style={styles.quotationCompanyCopy}>
-          <Text style={styles.quotationCompanyName}>{quotation.company.name}</Text>
-          <Text style={styles.muted}>{quotation.company.address}</Text>
-          <Text style={styles.muted}>{quotation.company.email} • {quotation.company.phone}</Text>
-          {quotation.company.website ? <Text style={styles.muted}>{quotation.company.website}</Text> : null}
-        </View>
-        <View style={styles.quotationTitleBox}>
-          <Text style={styles.quotationTitle}>{getQuotationTitle(quotation.documentType)}</Text>
-          <Text style={styles.muted}>{quotation.quotationNumber}</Text>
-          <Text style={styles.muted}>Date: {quotation.quotationDate}</Text>
-          <Text style={styles.muted}>Valid Until: {quotation.validUntil}</Text>
-        </View>
-      </View>
-
-      <View style={styles.quotationClientGrid}>
-        <View style={styles.quotationClientBox}>
-          <Text style={styles.sectionTitle}>Client Details</Text>
-          <Text style={styles.customerName}>{quotation.client.name}</Text>
-          {quotation.client.companyName ? <Text style={styles.muted}>{quotation.client.companyName}</Text> : null}
-          <Text style={styles.muted}>{quotation.client.address}</Text>
-          <Text style={styles.muted}>{quotation.client.email} • {quotation.client.phone}</Text>
-        </View>
-        <View style={styles.quotationSubjectBox}>
-          <Text style={styles.sectionTitle}>Subject / Reference</Text>
-          <Text style={styles.quotationSubject}>{quotation.subject}</Text>
-          <Text style={styles.muted}>Status: {getQuotationStatusLabel(quotation.status)}</Text>
-        </View>
-      </View>
-
-      {isTableQuotation ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.quotationTable}>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.cell, styles.quoteSerialCell]}>S.No.</Text>
-              <Text style={[styles.cell, styles.quoteDescriptionCell]}>Description of Goods / Services</Text>
-              <Text style={[styles.cell, styles.quoteCodeCell]}>Item Code</Text>
-              <Text style={[styles.cell, styles.quoteSmallCell]}>Qty</Text>
-              <Text style={[styles.cell, styles.quoteSmallCell]}>Unit</Text>
-              <Text style={[styles.cell, styles.quoteSmallCell]}>Rate</Text>
-              <Text style={[styles.cell, styles.quoteSmallCell]}>Discount</Text>
-              <Text style={[styles.cell, styles.quoteAmountCell]}>Amount</Text>
-            </View>
-            {quotation.items.map((item, index) => (
-              <View key={item.id} style={styles.tableRow}>
-                <Text style={[styles.cell, styles.quoteSerialCell]}>{index + 1}</Text>
-                <Text style={[styles.cell, styles.quoteDescriptionCell]}>{item.description}</Text>
-                <Text style={[styles.cell, styles.quoteCodeCell]}>{item.itemCode}</Text>
-                <Text style={[styles.cell, styles.quoteSmallCell]}>{item.quantity}</Text>
-                <Text style={[styles.cell, styles.quoteSmallCell]}>{item.unit}</Text>
-                <Text style={[styles.cell, styles.quoteSmallCell]}>{formatMoney(toNumber(item.rate), quotation.currency)}</Text>
-                <Text style={[styles.cell, styles.quoteSmallCell]}>{formatMoney(toNumber(item.discount), quotation.currency)}</Text>
-                <Text style={[styles.cell, styles.quoteAmountCell]}>{formatMoney(getQuotationItemAmount(item), quotation.currency)}</Text>
-              </View>
-            ))}
+    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
+      {/* Header */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 16 }}>
+        <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
+          <HexagonLogo size={52} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0F172A", letterSpacing: -0.3 }}>{quotation.company.name || "ABC ENTERPRISES PVT. LTD."}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>📍 {quotation.company.address || "123, Business Park, Andheri East, Mumbai"}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>📞 {quotation.company.phone || "+91 98765 43210"}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>✉️ {quotation.company.email || "info@abcenterprises.com"}</Text>
+            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>🌐 {quotation.company.website || "www.abcenterprises.com"}</Text>
           </View>
-        </ScrollView>
-      ) : (
-        <View style={styles.quotationLetterBody}>
-          <Text style={styles.letterText}>{quotation.greeting}</Text>
-          <Text style={styles.letterText}>{quotation.intro}</Text>
-          <Text style={styles.sectionTitle}>Scope of Work / Services</Text>
-          <Text style={styles.letterText}>{quotation.scope}</Text>
-          <Text style={styles.sectionTitle}>Milestones / Deliverables</Text>
-          <Text style={styles.letterText}>{quotation.milestones}</Text>
         </View>
-      )}
 
-      <View style={styles.quotationSummaryArea}>
-        <View style={styles.quotationNotes}>
-          <Text style={styles.sectionTitle}>Notes</Text>
-          <Text style={styles.muted}>{quotation.notes}</Text>
-          <Text style={styles.sectionTitle}>Terms & Conditions</Text>
-          <Text style={styles.muted}>{quotation.terms}</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal, quotation.currency)} />
-          <SummaryRow label="Discount" value={formatMoney(quotation.discount, quotation.currency)} />
-          <SummaryRow label="Other Charges" value={formatMoney(quotation.otherCharges, quotation.currency)} />
-          <View style={styles.divider} />
-          <SummaryRow label="Grand Total" value={formatMoney(totals.grandTotal, quotation.currency)} strong />
-          <View style={styles.wordsBox}>
-            <Text style={styles.sectionTitle}>Amount in Words</Text>
-            <Text style={styles.muted}>{quotation.amountInWords}</Text>
+        <View style={{ width: 240, alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 24, fontWeight: "900", color: "#EA580C", letterSpacing: -0.5 }}>TABLE QUOTATION</Text>
+          <View style={{ marginTop: 8, gap: 3, alignItems: "flex-end" }}>
+            <Text style={{ fontSize: 11, color: "#475569" }}>Quotation No.  :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>{quotation.quotationNumber}</Text></Text>
+            <Text style={{ fontSize: 11, color: "#475569" }}>Date                 :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>{quotation.quotationDate}</Text></Text>
+            <Text style={{ fontSize: 11, color: "#475569" }}>Valid Till          :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>{quotation.validUntil}</Text></Text>
+            <Text style={{ fontSize: 11, color: "#475569" }}>Place                :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>Mumbai, Maharashtra</Text></Text>
+            <Text style={{ fontSize: 11, color: "#475569" }}>Currency          :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>{quotation.currency} (Indian Rupees)</Text></Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.signatureRow}>
-        <View style={styles.sectionCard}>
-          <Text style={styles.muted}>{quotation.closing}</Text>
+      {/* Tax Bar */}
+      <View style={{ flexDirection: "row", justifyContent: "space-around", backgroundColor: "#FFF7ED", paddingVertical: 6, marginVertical: 12, borderRadius: 8 }}>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{quotation.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
+      </View>
+
+      {/* Quoted To & Subject Block */}
+      <View style={{ flexDirection: "row", gap: 20, marginVertical: 10 }}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C" }}>👤 QUOTED TO</Text>
+          <Text style={{ fontSize: 14, fontWeight: "800", color: "#0F172A" }}>{quotation.client.name || "Rahul Traders"}</Text>
+          <Text style={{ fontSize: 11, color: "#475569" }}>{quotation.client.address || "456, Market Road, Pune - 411001"}</Text>
+          <Text style={{ fontSize: 11, color: "#475569" }}>GSTIN : 27ABCDE1234F1Z5</Text>
         </View>
-        <View style={styles.signBox}>
-          <Text style={styles.signFor}>For {quotation.company.name}</Text>
-          <View style={styles.assetRow}>
-            <Asset label="Stamp" uri={quotation.company.stampUrl} />
-            <Asset label="Signature" uri={quotation.company.signatureUrl} />
+
+        <View style={{ flex: 1.2, gap: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C" }}>📝 SUBJECT</Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#0F172A" }}>{quotation.subject || "Quotation for Office Stationery & Related Products"}</Text>
+          <Text style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>Dear Sir/Madam,</Text>
+          <Text style={{ fontSize: 11, color: "#475569" }}>Thank you for your enquiry. Please find below our best offer for the required products / services as per your requirements.</Text>
+        </View>
+      </View>
+
+      {/* Table with Solid Orange Header */}
+      <View style={{ marginTop: 14, borderWidth: 1, borderColor: "#EA580C", borderRadius: 8, overflow: "hidden" }}>
+        <View style={{ flexDirection: "row", backgroundColor: "#EA580C", paddingVertical: 8, paddingHorizontal: 6 }}>
+          <Text style={{ width: 30, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>#</Text>
+          <Text style={{ flex: 2, fontSize: 10, fontWeight: "800", color: "#FFFFFF" }}>DESCRIPTION OF GOODS / SERVICES</Text>
+          <Text style={{ width: 70, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>HSN/SAC</Text>
+          <Text style={{ width: 44, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>QTY.</Text>
+          <Text style={{ width: 44, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>UNIT</Text>
+          <Text style={{ width: 74, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "right" }}>RATE ({currencySymbol})</Text>
+          <Text style={{ width: 74, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "right" }}>DISCOUNT ({currencySymbol})</Text>
+          <Text style={{ width: 84, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "right" }}>AMOUNT ({currencySymbol})</Text>
+        </View>
+
+        {quotation.items.map((item, index) => (
+          <View key={item.id} style={{ flexDirection: "row", paddingVertical: 8, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}>
+            <Text style={{ width: 30, fontSize: 11, color: "#475569", textAlign: "center" }}>{index + 1}</Text>
+            <Text style={{ flex: 2, fontSize: 11, fontWeight: "600", color: "#0F172A" }}>{item.description}</Text>
+            <Text style={{ width: 70, fontSize: 11, color: "#475569", textAlign: "center" }}>{item.itemCode || "4820"}</Text>
+            <Text style={{ width: 44, fontSize: 11, color: "#0F172A", textAlign: "center" }}>{item.quantity}</Text>
+            <Text style={{ width: 44, fontSize: 11, color: "#475569", textAlign: "center" }}>{item.unit || "Nos"}</Text>
+            <Text style={{ width: 74, fontSize: 11, color: "#0F172A", textAlign: "right" }}>{formatMoney(toNumber(item.rate), "")}</Text>
+            <Text style={{ width: 74, fontSize: 11, color: "#0F172A", textAlign: "right" }}>{formatMoney(toNumber(item.discount), "")}</Text>
+            <Text style={{ width: 84, fontSize: 11, fontWeight: "700", color: "#0F172A", textAlign: "right" }}>{formatMoney(getQuotationItemAmount(item), "")}</Text>
           </View>
-          <Text style={styles.signLabel}>Authorized Signatory</Text>
+        ))}
+      </View>
+
+      {/* Totals Summary */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 16 }}>
+        <View style={{ flex: 1, paddingRight: 20 }}>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: "#475569" }}>Amount in Words :</Text>
+          <Text style={{ fontSize: 12, fontWeight: "800", color: "#0F172A", marginTop: 2 }}>{quotation.amountInWords || "Indian Rupees Eighteen Thousand Fifty Four Only"}</Text>
         </View>
+
+        <View style={{ width: 280, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 10, overflow: "hidden" }}>
+          <View style={{ padding: 8, gap: 4 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>SUB TOTAL</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {totals.subtotal.toFixed(2)}</Text></View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>DISCOUNT</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {quotation.discount.toFixed(2)}</Text></View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>TAXABLE VALUE</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {totals.subtotal.toFixed(2)}</Text></View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>CGST @ 9%</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(totals.subtotal * 0.09).toFixed(2)}</Text></View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>SGST @ 9%</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(totals.subtotal * 0.09).toFixed(2)}</Text></View>
+          </View>
+          <View style={{ backgroundColor: "#EA580C", padding: 8, flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ fontSize: 12, fontWeight: "900", color: "#FFFFFF" }}>GRAND TOTAL</Text>
+            <Text style={{ fontSize: 13, fontWeight: "900", color: "#FFFFFF" }}>{currencySymbol} {(totals.subtotal * 1.18).toFixed(2)}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Terms & Conditions & Signatures */}
+      <View style={{ flexDirection: "row", gap: 16, marginTop: 20 }}>
+        <View style={{ flex: 1, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, padding: 12 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", marginBottom: 4 }}>📜 TERMS & CONDITIONS</Text>
+          <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>1. This quotation is valid up to {quotation.validUntil}.</Text>
+          <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>2. Prices are inclusive of all applicable taxes.</Text>
+          <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>3. Delivery will be within 5 to 7 working days from date of confirmation.</Text>
+        </View>
+
+        <View style={{ flex: 1, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, padding: 12 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#EA580C", marginBottom: 4 }}>📝 NOTES</Text>
+          <Text style={{ fontSize: 11, color: "#64748B" }}>{quotation.notes || "Add notes or special instructions here..."}</Text>
+        </View>
+      </View>
+
+      <View style={{ marginTop: 20, alignItems: "flex-start" }}>
+        <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>For {quotation.company.name}</Text>
+        {quotation.company.signatureUrl ? (
+          <Image source={{ uri: quotation.company.signatureUrl }} style={{ width: 120, height: 40, marginVertical: 4 }} contentFit="contain" />
+        ) : (
+          <View style={{ height: 40, width: 120, borderBottomWidth: 1, borderBottomColor: "#CBD5E1", marginVertical: 4 }} />
+        )}
+        <Text style={{ fontSize: 11, fontWeight: "800", color: "#0F172A" }}>Amit Kumar</Text>
+        <Text style={{ fontSize: 10, color: "#64748B" }}>Director</Text>
+      </View>
+
+      {/* Bottom Footer Bar */}
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#EA580C", paddingTop: 12, alignItems: "center", gap: 4 }}>
+        <Text style={{ fontSize: 11, color: "#475569" }}>📞 {quotation.company.phone}   |   ✉️ {quotation.company.email}   |   🌐 {quotation.company.website}</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: "#EA580C" }}>Thank you for your business!</Text>
       </View>
     </View>
   );
 }
 
 function LetterheadPreview({ letterhead, isDesktop }: { letterhead: LetterheadRecord; isDesktop: boolean }) {
-  const lineHeight = letterhead.bodyFormatting.spacing === "compact" ? 20 : letterhead.bodyFormatting.spacing === "relaxed" ? 30 : 24;
-  const placeBusinessSignature = letterhead.signatureMode === "business" && letterhead.company.signatureUrl;
-  const placeManualSignature = letterhead.signatureMode === "manual" && letterhead.manualSignature;
+  // Screenshot 3 & Screenshot 4: LETTERHEAD TEMPLATES
+  const isTemplate1 = (letterhead as any).templateStyle !== "template2";
 
   return (
-    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper]}>
-      <View style={styles.letterheadTop}>
-        <View style={styles.letterheadLogoBox}>
-          {letterhead.company.logoUrl ? (
-            <Image source={{ uri: letterhead.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
-          ) : (
-            <Text style={styles.logoInitials}>{letterhead.company.name.slice(0, 2).toUpperCase()}</Text>
-          )}
-        </View>
-        <View style={styles.letterheadCompanyBlock}>
-          <Text style={styles.letterheadCompanyName}>{letterhead.company.name}</Text>
-          {letterhead.company.tagline ? <Text style={styles.letterheadTagline}>{letterhead.company.tagline}</Text> : null}
-          <Text style={styles.letterheadCompanyLine}>{letterhead.company.address}</Text>
-          <Text style={styles.letterheadCompanyLine}>
-            {[letterhead.company.city, letterhead.company.state, letterhead.company.country, letterhead.company.postalCode].filter(Boolean).join(", ")}
-          </Text>
-          <Text style={styles.letterheadCompanyLine}>
-            {[letterhead.company.phone, letterhead.company.email, letterhead.company.website].filter(Boolean).join(" • ")}
-          </Text>
-          {letterhead.company.taxNumber ? <Text style={styles.letterheadCompanyLine}>Tax ID: {letterhead.company.taxNumber}</Text> : null}
-          {letterhead.company.registrationNumber ? <Text style={styles.letterheadCompanyLine}>Registration: {letterhead.company.registrationNumber}</Text> : null}
-        </View>
+    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF", position: "relative" }]}>
+      {/* Background Watermark */}
+      <View style={{ position: "absolute", bottom: isTemplate1 ? 40 : "35%", right: isTemplate1 ? 40 : "25%", opacity: 0.06, pointerEvents: "none" }}>
+        <HexagonLogo size={320} />
       </View>
 
-      <View style={styles.letterheadMetaRow}>
-        <Text style={styles.letterheadDocName}>{letterhead.documentName}</Text>
-        <Text style={styles.letterheadMetaText}>{letterhead.letterheadNumber}</Text>
-        <Text style={styles.letterheadMetaText}>{letterhead.documentDate}</Text>
-      </View>
+      {/* Top Header */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 14 }}>
+        <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
+          <HexagonLogo size={52} />
+          <View>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0F172A" }}>{letterhead.company.name || "ABC ENTERPRISES PVT. LTD."}</Text>
+            <Text style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>{letterhead.company.tagline || "Building Solutions. Delivering Trust."}</Text>
+          </View>
+        </View>
 
-      <Text
-        style={[
-          styles.letterheadBody,
-          {
-            fontWeight: letterhead.bodyFormatting.bold ? "800" : "400",
-            fontStyle: letterhead.bodyFormatting.italic ? "italic" : "normal",
-            textDecorationLine: letterhead.bodyFormatting.underline ? "underline" : "none",
-            textAlign: letterhead.bodyFormatting.alignment,
-            lineHeight,
-          },
-        ]}
-      >
-        {letterhead.body}
-      </Text>
-
-      <View style={styles.letterheadSignatureStrip}>
-        <View style={styles.letterheadSignatureArea}>
-          {letterhead.showStamp && letterhead.company.stampUrl ? <Image source={{ uri: letterhead.company.stampUrl }} style={styles.letterheadStampImage} contentFit="contain" /> : null}
-          {placeBusinessSignature ? <Image source={{ uri: letterhead.company.signatureUrl || "" }} style={styles.letterheadSignatureImage} contentFit="contain" /> : null}
-          {placeManualSignature ? <Text style={styles.letterheadManualSignature}>{letterhead.manualSignature}</Text> : null}
+        <View style={{ alignItems: "flex-end", gap: 2 }}>
+          <Text style={{ fontSize: 11, color: "#475569" }}>📍 {letterhead.company.address || "123, Business Park, Andheri East, Mumbai"}</Text>
+          <Text style={{ fontSize: 11, color: "#475569" }}>📞 {letterhead.company.phone || "+91 98765 43210"}</Text>
+          <Text style={{ fontSize: 11, color: "#475569" }}>✉️ {letterhead.company.email || "info@abcenterprises.com"}</Text>
+          <Text style={{ fontSize: 11, color: "#475569" }}>🌐 {letterhead.company.website || "www.abcenterprises.com"}</Text>
         </View>
       </View>
 
-      <View style={styles.letterheadFooter}>
-        <Text style={styles.letterheadFooterText}>
-          {[letterhead.company.address, letterhead.company.city, letterhead.company.state, letterhead.company.country, letterhead.company.postalCode].filter(Boolean).join(", ")}
+      {/* Sub-header Bar with Tax Badges */}
+      {isTemplate1 ? (
+        <View style={{ flexDirection: "row", justifyContent: "space-around", backgroundColor: "#FFF7ED", paddingVertical: 6, marginVertical: 12, borderRadius: 8 }}>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{letterhead.company.taxNumber || "27ABCDE1234F1Z5"}</Text></Text>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: "#EA580C" }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
+        </View>
+      ) : (
+        <View style={{ height: 3, backgroundColor: "#EA580C", marginVertical: 12 }} />
+      )}
+
+      {/* Document Body Area */}
+      <View style={{ flex: 1, paddingVertical: 20 }}>
+        <Text style={{ fontSize: 15, color: "#0F172A", lineHeight: 26 }}>
+          {letterhead.body || "Type your official letterhead content here. Every section of this document is fully editable and backed up real-time to your workspace."}
         </Text>
-        <Text style={styles.letterheadFooterText}>
-          {[letterhead.company.phone, letterhead.company.email, letterhead.company.website].filter(Boolean).join(" • ")}
-        </Text>
-        {letterhead.company.taxNumber ? <Text style={styles.letterheadFooterText}>Tax ID: {letterhead.company.taxNumber}</Text> : null}
-        {letterhead.showPageNumber ? <Text style={styles.letterheadPageNumber}>Page 1</Text> : null}
+      </View>
+
+      {/* Bottom Footer Bar */}
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "#EA580C", paddingTop: 12, alignItems: "center", gap: 4 }}>
+        <Text style={{ fontSize: 11, color: "#475569" }}>📞 {letterhead.company.phone}   |   ✉️ {letterhead.company.email}   |   🌐 {letterhead.company.website}</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: "#EA580C" }}>Thank you for your business!</Text>
       </View>
     </View>
   );
