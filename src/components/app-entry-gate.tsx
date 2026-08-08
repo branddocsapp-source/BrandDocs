@@ -1,11 +1,13 @@
 import { Href, router } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
-import { ActivityIndicator, Image, Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { auth } from "@/firebase";
 import { loadBusinessProfile } from "@/services/business-profile";
-import { Colors } from "@/theme/colors";
+import { useAppTheme } from "@/theme/theme-context";
 
 type AppEntryDestinations = {
   signedOut: Href;
@@ -17,7 +19,8 @@ type AppEntryGateProps = {
   destinations?: AppEntryDestinations;
 };
 
-const SPLASH_DISPLAY_MS = 900;
+const SPLASH_DISPLAY_MS = 5000; // 5 Seconds Splash Screen as requested by user
+
 const DEFAULT_DESTINATIONS: AppEntryDestinations = {
   signedOut: "/signin",
   needsProfile: "/business-setup",
@@ -31,17 +34,32 @@ function waitForSplashDisplay() {
 }
 
 export function BrandDocsSplashScreen() {
+  const { isDark } = useAppTheme();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.logoFrame}>
-        <Image
-          source={require("../../assets/images/branddocs-logo-icon.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+    <Animated.View
+      entering={FadeIn.duration(500)}
+      exiting={FadeOut.duration(500)}
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? "#0F172A" : "#FAF8F5" },
+      ]}
+    >
+      <View style={styles.contentCenter}>
+        {/* Large Brand B-Logo Mark */}
+        <BrandLogo size="large" disableNavigation />
+
+        {/* BrandDocs Title */}
+        <Text style={[styles.titleText, { color: isDark ? "#FFFFFF" : "#171717" }]}>
+          Brand<Text style={{ color: "#EA580C" }}>Docs</Text>
+        </Text>
+
+        {/* Subtitle Tagline */}
+        <Text style={[styles.subtitleText, { color: isDark ? "#94A3B8" : "#525252" }]}>
+          Professional documents.{"\n"}Ready in seconds.
+        </Text>
       </View>
-      <ActivityIndicator color={Colors.primary} size="large" />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -79,31 +97,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 30,
-    backgroundColor: "#FFFFFF",
+    padding: 24,
   },
-  logoFrame: {
-    width: 112,
-    height: 112,
+  contentCenter: {
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 28,
-    backgroundColor: "#FFFFFF",
-    ...Platform.select({
-      web: {
-        boxShadow: "0px 14px 28px rgba(0, 0, 0, 0.08)",
-      },
-      default: {
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 14 },
-        shadowOpacity: 0.08,
-        shadowRadius: 28,
-        elevation: 8,
-      },
-    }),
+    gap: 16,
   },
-  logo: {
-    width: 74,
-    height: 74,
+  titleText: {
+    fontSize: 34,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    marginTop: 8,
+  },
+  subtitleText: {
+    fontSize: 18,
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 26,
   },
 });
