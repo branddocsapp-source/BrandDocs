@@ -50,6 +50,7 @@ type AuthInputProps = {
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   keyboardType?: KeyboardTypeOptions;
   secureTextEntry?: boolean;
+  leftIcon?: keyof typeof Ionicons.glyphMap;
   rightAction?: ReactNode;
 };
 
@@ -57,6 +58,7 @@ type AuthPrimaryButtonProps = {
   label: string;
   loading?: boolean;
   disabled?: boolean;
+  showArrow?: boolean;
   onPress: () => void;
 };
 
