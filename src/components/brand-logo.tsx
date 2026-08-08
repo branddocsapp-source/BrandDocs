@@ -1,26 +1,98 @@
 import React from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/theme/theme-context";
 import { useRouter } from "expo-router";
 import { auth } from "@/firebase";
 
 type BrandLogoProps = {
-  size?: "small" | "medium" | "large";
+  size?: "small" | "medium" | "large" | "xlarge";
   onPress?: () => void;
   disableNavigation?: boolean;
+  stacked?: boolean;
+  showTagline?: boolean;
 };
 
-export function BrandLogo({ size = "medium", onPress, disableNavigation = false }: BrandLogoProps) {
+export function BrandIconMark({ size = 48 }: { size?: number }) {
+  const width = size;
+  const height = size * 1.08;
+
+  return (
+    <View style={{ width, height, position: "relative" }}>
+      {/* Outer B Shape in Warm Brand Orange (#DE7A2D) */}
+      <View style={{
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#DE7A2D",
+        borderTopLeftRadius: size * 0.16,
+        borderBottomLeftRadius: size * 0.16,
+        borderTopRightRadius: size * 0.42,
+        borderBottomRightRadius: size * 0.42,
+        overflow: "hidden",
+        position: "relative",
+      }}>
+        {/* Left Document Paper Overlay (#FFFDF9 with Folded Corner) */}
+        <View style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "48%",
+          height: "100%",
+          backgroundColor: "#FFFDF9",
+          borderTopLeftRadius: size * 0.14,
+          borderBottomLeftRadius: size * 0.14,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: "12%",
+          gap: size * 0.08,
+        }}>
+          {/* Top Fold Corner Highlight */}
+          <View style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: size * 0.16,
+            height: size * 0.16,
+            backgroundColor: "#E28B47",
+            borderBottomRightRadius: size * 0.08,
+          }} />
+          {/* 3 Document Lines */}
+          <View style={{ width: "100%", height: size * 0.06, backgroundColor: "#DE7A2D", borderRadius: 99 }} />
+          <View style={{ width: "100%", height: size * 0.06, backgroundColor: "#DE7A2D", borderRadius: 99 }} />
+          <View style={{ width: "70%", height: size * 0.06, backgroundColor: "#DE7A2D", borderRadius: 99, alignSelf: "flex-start" }} />
+        </View>
+
+        {/* Center Indentation for B Lobe */}
+        <View style={{
+          position: "absolute",
+          top: "44%",
+          right: "-12%",
+          width: size * 0.28,
+          height: size * 0.14,
+          backgroundColor: "#FFFDF9",
+          borderRadius: 99,
+        }} />
+      </View>
+    </View>
+  );
+}
+
+export function BrandLogo({
+  size = "medium",
+  onPress,
+  disableNavigation = false,
+  stacked = false,
+  showTagline = false,
+}: BrandLogoProps) {
   const { isDark } = useAppTheme();
   const router = useRouter();
 
   const isSmall = size === "small";
   const isLarge = size === "large";
+  const isXLarge = size === "xlarge";
 
-  const titleFontSize = isSmall ? 20 : isLarge ? 32 : 26;
-  const subtitleFontSize = isSmall ? 7.5 : isLarge ? 10 : 8.5;
-  const iconSize = isSmall ? 36 : isLarge ? 54 : 44;
+  const titleFontSize = isSmall ? 19 : isLarge ? 28 : isXLarge ? 38 : 23;
+  const subtitleFontSize = isSmall ? 8 : isLarge ? 11 : isXLarge ? 16 : 9.5;
+  const iconSize = isSmall ? 32 : isLarge ? 54 : isXLarge ? 90 : 42;
 
   const handlePress = () => {
     if (onPress) {
@@ -32,23 +104,21 @@ export function BrandLogo({ size = "medium", onPress, disableNavigation = false 
   };
 
   const content = (
-    <View style={styles.container}>
+    <View style={[styles.container, (stacked || isXLarge) && styles.containerStacked]}>
       {/* Brand Icon Mark */}
-      <View style={[styles.iconOuter, { width: iconSize, height: iconSize, borderRadius: iconSize * 0.28 }]}>
-        <Ionicons name="document-text" size={iconSize * 0.58} color="#FFFFFF" />
-      </View>
+      <BrandIconMark size={iconSize} />
 
       {/* Brand Typography */}
-      <View style={styles.textGroup}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.brandOrange, { fontSize: titleFontSize }]}>Brand</Text>
-          <Text style={[styles.docsText, { fontSize: titleFontSize, color: isDark ? "#FFFFFF" : "#0F172A" }]}>
-            Docs
-          </Text>
-        </View>
-        <Text style={[styles.subtitleText, { fontSize: subtitleFontSize, color: isDark ? "#94A3B8" : "#64748B" }]}>
-          DOCUMENTS • BRANDING • BUSINESS
+      <View style={[(stacked || isXLarge) ? styles.textGroupCentered : styles.textGroup]}>
+        <Text style={[styles.titleText, { fontSize: titleFontSize, color: isDark ? "#FFFFFF" : "#2D2B2A" }]}>
+          BrandDocs
         </Text>
+
+        {showTagline || isXLarge ? (
+          <Text style={[styles.taglineText, { fontSize: subtitleFontSize, color: isDark ? "#A09D9A" : "#595551" }]}>
+            Professional documents.{"\n"}Ready in seconds.
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -75,38 +145,28 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
   },
-  iconOuter: {
+  containerStacked: {
+    flexDirection: "column",
+    gap: 16,
     alignItems: "center",
-    backgroundColor: "#EA580C",
-    justifyContent: "center",
-    shadowColor: "#EA580C",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   textGroup: {
     justifyContent: "center",
   },
-  titleRow: {
-    alignItems: "baseline",
-    flexDirection: "row",
+  textGroupCentered: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
-  brandOrange: {
-    color: "#EA580C",
-    fontWeight: "900",
-    letterSpacing: -0.5,
-  },
-  docsText: {
-    fontWeight: "900",
-    letterSpacing: -0.5,
-  },
-  subtitleText: {
+  titleText: {
     fontWeight: "800",
-    letterSpacing: 1.2,
-    marginTop: -2,
-    textTransform: "uppercase",
+    letterSpacing: -0.6,
+  },
+  taglineText: {
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 22,
   },
 });

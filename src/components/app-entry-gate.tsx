@@ -38,26 +38,15 @@ export function BrandDocsSplashScreen() {
 
   return (
     <Animated.View
-      entering={FadeIn.duration(500)}
+      entering={FadeIn.duration(400)}
       exiting={FadeOut.duration(500)}
       style={[
         styles.container,
-        { backgroundColor: isDark ? "#0F172A" : "#FAF8F5" },
+        { backgroundColor: isDark ? "#121418" : "#F7F3EC" },
       ]}
     >
       <View style={styles.contentCenter}>
-        {/* Large Brand B-Logo Mark */}
-        <BrandLogo size="large" disableNavigation />
-
-        {/* BrandDocs Title */}
-        <Text style={[styles.titleText, { color: isDark ? "#FFFFFF" : "#171717" }]}>
-          Brand<Text style={{ color: "#EA580C" }}>Docs</Text>
-        </Text>
-
-        {/* Subtitle Tagline */}
-        <Text style={[styles.subtitleText, { color: isDark ? "#94A3B8" : "#525252" }]}>
-          Professional documents.{"\n"}Ready in seconds.
-        </Text>
+        <BrandLogo size="xlarge" disableNavigation stacked showTagline />
       </View>
     </Animated.View>
   );
