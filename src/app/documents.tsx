@@ -1,25 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-
-import { AppCard, AppShell, EmptyState, PageHeader, PrimaryButton } from "@/components/ui/branddocs";
-import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
-import { useAppTheme } from "@/theme/theme-context";
-import { BrandColors, BrandRadius, BrandShadows, BrandSpacing, BrandTypography } from "@/theme/tokens";
-
-const modules = [
-  { title: "Tax Invoice", route: "/invoice", icon: "receipt-outline", previous: "Previous Tax Invoices", empty: "No tax invoices created yet" },
-  { title: "Bill of Supply", route: "/invoice", icon: "document-text-outline", previous: "Previous Bills of Supply", empty: "No bills of supply created yet" },
-  { title: "Standard Quotation", route: "/quotation", icon: "reader-outline", previous: "Previous Standard Quotations", empty: "No standard quotations created yet" },
-  { title: "Table Quotation", route: "/table-quotation", icon: "grid-outline", previous: "Previous Table Quotations", empty: "No table quotations created yet" },
-  { title: "Letterhead", route: "/letterhead", icon: "newspaper-outline", previous: "Previous Letterheads", empty: "No letterheads created yet" },
-  { title: "Receipt", route: "/receipt", icon: "receipt-outline", previous: "Previous Receipts", empty: "No receipts created yet" },
-  { title: "Visiting Card", route: "/visiting-card", icon: "id-card-outline", previous: "Previous Visiting Cards", empty: "No visiting cards created yet" },
-  { title: "Receipt Scanner", route: "/scan-receipt", icon: "scan-circle-outline", previous: "Previous Scanned Receipts", empty: "No scanned receipts created yet" },
-];
-
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View, TextInput } from "react-native";
 
