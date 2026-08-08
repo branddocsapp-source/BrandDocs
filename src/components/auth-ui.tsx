@@ -924,7 +924,7 @@ export function SocialAuthButton({ provider, onPress, loading, disabled, unavail
   );
 }
 
-export function AuthInlineLink({ label, href }: { label: string; href: Href }) {
+function DuplicateAuthInlineLink({ label, href }: { label: string; href: Href }) {
   return (
     <Pressable accessibilityRole="link" onPress={() => router.push(href as never)} hitSlop={8}>
       <Text style={authStyles.inlineLink}>{label}</Text>
