@@ -172,23 +172,27 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           onPress={(e) => e.stopPropagation()}
         >
           {/* Header Search Input */}
-          <View style={[styles.searchBar, { borderBottomColor: theme.line }]}>
-            <Ionicons name="search-outline" size={20} color={BrandColors.primary} />
+          <View style={[styles.searchBar, { borderBottomColor: theme.line, backgroundColor: isDark ? "#171A21" : "#FAFAFA" }]}>
+            <Ionicons name="search-outline" size={22} color="#EA580C" />
             <TextInput
               autoFocus
               value={query}
               onChangeText={setQuery}
               placeholder="Type a command or jump to tool..."
               placeholderTextColor={theme.muted}
-              style={[styles.searchInput, { color: theme.ink }]}
+              style={[
+                styles.searchInput,
+                { color: theme.ink },
+                Platform.OS === "web" && ({ outlineStyle: "none", outlineWidth: 0 } as any),
+              ]}
             />
             {query.length > 0 ? (
               <Pressable onPress={() => setQuery("")} hitSlop={8}>
-                <Ionicons name="close-circle" size={18} color={theme.muted} />
+                <Ionicons name="close-circle" size={20} color={theme.muted} />
               </Pressable>
             ) : null}
-            <Pressable onPress={onClose} style={styles.closeBadge}>
-              <Text style={styles.closeBadgeText}>ESC</Text>
+            <Pressable onPress={onClose} style={[styles.closeBadge, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "#E2E8F0" }]}>
+              <Text style={[styles.closeBadgeText, { color: isDark ? "#CBD5E1" : "#475569" }]}>ESC</Text>
             </Pressable>
           </View>
 
@@ -196,7 +200,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled">
             {filteredCommands.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Ionicons name="search-discontent" size={32} color={theme.muted} />
+                <Ionicons name="search-outline" size={36} color={theme.muted} />
                 <Text style={[styles.emptyText, { color: theme.muted }]}>
                   No matching tools found for "{query}"
                 </Text>
@@ -209,11 +213,11 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                   style={({ pressed }) => [
                     styles.commandRow,
                     { borderBottomColor: theme.line },
-                    pressed && { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" },
+                    pressed && { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "rgba(234, 88, 12, 0.05)" },
                   ]}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: isDark ? "rgba(255, 122, 0, 0.15)" : BrandColors.primarySoft }]}>
-                    <Ionicons name={item.icon} size={20} color={BrandColors.primary} />
+                  <View style={[styles.iconWrapper, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.2)" : "#FFF7ED" }]}>
+                    <Ionicons name={item.icon} size={20} color="#EA580C" />
                   </View>
                   <View style={styles.textWrapper}>
                     <Text style={[styles.commandTitle, { color: theme.ink }]}>
@@ -223,8 +227,8 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                       {item.subtitle}
                     </Text>
                   </View>
-                  <View style={[styles.categoryTag, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F0F2F5" }]}>
-                    <Text style={[styles.categoryTagText, { color: theme.muted }]}>
+                  <View style={[styles.categoryTag, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }]}>
+                    <Text style={[styles.categoryTagText, { color: isDark ? "#94A3B8" : "#64748B" }]}>
                       {item.category.toUpperCase()}
                     </Text>
                   </View>
@@ -234,9 +238,9 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           </ScrollView>
 
           {/* Footer Shortcuts */}
-          <View style={[styles.footer, { borderTopColor: theme.line, backgroundColor: theme.surface }]}>
+          <View style={[styles.footer, { borderTopColor: theme.line, backgroundColor: isDark ? "#171A21" : "#F8FAFC" }]}>
             <Text style={[styles.footerText, { color: theme.muted }]}>
-              💡 Tip: Tap any command to navigate instantly
+              💡 Tip: Tap any tool to navigate instantly or press <Text style={{ fontWeight: "700", color: "#EA580C" }}>ESC</Text> to close
             </Text>
           </View>
         </Pressable>
@@ -248,60 +252,65 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
     justifyContent: "flex-start",
     alignItems: "center",
-    paddingTop: Platform.OS === "web" ? 80 : 40,
+    paddingTop: Platform.OS === "web" ? 90 : 40,
     paddingHorizontal: 16,
   },
   modalContent: {
     width: "100%",
     maxWidth: 620,
-    maxHeight: 520,
-    borderRadius: BrandRadius.large,
+    maxHeight: 540,
+    borderRadius: 20,
     borderWidth: 1,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 12,
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    gap: 12,
+    gap: 14,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
     padding: 0,
+    borderWidth: 0,
   },
   closeBadge: {
-    backgroundColor: "rgba(150,150,150,0.2)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
   closeBadgeText: {
     fontSize: 11,
-    fontWeight: "700",
-    color: "#888",
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   resultsList: {
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   commandRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     gap: 14,
   },
   iconWrapper: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -311,39 +320,42 @@ const styles = StyleSheet.create({
   commandTitle: {
     fontSize: 15,
     fontWeight: "700",
+    letterSpacing: -0.2,
   },
   commandSubtitle: {
     fontSize: 13,
     marginTop: 2,
+    lineHeight: 18,
   },
   categoryTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   categoryTagText: {
     fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontWeight: "800",
+    letterSpacing: 0.6,
   },
   emptyContainer: {
-    padding: 40,
+    padding: 48,
     alignItems: "center",
     justifyContent: "center",
     gap: 12,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 15,
     textAlign: "center",
+    fontWeight: "500",
   },
   footer: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     borderTopWidth: 1,
     alignItems: "center",
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "500",
   },
 });

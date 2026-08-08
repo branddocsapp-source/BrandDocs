@@ -150,7 +150,7 @@ export function InputField({ label, helperText, errorText, leftIcon, rightAccess
         <TextInput
           placeholderTextColor={theme.muted}
           {...props}
-          style={[styles.input, { color: theme.ink }, style]}
+          style={[styles.input, { color: theme.ink }, Platform.OS === "web" && ({ outlineStyle: "none" } as any), style]}
         />
         {rightAccessory}
       </View>
