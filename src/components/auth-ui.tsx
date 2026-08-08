@@ -980,15 +980,15 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
   },
-  socialButtonText: {
-    color: authBrand.ink,
-    fontSize: 14.5,
-    fontWeight: "900",
-  },
-  infoBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 14,
+    borderRadius: 24,
+    borderWidth: 1,
+    gap: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    width: "100%",
+    ...Platform.select({
+      web: {
+        boxShadow: "0px 18px 34px rgba(25, 26, 23, 0.07)",
       },
       default: {
         shadowColor: authBrand.ink,
