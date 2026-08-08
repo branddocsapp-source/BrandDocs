@@ -965,21 +965,21 @@ const styles = StyleSheet.create({
   },
   socialButtonPressed: {
     opacity: 0.86,
-    transform: [{ scale: 0.995 }],
+  phoneLineWide: {
+    backgroundColor: authBrand.orangeSoft,
+    borderRadius: 999,
+    height: 42,
+    marginBottom: 12,
   },
-  socialButtonDisabled: {
-    opacity: 0.58,
+  phoneLine: {
+    backgroundColor: "#E7E2D7",
+    borderRadius: 999,
+    height: 10,
   },
-  socialButtonContent: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    justifyContent: "center",
-  },
-  socialLogo: {
-    height: 20,
-    width: 20,
-  },
+  card: {
+    alignSelf: "center",
+    backgroundColor: authBrand.white,
+    borderColor: authBrand.line,
     borderRadius: 24,
     borderWidth: 1,
     gap: 20,
