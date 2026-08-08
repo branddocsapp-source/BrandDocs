@@ -26,92 +26,6 @@ type DocumentModuleScreenProps = {
   onCreateRoute?: string;
 };
 
-export function DocumentModuleScreen({
-  title,
-  createLabel,
-  previousLabel,
-  emptyTitle,
-  emptyMessage,
-  icon,
-  documents = [],
-  onCreateRoute,
-}: DocumentModuleScreenProps) {
-  const router = useRouter();
-  const { isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
-  const { isDark, theme } = useAppTheme();
-  const sortedDocuments = [...documents].sort((first, second) => {
-    return new Date(second.date).getTime() - new Date(first.date).getTime();
-  });
-
-  function appRoute(pathname: string) {
-    if (!isAppPreview) return pathname;
-    return { pathname, params: { appPreview: "1" } };
-  }
-
-  return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }, isWebsite && styles.webSafeArea]}>
-      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Pressable style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
-              <Ionicons name="chevron-back" size={22} color={theme.ink} />
-            </Pressable>
-            <Text style={[styles.title, { color: theme.ink }]}>{title}</Text>
-            <View style={styles.headerSpacer} />
-          </View>
-
-          <Pressable
-            style={styles.createButton}
-            onPress={() => {
-              if (onCreateRoute) {
-                router.push(appRoute(onCreateRoute) as never);
-                return;
-              }
-
-              Alert.alert("Coming Soon", `${createLabel} will open the editor when this module is built.`);
-            }}
-          >
-            <View style={styles.createIcon}>
-              <Ionicons name={icon} size={24} color="#FFFFFF" />
-            </View>
-            <Text style={styles.createText}>{createLabel}</Text>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-          </Pressable>
-
-          <View style={[styles.listCard, { backgroundColor: theme.white, borderColor: theme.line }, isDesktop && styles.webListCard]}>
-            <Text style={[styles.sectionTitle, { color: theme.ink }]}>{previousLabel}</Text>
-
-            {sortedDocuments.length > 0 ? (
-              sortedDocuments.map((document) => (
-                <View key={document.id} style={[styles.documentRow, { borderBottomColor: theme.line }]}>
-                  <View style={[styles.documentIcon, { backgroundColor: theme.orangeSoft }]}>
-                    <Ionicons name="document-text-outline" size={18} color={theme.orangeDark} />
-                  </View>
-                  <View style={styles.documentCopy}>
-                    <Text style={[styles.documentNumber, { color: theme.ink }]}>{document.number}</Text>
-                    <Text style={[styles.documentMeta, { color: theme.muted }]}>
-                      {document.date} • {document.customerName}
-                    </Text>
-                  </View>
-                  <Text style={[styles.documentAmount, { color: theme.orangeDark }]}>{document.amount}</Text>
-                </View>
-              ))
-            ) : (
-              <View style={styles.emptyState}>
-                <View style={[styles.emptyIcon, { backgroundColor: theme.orangeSoft }]}>
-                  <Ionicons name={icon} size={28} color={theme.orangeDark} />
-                </View>
-                <Text style={[styles.emptyTitle, { color: theme.ink }]}>{emptyTitle}</Text>
-                <Text style={[styles.emptyMessage, { color: theme.muted }]}>{emptyMessage}</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </Animated.View>
-    </SafeAreaView>
-  );
-}
-
 const shadow = Platform.select({
   web: {
     boxShadow: "0px 8px 18px rgba(0, 0, 0, 0.07)",
@@ -291,3 +205,89 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+export function DocumentModuleScreen({
+  title,
+  createLabel,
+  previousLabel,
+  emptyTitle,
+  emptyMessage,
+  icon,
+  documents = [],
+  onCreateRoute,
+}: DocumentModuleScreenProps) {
+  const router = useRouter();
+  const { isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
+  const { isDark, theme } = useAppTheme();
+  const sortedDocuments = [...documents].sort((first, second) => {
+    return new Date(second.date).getTime() - new Date(first.date).getTime();
+  });
+
+  function appRoute(pathname: string) {
+    if (!isAppPreview) return pathname;
+    return { pathname, params: { appPreview: "1" } };
+  }
+
+  return (
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }, isWebsite && styles.webSafeArea]}>
+      <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }, isWebsite && styles.webContainer]} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Pressable style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
+              <Ionicons name="chevron-back" size={22} color={theme.ink} />
+            </Pressable>
+            <Text style={[styles.title, { color: theme.ink }]}>{title}</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
+          <Pressable
+            style={styles.createButton}
+            onPress={() => {
+              if (onCreateRoute) {
+                router.push(appRoute(onCreateRoute) as never);
+                return;
+              }
+
+              Alert.alert("Coming Soon", `${createLabel} will open the editor when this module is built.`);
+            }}
+          >
+            <View style={styles.createIcon}>
+              <Ionicons name={icon} size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.createText}>{createLabel}</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </Pressable>
+
+          <View style={[styles.listCard, { backgroundColor: theme.white, borderColor: theme.line }, isDesktop && styles.webListCard]}>
+            <Text style={[styles.sectionTitle, { color: theme.ink }]}>{previousLabel}</Text>
+
+            {sortedDocuments.length > 0 ? (
+              sortedDocuments.map((document) => (
+                <View key={document.id} style={[styles.documentRow, { borderBottomColor: theme.line }]}>
+                  <View style={[styles.documentIcon, { backgroundColor: theme.orangeSoft }]}>
+                    <Ionicons name="document-text-outline" size={18} color={theme.orangeDark} />
+                  </View>
+                  <View style={styles.documentCopy}>
+                    <Text style={[styles.documentNumber, { color: theme.ink }]}>{document.number}</Text>
+                    <Text style={[styles.documentMeta, { color: theme.muted }]}>
+                      {document.date} • {document.customerName}
+                    </Text>
+                  </View>
+                  <Text style={[styles.documentAmount, { color: theme.orangeDark }]}>{document.amount}</Text>
+                </View>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <View style={[styles.emptyIcon, { backgroundColor: theme.orangeSoft }]}>
+                  <Ionicons name={icon} size={28} color={theme.orangeDark} />
+                </View>
+                <Text style={[styles.emptyTitle, { color: theme.ink }]}>{emptyTitle}</Text>
+                <Text style={[styles.emptyMessage, { color: theme.muted }]}>{emptyMessage}</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </Animated.View>
+    </SafeAreaView>
+  );
+}
