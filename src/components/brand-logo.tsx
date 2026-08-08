@@ -28,8 +28,8 @@ export function BrandLogo({
   const isXLarge = size === "xlarge";
 
   // Ideal dimensions for the PNG logo asset
-  const logoWidth = isSmall ? 170 : isLarge ? 270 : isXLarge ? 320 : 220;
-  const logoHeight = isSmall ? 50 : isLarge ? 78 : isXLarge ? 92 : 64;
+  const logoWidth = isSmall ? 220 : isLarge ? 340 : isXLarge ? 420 : 280;
+  const logoHeight = isSmall ? 65 : isLarge ? 100 : isXLarge ? 120 : 85;
 
   const handlePress = () => {
     if (onPress) {
@@ -43,16 +43,16 @@ export function BrandLogo({
   const content = (
     <View style={[styles.container, (stacked || isXLarge) && styles.containerStacked]}>
       {isXLarge || stacked ? (
-        <View style={{ alignItems: "center", gap: 14 }}>
+        <View style={{ alignItems: "center", gap: 16 }}>
           <Image
             source={require("@/assets/images/branddocs-logo-icon.png")}
-            style={{ width: 120, height: 120 }}
+            style={{ width: 180, height: 180 }}
             contentFit="contain"
           />
-          <Text style={{ fontSize: 34, fontWeight: "800", color: isDark ? "#FFFFFF" : "#2D2B2A", letterSpacing: -0.6 }}>
+          <Text style={{ fontSize: 44, fontWeight: "800", color: isDark ? "#FFFFFF" : "#2D2B2A", letterSpacing: -0.8 }}>
             BrandDocs
           </Text>
-          <Text style={{ fontSize: 16, fontWeight: "500", color: isDark ? "#A09D9A" : "#595551", textAlign: "center", lineHeight: 24 }}>
+          <Text style={{ fontSize: 20, fontWeight: "500", color: isDark ? "#A09D9A" : "#595551", textAlign: "center", lineHeight: 28 }}>
             Professional documents.{"\n"}Ready in seconds.
           </Text>
         </View>
