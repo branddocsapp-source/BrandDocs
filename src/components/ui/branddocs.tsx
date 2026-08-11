@@ -399,7 +399,7 @@ export function AppLogo() {
 }
 
 export function MobileHeaderLogo() {
-  return <BrandLogo size="small" compact align="left" disableNavigation />;
+  return <BrandLogo size="small" align="left" disableNavigation />;
 }
 
 export function TipCard({ text }: { text: string }) {
@@ -546,6 +546,9 @@ export function QuickAccessDrawer({
         <Animated.View entering={FadeIn.duration(200)} style={[styles.drawerContent, { backgroundColor: theme.card, borderColor: theme.line }]}>
           {/* Drawer Header */}
           <View style={[styles.drawerHeader, { borderBottomColor: theme.line }]}>
+            <View style={styles.drawerBrandRow}>
+              <BrandLogo size="small" align="left" disableNavigation />
+            </View>
             <View style={styles.drawerUserRow}>
               <View style={[styles.avatarButton, { width: 42, height: 42, borderRadius: 21 }]}>
                 {profile?.branding?.logoUrl ? (
