@@ -5,6 +5,7 @@ import { ReactNode, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleProp,
