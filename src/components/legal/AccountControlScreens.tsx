@@ -13,10 +13,18 @@ import { BrandColors, BrandLayout, BrandRadius, BrandSpacing, BrandTypography } 
 
 function ScreenShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   const { theme } = useAppTheme();
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push("/dashboard" as never);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back to Main Control Panel" onPress={handleBack} style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <Ionicons name="chevron-back" size={19} color={theme.ink} />
         </Pressable>
         <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>{title}</Text>

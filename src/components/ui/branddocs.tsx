@@ -701,6 +701,16 @@ export function AppShell({
       isMounted = false;
     };
   }, []);
+  const pathname = usePathname();
+  const isDashboard = pathname === "/dashboard";
+
+  const handleBackToControlPanel = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push(appRoute("/dashboard") as never);
+    }
+  };
 
   const resolvedLogoUrl = profileLogoUrl !== undefined ? profileLogoUrl : (profile?.branding?.logoUrl || profile?.branding?.photoUrl);
   const resolvedInitials = profileInitials !== "BD" ? profileInitials : (profile ? getCompanyInitials(profile.name) : "BD");
@@ -728,14 +738,25 @@ export function AppShell({
           <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && styles.desktopTopBar, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg, height: 60 }]}>
             {!usesSidebar ? (
               <View style={styles.mobileTopBarRow}>
-                {/* Left: Hamburger Icon -> Opens Quick Access Side Drawer */}
-                <Pressable
-                  accessibilityLabel="Open Quick Access Menu"
-                  onPress={() => setDrawerVisible(true)}
-                  style={({ pressed }) => [styles.mobileHeaderIconBtn, pressed && styles.pressed]}
-                >
-                  <Ionicons name="menu-outline" size={24} color={theme.ink} />
-                </Pressable>
+                {/* Left: Top Back Arrow (returns to Main Control Panel) + Hamburger Icon */}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+                  {!isDashboard ? (
+                    <Pressable
+                      accessibilityLabel="Back to Main Control Panel"
+                      onPress={handleBackToControlPanel}
+                      style={({ pressed }) => [styles.mobileHeaderIconBtn, pressed && styles.pressed]}
+                    >
+                      <Ionicons name="chevron-back" size={24} color={theme.ink} />
+                    </Pressable>
+                  ) : null}
+                  <Pressable
+                    accessibilityLabel="Open Quick Access Menu"
+                    onPress={() => setDrawerVisible(true)}
+                    style={({ pressed }) => [styles.mobileHeaderIconBtn, pressed && styles.pressed]}
+                  >
+                    <Ionicons name="menu-outline" size={24} color={theme.ink} />
+                  </Pressable>
+                </View>
 
                 {/* Center: Persistent Search Bar Input Pill */}
                 <Pressable
@@ -770,6 +791,15 @@ export function AppShell({
               </View>
             ) : (
               <View style={styles.desktopTopBarInner}>
+                {!isDashboard ? (
+                  <Pressable
+                    accessibilityLabel="Back to Main Control Panel"
+                    onPress={handleBackToControlPanel}
+                    style={({ pressed }) => [styles.mobileHeaderIconBtn, { marginRight: 6 }, pressed && styles.pressed]}
+                  >
+                    <Ionicons name="chevron-back" size={22} color={theme.ink} />
+                  </Pressable>
+                ) : null}
                 <Pressable
                   accessibilityLabel="Open Quick Access Menu"
                   onPress={() => setDrawerVisible(true)}
@@ -788,8 +818,8 @@ export function AppShell({
                     ]}
                     accessibilityLabel="Open Quick Search & Command Palette"
                   >
-                    <Ionicons name="search-outline" size={16} color={theme.muted} />
-                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
+                    <Ionicons name="search-outline" size={16} color={BrandColors.primary} />
+                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Type a command or jump to tool...</Text>
                   </Pressable>
                 </View>
 
@@ -1279,6 +1309,14 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.lg,
     justifyContent: "space-between",
     marginBottom: BrandSpacing["2xl"],
+  },
+  pageHeaderBackBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   pageHeaderCopy: {
     flex: 1,

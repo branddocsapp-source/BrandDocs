@@ -61,6 +61,14 @@ export function LegalDocumentScreen({ document }: { document: LegalDocument }) {
 
 export function LegalCenterScreen() {
   const { isDark, theme } = useAppTheme();
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push("/dashboard" as never);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
@@ -68,8 +76,8 @@ export function LegalCenterScreen() {
           <View style={styles.headerRow}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Go back"
-              onPress={() => router.back()}
+              accessibilityLabel="Back to Main Control Panel"
+              onPress={handleBack}
               style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]}
             >
               <Ionicons name="chevron-back" size={19} color={theme.ink} />
