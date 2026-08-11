@@ -279,11 +279,14 @@ export default function DashboardScreen() {
         onPress={() => router.push(appRoute("/profile") as never)}
         style={({ pressed }) => [
           styles.businessProfileBanner,
-          { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder },
+          {
+            backgroundColor: isDark ? theme.accentSurface : theme.accentSurface,
+            borderColor: isDark ? theme.accentBorder : theme.accentBorder,
+          },
           pressed && { opacity: 0.8 },
         ]}
       >
-        <View style={[styles.businessProfileIconBox, isDark && { backgroundColor: "rgba(246, 162, 26, 0.18)" }]}>
+        <View style={[styles.businessProfileIconBox, { backgroundColor: isDark ? "rgba(255, 122, 0, 0.18)" : BrandColors.primarySoft }]}>
           <Ionicons name="business" size={22} color={BrandColors.primary} />
         </View>
         <View style={{ flex: 1 }}>
@@ -296,8 +299,8 @@ export default function DashboardScreen() {
       </Pressable>
 
       {/* 2x2 Metrics Cards */}
-      <View style={[styles.metricsGrid, usesSidebar && isWideDesktop && styles.metricsGridWide]}>
-        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
+      <View style={[styles.metricsGrid, usesSidebar && styles.metricsGridWide]}>
+        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(2, 132, 199, 0.16)" : "#E0F2FE" }]}>
             <Ionicons name="document-text" size={20} color="#0284C7" />
           </View>
@@ -306,7 +309,7 @@ export default function DashboardScreen() {
           <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(22, 163, 74, 0.16)" : "#DCFCE7" }]}>
             <Ionicons name="document-text" size={20} color="#16A34A" />
           </View>
@@ -315,7 +318,7 @@ export default function DashboardScreen() {
           <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(13, 148, 136, 0.16)" : "#CCFBF1" }]}>
             <Ionicons name="document-text-outline" size={20} color="#0D9488" />
           </View>
@@ -324,7 +327,7 @@ export default function DashboardScreen() {
           <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(255, 122, 0, 0.16)" : BrandColors.primarySoft }]}>
             <Ionicons name="scan-outline" size={20} color={BrandColors.primary} />
           </View>
@@ -339,7 +342,7 @@ export default function DashboardScreen() {
         <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Quick Actions</Text>
       </View>
 
-      <View style={[styles.quickActions3x2, usesSidebar && isWideDesktop && styles.quickActionsWide]}>
+      <View style={[styles.quickActions3x2, usesSidebar && styles.quickActionsWide]}>
         {[
           { title: "Create Invoice", icon: "document-text", route: "/invoice" },
           { title: "Create Quotation", icon: "document-text", route: "/quotation" },
@@ -353,7 +356,7 @@ export default function DashboardScreen() {
             onPress={() => router.push(appRoute(action.route) as never)}
             style={({ pressed }) => [
               styles.quickActionPill,
-              usesSidebar && isWideDesktop && styles.quickActionPillWide,
+              usesSidebar && styles.quickActionPillWide,
               { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder, borderWidth: 1 },
               pressed && { opacity: 0.75 },
             ]}
@@ -647,7 +650,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 12,
-    backgroundColor: "#FFEDD5",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -741,7 +743,6 @@ const styles = StyleSheet.create({
   quickActionLabel: {
     fontSize: 11.5,
     fontWeight: "700",
-    color: "#0F172A",
     textAlign: "center",
     lineHeight: 14,
   },

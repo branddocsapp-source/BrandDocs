@@ -762,8 +762,8 @@ export function AppShell({
                     ]}
                     accessibilityLabel="Open Quick Search & Command Palette"
                   >
-                    <Ionicons name="search-outline" size={16} color={BrandColors.primary} />
-                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Type a command or jump to tool...</Text>
+                    <Ionicons name="search-outline" size={16} color={theme.muted} />
+                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
                   </Pressable>
                 </View>
 
@@ -937,11 +937,18 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColors.background,
     borderRightColor: BrandColors.border,
     borderRightWidth: 1,
-    padding: BrandSpacing["2xl"],
+    paddingHorizontal: BrandSpacing.lg,
+    paddingTop: BrandSpacing["2xl"],
+    paddingBottom: BrandSpacing["2xl"],
     width: BrandLayout.sidebarWidth,
   },
+  sidebarLogoWrap: {
+    alignItems: "flex-start",
+    paddingHorizontal: BrandSpacing.xs,
+    width: "100%",
+  },
   sidebarNav: {
-    gap: BrandSpacing.xs,
+    gap: BrandSpacing.sm,
     marginTop: BrandSpacing["3xl"],
   },
   sidebarItem: {
@@ -950,10 +957,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: BrandSpacing.md,
     minHeight: 46,
-    paddingHorizontal: BrandSpacing.md,
+    paddingHorizontal: BrandSpacing.lg,
   },
   sidebarItemActive: {
-    backgroundColor: BrandColors.primarySoft,
+    backgroundColor: BrandColors.primary,
   },
   sidebarText: {
     ...BrandTypography.buttonLabel,
