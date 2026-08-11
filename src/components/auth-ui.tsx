@@ -572,8 +572,38 @@ type AuthLayoutProps = {
 type AuthHeaderProps = {
   title: string;
   subtitle: string;
-  onLogoPress: () => void;
+  onLogoPress?: () => void;
+  onBackPress?: () => void;
+  showBack?: boolean;
 };
+
+export function AuthHeader({ title, subtitle, onLogoPress, onBackPress, showBack }: AuthHeaderProps) {
+  const { isDark, theme } = useAppTheme();
+  return (
+    <View style={styles.header}>
+      <View style={styles.headerTopRow}>
+        {showBack || onBackPress ? (
+          <Pressable
+            onPress={onBackPress}
+            style={({ pressed }) => [styles.backArrowBtn, { backgroundColor: theme.searchSurface, borderColor: theme.line }, pressed && { opacity: 0.7 }]}
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={20} color={theme.ink} />
+          </Pressable>
+        ) : null}
+        <Pressable onPress={onLogoPress} accessibilityRole="link" accessibilityLabel="BrandDocs home">
+          <BrandLogo size="medium" disableNavigation />
+        </Pressable>
+      </View>
+      <View style={styles.titleGroup}>
+        <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>
+          {title}
+        </Text>
+        <Text style={[styles.subtitle, { color: theme.muted }]}>{subtitle}</Text>
+      </View>
+    </View>
+  );
+}
 
 type AuthInputProps = {
   placeholder: string;
@@ -729,23 +759,6 @@ function DashboardPreview({ compact }: { compact: boolean }) {
           </View>
         </>
       ) : null}
-    </View>
-  );
-}
-
-export function AuthHeader({ title, subtitle, onLogoPress }: AuthHeaderProps) {
-  const { isDark, theme } = useAppTheme();
-  return (
-    <View style={styles.header}>
-      <Pressable onPress={onLogoPress} accessibilityRole="link" accessibilityLabel="BrandDocs home">
-        <BrandLogo size="medium" disableNavigation />
-      </Pressable>
-      <View style={styles.titleGroup}>
-        <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>
-          {title}
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.muted }]}>{subtitle}</Text>
-      </View>
     </View>
   );
 }
