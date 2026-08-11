@@ -853,7 +853,7 @@ export function InfoBox({ text }: { text: string }) {
   const { isDark } = useAppTheme();
   return (
     <View style={[styles.infoBox, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
-      <Ionicons name="information-circle" size={20} color=BrandColors.primary style={{ marginTop: 1 }} />
+      <Ionicons name="information-circle" size={20} color={BrandColors.primary} style={{ marginTop: 1 }} />
       <Text style={[styles.infoBoxText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>{text}</Text>
     </View>
   );

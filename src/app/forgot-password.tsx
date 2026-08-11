@@ -12,6 +12,7 @@ import {
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { forgotPassword } from "@/services/auth";
 import { useAppTheme } from "@/theme/theme-context";
+import { BrandColors } from "@/theme/tokens";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -70,7 +71,7 @@ export default function ForgotPasswordScreen() {
       {/* Lock Illustration Icon */}
       <View style={styles.illustrationContainer}>
         <View style={[styles.lockIconBox, { backgroundColor: theme.accentSurface }]}>
-          <Ionicons name="lock-closed" size={44} color=BrandColors.primary />
+          <Ionicons name="lock-closed" size={44} color={BrandColors.primary} />
           <View style={styles.mailBadge}>
             <Ionicons name="mail" size={16} color="#FFFFFF" />
           </View>

@@ -555,10 +555,10 @@ export default function BusinessSetupScreen() {
                     style={({ pressed }) => [styles.logoActionBtn, { borderColor: BrandColors.primary, backgroundColor: theme.accentSurface }, pressed && { opacity: 0.85 }]}
                   >
                     {logoProcessing ? (
-                      <ActivityIndicator size="small" color=BrandColors.primary />
+                      <ActivityIndicator size="small" color={BrandColors.primary} />
                     ) : (
                       <>
-                        <Ionicons name="cloud-upload-outline" size={16} color=BrandColors.primary />
+                        <Ionicons name="cloud-upload-outline" size={16} color={BrandColors.primary} />
                         <Text style={styles.logoActionTextPrimary}>{logoPreviewUrl ? "Replace Logo" : "Upload Logo"}</Text>
                       </>
                     )}
@@ -576,7 +576,7 @@ export default function BusinessSetupScreen() {
 
             {/* Info Callout Box */}
             <View style={[styles.infoBox, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
-              <Ionicons name="information-circle" size={22} color=BrandColors.primary style={{ marginTop: 1 }} />
+              <Ionicons name="information-circle" size={22} color={BrandColors.primary} style={{ marginTop: 1 }} />
               <Text style={[styles.infoBoxText, { color: theme.infoText }]}>
                 Country selection will be used to set your default currency and tax settings. You can change these anytime from Settings.
               </Text>

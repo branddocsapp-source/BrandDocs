@@ -13,6 +13,7 @@ import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { loadBusinessProfile } from "@/services/business-profile";
 import { useAppTheme } from "@/theme/theme-context";
+import { BrandColors } from "@/theme/tokens";
 
 export default function VerifyEmailScreen() {
   const [loading, setLoading] = useState(false);
@@ -67,7 +68,7 @@ export default function VerifyEmailScreen() {
       {/* Envelope Illustration with Checkmark */}
       <View style={styles.illustrationContainer}>
         <View style={[styles.envelopeIconBox, { backgroundColor: theme.accentSurface }]}>
-          <Ionicons name="mail-open-outline" size={48} color=BrandColors.primary />
+          <Ionicons name="mail-open-outline" size={48} color={BrandColors.primary} />
           <View style={styles.checkBadge}>
             <Ionicons name="checkmark" size={16} color="#FFFFFF" />
           </View>

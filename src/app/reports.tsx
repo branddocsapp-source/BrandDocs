@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppShell, TipCard } from "@/components/ui/branddocs";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useAppTheme } from "@/theme/theme-context";
+import { BrandColors } from "@/theme/tokens";
 
 const availableReports = [
   { title: "Sales Report", subtitle: "Monthly sales overview", icon: "trending-up", iconBg: "#E0F2FE", iconColor: "#0284C7" },
@@ -43,7 +44,7 @@ export default function ReportsScreen() {
 
         <View style={[styles.summaryCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.summaryIconBox, { backgroundColor: "#FFEDD5" }]}>
-            <Ionicons name="pie-chart" size={20} color=BrandColors.primary />
+            <Ionicons name="pie-chart" size={20} color={BrandColors.primary} />
           </View>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>Pending Due</Text>
           <Text style={[styles.summaryValue, { color: theme.ink }]}>Rs. 12,500</Text>

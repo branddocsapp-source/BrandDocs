@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppShell, TipCard } from "@/components/ui/branddocs";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { useAppTheme } from "@/theme/theme-context";
+import { BrandColors } from "@/theme/tokens";
 
 const documentItems = [
   { title: "Invoices", subtitle: "Create and manage invoices", route: "/invoice", icon: "document-text", iconBg: "#E0F2FE", iconColor: "#0284C7" },

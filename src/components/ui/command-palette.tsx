@@ -173,7 +173,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
         >
           {/* Header Search Input */}
           <View style={[styles.searchBar, { borderBottomColor: theme.line, backgroundColor: theme.searchSurface }]}>
-            <Ionicons name="search-outline" size={22} color=BrandColors.primary />
+            <Ionicons name="search-outline" size={22} color={BrandColors.primary} />
             <TextInput
               autoFocus
               value={query}
@@ -217,7 +217,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                   ]}
                 >
                   <View style={[styles.iconWrapper, { backgroundColor: theme.orangeSoft }]}>
-                    <Ionicons name={item.icon} size={20} color=BrandColors.primary />
+                    <Ionicons name={item.icon} size={20} color={BrandColors.primary} />
                   </View>
                   <View style={styles.textWrapper}>
                     <Text style={[styles.commandTitle, { color: theme.ink }]}>
