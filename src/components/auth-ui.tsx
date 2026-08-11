@@ -375,6 +375,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 22,
   },
+  headerTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  backArrowBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  topBackFloatingWrapper: {
+    alignSelf: "center",
+    marginBottom: 12,
+    maxWidth: 640,
+    width: "100%",
+  },
+  topBackFloatingBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   header: {
     gap: 20,
   },
@@ -567,6 +594,8 @@ const styles = StyleSheet.create({
 
 type AuthLayoutProps = {
   children: ReactNode;
+  showBack?: boolean;
+  onBackPress?: () => void;
 };
 
 type AuthHeaderProps = {
@@ -579,16 +608,22 @@ type AuthHeaderProps = {
 
 export function AuthHeader({ title, subtitle, onLogoPress, onBackPress, showBack }: AuthHeaderProps) {
   const { isDark, theme } = useAppTheme();
+  const handleBack = onBackPress || (() => { if (router.canGoBack()) router.back(); else router.replace("/signin" as never); });
+
   return (
     <View style={styles.header}>
       <View style={styles.headerTopRow}>
-        {showBack || onBackPress ? (
+        {(showBack || onBackPress) ? (
           <Pressable
-            onPress={onBackPress}
-            style={({ pressed }) => [styles.backArrowBtn, { backgroundColor: theme.searchSurface, borderColor: theme.line }, pressed && { opacity: 0.7 }]}
+            onPress={handleBack}
+            style={({ pressed }) => [
+              styles.backArrowBtn,
+              { backgroundColor: theme.searchSurface, borderColor: theme.line },
+              pressed && { opacity: 0.7 },
+            ]}
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={20} color={theme.ink} />
+            <Ionicons name="chevron-back" size={20} color={theme.ink} />
           </Pressable>
         ) : null}
         <Pressable onPress={onLogoPress} accessibilityRole="link" accessibilityLabel="BrandDocs home">

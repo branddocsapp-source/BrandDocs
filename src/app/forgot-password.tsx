@@ -61,10 +61,12 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout showBack={true} onBackPress={() => router.replace(withPreviewRoute("/signin") as never)}>
       <AuthHeader
         title="Forgot Password?"
         subtitle="Enter your business email address and we'll send you a secure password reset link."
+        showBack={true}
+        onBackPress={() => router.replace(withPreviewRoute("/signin") as never)}
         onLogoPress={() => router.push(withPreviewRoute("/") as never)}
       />
 

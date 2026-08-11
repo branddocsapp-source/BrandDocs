@@ -181,10 +181,12 @@ export default function SignUpScreen() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout showBack={true} onBackPress={() => router.replace(withPreviewRoute("/signin") as never)}>
       <AuthHeader
         title="Create your account"
         subtitle="Start creating professional business documents in minutes."
+        showBack={true}
+        onBackPress={() => router.replace(withPreviewRoute("/signin") as never)}
         onLogoPress={() => router.push(withPreviewRoute("/") as never)}
       />
 

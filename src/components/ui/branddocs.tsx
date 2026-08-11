@@ -373,17 +373,40 @@ export function PageHeader({
   title,
   subtitle,
   action,
+  showBack,
+  onBackPress,
 }: {
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  showBack?: boolean;
+  onBackPress?: () => void;
 }) {
   const { theme } = useAppTheme();
+  const router = useRouter();
+  const handleBack = onBackPress || (() => router.back());
+
   return (
     <View style={styles.pageHeader}>
-      <View style={styles.pageHeaderCopy}>
-        <Text style={[styles.pageTitle, { color: theme.ink }]}>{title}</Text>
-        {subtitle ? <Text style={[styles.pageSubtitle, { color: theme.muted }]}>{subtitle}</Text> : null}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+        {(showBack || onBackPress || router.canGoBack()) ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={handleBack}
+            style={({ pressed }) => [
+              styles.pageHeaderBackBtn,
+              { backgroundColor: theme.card, borderColor: theme.line },
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Ionicons name="chevron-back" size={19} color={theme.ink} />
+          </Pressable>
+        ) : null}
+        <View style={styles.pageHeaderCopy}>
+          <Text style={[styles.pageTitle, { color: theme.ink }]}>{title}</Text>
+          {subtitle ? <Text style={[styles.pageSubtitle, { color: theme.muted }]}>{subtitle}</Text> : null}
+        </View>
       </View>
       {action}
     </View>
