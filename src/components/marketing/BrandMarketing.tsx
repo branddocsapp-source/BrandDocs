@@ -269,7 +269,7 @@ function Header({
           onPress={() => goToRoute("/")}
           style={[styles.logoButton, useCompactNav && styles.logoButtonCompact]}
         >
-          <BrandLogo size={isMobile ? "small" : "medium"} variant={useCompactNav ? "mark" : "full"} disableNavigation />
+          <BrandLogo size={isMobile ? "small" : "medium"} disableNavigation align="left" />
         </Pressable>
 
         {useCompactNav ? (
@@ -305,7 +305,7 @@ function Header({
         <View style={styles.drawerRoot}>
           <View style={[styles.drawerSheet, { width: drawerWidth, backgroundColor: theme.card, borderColor: theme.line }]}>
             <View style={styles.drawerHeader}>
-              <BrandLogo size="small" variant="mark" disableNavigation />
+              <BrandLogo size="small" align="left" disableNavigation />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Close navigation menu"
@@ -1033,7 +1033,7 @@ function Footer({ onNavigateSection }: { onNavigateSection?: (section: SectionKe
         <View style={styles.footerColumns}>
           {/* COLUMN 1: BRAND & MISSION */}
           <View style={styles.footerBrandCol}>
-            <BrandLogo size="medium" variant="mark" />
+            <BrandLogo size="medium" />
             <Text style={[styles.footerTagline, { color: theme.muted }]}>
               The all-in-one business document & digital branding workspace. Designed for speed, precision, and compliance.
             </Text>

@@ -393,13 +393,13 @@ export function PageHeader({
 export function AppLogo() {
   return (
     <View style={styles.sidebarLogoWrap}>
-      <BrandLogo layout="sidebar" size="medium" disableNavigation showTagline />
+      <BrandLogo size="medium" align="left" disableNavigation />
     </View>
   );
 }
 
 export function MobileHeaderLogo() {
-  return <BrandLogo size="small" variant="mark" disableNavigation />;
+  return <BrandLogo size="small" compact align="left" disableNavigation />;
 }
 
 export function TipCard({ text }: { text: string }) {

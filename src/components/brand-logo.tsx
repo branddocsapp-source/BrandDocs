@@ -1,6 +1,7 @@
 import React from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import { useAppTheme } from "@/theme/theme-context";
@@ -9,68 +10,55 @@ import { BrandColors } from "@/theme/brand-colors";
 
 type BrandLogoProps = {
   size?: "small" | "medium" | "large" | "xlarge";
-  variant?: "mark" | "full";
-  layout?: "inline" | "sidebar";
+  /** Compact inline mark + wordmark for tight headers (no tagline). */
+  compact?: boolean;
+  align?: "left" | "center";
   onPress?: () => void;
   disableNavigation?: boolean;
-  stacked?: boolean;
-  showTagline?: boolean;
-  tagline?: string;
 };
 
 const logoAssets = {
-  icon: require("@/assets/images/branddocs-logo-icon.png"),
-  full: require("@/assets/images/branddocs-logo-full.png"),
-  light: require("@/assets/images/branddocs-logo-light.jpg"),
-  dark: require("@/assets/images/branddocs-logo-dark.jpg"),
+  brandDark: require("@/assets/images/branddocs-logo-dark.jpg"),
+  brandLight: require("@/assets/images/branddocs-logo-light.jpg"),
 };
 
-function getMarkSize(size: BrandLogoProps["size"]) {
-  if (size === "small") return 36;
-  if (size === "large") return 52;
-  if (size === "xlarge") return 72;
-  return 44;
+const brandStackSizes = {
+  small: { width: 148, height: 78 },
+  medium: { width: 188, height: 98 },
+  large: { width: 228, height: 118 },
+  xlarge: { width: 280, height: 144 },
+} as const;
+
+function getCompactMarkSize(size: BrandLogoProps["size"]) {
+  if (size === "small") return 32;
+  if (size === "large") return 44;
+  if (size === "xlarge") return 52;
+  return 38;
 }
 
-function getLogoDimensions(size: BrandLogoProps["size"], variant: BrandLogoProps["variant"]) {
-  const isSmall = size === "small";
-  const isLarge = size === "large";
-  const isXLarge = size === "xlarge";
-
-  if (variant === "full") {
-    return {
-      width: isSmall ? 220 : isLarge ? 340 : isXLarge ? 380 : 280,
-      height: isSmall ? 65 : isLarge ? 100 : isXLarge ? 112 : 85,
-    };
-  }
-
-  const markSize = getMarkSize(size);
-  return { width: markSize, height: markSize };
+function LogoMark({ size }: { size: number }) {
+  return (
+    <View style={[styles.mark, { width: size, height: size, borderRadius: size * 0.22 }]}>
+      <Ionicons name="document-text" size={Math.round(size * 0.5)} color="#FFFFFF" />
+    </View>
+  );
 }
 
 export function BrandLogo({
   size = "medium",
-  variant = "mark",
-  layout = "inline",
+  compact = false,
+  align = "center",
   onPress,
   disableNavigation = false,
-  stacked = false,
-  showTagline = false,
-  tagline = "DELIVERING TRUSTED RESULTS",
 }: BrandLogoProps) {
   const { isDark } = useAppTheme();
   const router = useRouter();
-  const isXLarge = size === "xlarge";
   const isSmall = size === "small";
   const isLarge = size === "large";
-  const fontSize = isSmall ? 20 : isLarge ? 28 : isXLarge ? 44 : 24;
-  const taglineSize = isXLarge ? 18 : isSmall ? 9 : 10;
+  const isXLarge = size === "xlarge";
+  const fontSize = isSmall ? 18 : isLarge ? 26 : isXLarge ? 34 : 22;
   const inkColor = isDark ? "#FFFFFF" : BrandColors.text;
-  const mutedColor = isDark ? "#8E8E8E" : "#595551";
-  const dimensions = getLogoDimensions(size, variant);
-  const markSize = getMarkSize(size);
-  const useSidebarLayout = layout === "sidebar";
-  const useStackedMark = useSidebarLayout || stacked || isXLarge;
+  const stackSize = brandStackSizes[size];
 
   const handlePress = () => {
     if (onPress) {
@@ -81,49 +69,20 @@ export function BrandLogo({
     router.push(target as any);
   };
 
-  const content = useStackedMark ? (
-    <View style={[styles.containerStacked, useSidebarLayout && styles.sidebarStack]}>
-      <Image
-        source={logoAssets.icon}
-        style={[
-          { width: markSize, height: markSize },
-          Platform.OS === "web" ? ({ backgroundColor: "transparent" } as object) : null,
-        ]}
-        contentFit="contain"
-        transition={0}
-        accessibilityLabel="BrandDocs mark"
-      />
-      <View style={[styles.wordmarkBlock, useSidebarLayout && styles.sidebarWordmarkBlock]}>
-        <Text style={[styles.wordmark, { fontSize }]}>
-          <Text style={{ color: BrandColors.primary, fontWeight: "800" }}>Brand</Text>
-          <Text style={{ color: inkColor, fontWeight: "800" }}>Docs</Text>
-        </Text>
-        {(showTagline || useSidebarLayout || isXLarge) ? (
-          <Text style={[styles.tagline, { color: mutedColor, fontSize: taglineSize }]}>
-            {isXLarge ? "Professional documents.\nReady in seconds." : tagline}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-  ) : variant === "full" ? (
-    <View style={styles.container}>
-      <Image
-        source={isDark ? logoAssets.dark : logoAssets.light}
-        style={[
-          dimensions,
-          Platform.OS === "web" ? ({ backgroundColor: "transparent" } as object) : null,
-        ]}
-        contentFit="contain"
-        transition={0}
-        accessibilityLabel="BrandDocs"
-      />
+  const content = compact ? (
+    <View style={[styles.inlineRow, align === "left" ? styles.alignLeft : styles.alignCenter]}>
+      <LogoMark size={getCompactMarkSize(size)} />
+      <Text style={[styles.wordmark, { fontSize }]}>
+        <Text style={{ color: BrandColors.primary, fontWeight: "800" }}>Brand</Text>
+        <Text style={{ color: inkColor, fontWeight: "800" }}>Docs</Text>
+      </Text>
     </View>
   ) : (
-    <View style={styles.container}>
+    <View style={[styles.stackWrap, align === "left" ? styles.alignLeft : styles.alignCenter]}>
       <Image
-        source={logoAssets.icon}
+        source={isDark ? logoAssets.brandDark : logoAssets.brandLight}
         style={[
-          dimensions,
+          stackSize,
           Platform.OS === "web" ? ({ backgroundColor: "transparent" } as object) : null,
         ]}
         contentFit="contain"
@@ -150,36 +109,28 @@ export function BrandLogo({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  stackWrap: {
+    backgroundColor: "transparent",
+  },
+  alignCenter: {
+    alignItems: "center",
+  },
+  alignLeft: {
+    alignItems: "flex-start",
+  },
+  inlineRow: {
     alignItems: "center",
     backgroundColor: "transparent",
     flexDirection: "row",
     gap: 10,
   },
-  containerStacked: {
+  mark: {
     alignItems: "center",
-    flexDirection: "column",
-    gap: 12,
+    backgroundColor: BrandColors.primary,
     justifyContent: "center",
-  },
-  sidebarStack: {
-    alignItems: "flex-start",
-    gap: 10,
-    width: "100%",
-  },
-  wordmarkBlock: {
-    alignItems: "center",
-  },
-  sidebarWordmarkBlock: {
-    alignItems: "flex-start",
+    overflow: "hidden",
   },
   wordmark: {
     letterSpacing: -0.4,
-  },
-  tagline: {
-    fontWeight: "600",
-    letterSpacing: 0.8,
-    marginTop: 4,
-    textTransform: "uppercase",
   },
 });
