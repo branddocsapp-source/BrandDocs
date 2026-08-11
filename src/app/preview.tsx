@@ -862,7 +862,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
   if (isPaidReceipt) {
     // Screenshot 1: MONEY PAID RECEIPT (Payment Made)
     return (
-      <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
+      <View style={[previewDocStyles.letterheadPaper, isDesktop && previewDocStyles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
         {/* Top Header */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 16 }}>
           <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
@@ -1014,7 +1014,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
 
   // Screenshot 2: MONEY RECEIVED RECEIPT (Payment Received)
   return (
-    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
+    <View style={[previewDocStyles.letterheadPaper, isDesktop && previewDocStyles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
       {/* Top Header */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 16 }}>
         <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
@@ -1249,28 +1249,28 @@ function InvoicePreview({ invoice, isDesktop }: { invoice: InvoiceRecord; isDesk
       <View style={{ flexDirection: "row", gap: 16, marginTop: 20 }}>
         <View style={{ flex: 1, borderColor: DocumentColors.line, borderRadius: 12, borderWidth: 1, padding: 12 }}>
           <DocumentSectionTitle icon="document-text-outline" title="BANK DETAILS" />
-          <Text style={styles.muted}>Bank: {invoice.bank.bankName}</Text>
-          <Text style={styles.muted}>A/C: {invoice.bank.accountNumber}</Text>
-          <Text style={styles.muted}>IFSC: {invoice.bank.ifscCode}</Text>
+          <Text style={previewDocStyles.muted}>Bank: {invoice.bank.bankName}</Text>
+          <Text style={previewDocStyles.muted}>A/C: {invoice.bank.accountNumber}</Text>
+          <Text style={previewDocStyles.muted}>IFSC: {invoice.bank.ifscCode}</Text>
         </View>
         <View style={{ flex: 1, borderColor: DocumentColors.line, borderRadius: 12, borderWidth: 1, padding: 12 }}>
           <DocumentSectionTitle icon="list-outline" title="TERMS & CONDITIONS" />
-          <Text style={styles.muted}>{invoice.terms}</Text>
+          <Text style={previewDocStyles.muted}>{invoice.terms}</Text>
         </View>
       </View>
 
-      <View style={styles.signatureRow}>
-        <View style={styles.sectionCard}>
+      <View style={previewDocStyles.signatureRow}>
+        <View style={previewDocStyles.sectionCard}>
           <DocumentSectionTitle icon="create-outline" title="NOTES" />
-          <Text style={styles.muted}>{invoice.notes}</Text>
+          <Text style={previewDocStyles.muted}>{invoice.notes}</Text>
         </View>
-        <View style={styles.signBox}>
-          <Text style={styles.signFor}>For {invoice.company.name}</Text>
-          <View style={styles.assetRow}>
+        <View style={previewDocStyles.signBox}>
+          <Text style={previewDocStyles.signFor}>For {invoice.company.name}</Text>
+          <View style={previewDocStyles.assetRow}>
             <Asset label="Stamp" uri={invoice.company.stampUrl} />
             <Asset label="Signature" uri={invoice.company.signatureUrl} />
           </View>
-          <Text style={styles.signLabel}>Authorized Signatory</Text>
+          <Text style={previewDocStyles.signLabel}>Authorized Signatory</Text>
         </View>
       </View>
 
@@ -1285,7 +1285,7 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
   const currencySymbol = quotation.currency === "INR" || !quotation.currency ? "₹" : quotation.currency;
 
   return (
-    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
+    <View style={[previewDocStyles.letterheadPaper, isDesktop && previewDocStyles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF" }]}>
       {/* Header */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0", paddingBottom: 16 }}>
         <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
@@ -1424,7 +1424,7 @@ function LetterheadPreview({ letterhead, isDesktop }: { letterhead: LetterheadRe
   const isTemplate1 = (letterhead as any).templateStyle !== "template2";
 
   return (
-    <View style={[styles.letterheadPaper, isDesktop && styles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF", position: "relative" }]}>
+    <View style={[previewDocStyles.letterheadPaper, isDesktop && previewDocStyles.webLetterheadPaper, { padding: 32, minHeight: 1100, backgroundColor: "#FFFFFF", position: "relative" }]}>
       {/* Background Watermark */}
       <View style={{ position: "absolute", bottom: isTemplate1 ? 40 : "35%", right: isTemplate1 ? 40 : "25%", opacity: 0.06, pointerEvents: "none" }}>
         <HexagonLogo size={320} />
@@ -1477,27 +1477,27 @@ function LetterheadPreview({ letterhead, isDesktop }: { letterhead: LetterheadRe
 
 function PreviewLine({ label, value, compact }: { label: string; value: string; compact?: boolean }) {
   return (
-    <View style={[styles.previewLine, compact && styles.previewLineCompact]}>
-      <Text style={styles.lineLabel}>{label}</Text>
-      <Text style={styles.lineValue}>{value}</Text>
+    <View style={[previewDocStyles.previewLine, compact && previewDocStyles.previewLineCompact]}>
+      <Text style={previewDocStyles.lineLabel}>{label}</Text>
+      <Text style={previewDocStyles.lineValue}>{value}</Text>
     </View>
   );
 }
 
 function SummaryRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <View style={styles.summaryRow}>
-      <Text style={[styles.summaryLabel, strong && styles.strong]}>{label}</Text>
-      <Text style={[styles.summaryValue, strong && styles.strong]}>{value}</Text>
+    <View style={previewDocStyles.summaryRow}>
+      <Text style={[previewDocStyles.summaryLabel, strong && previewDocStyles.strong]}>{label}</Text>
+      <Text style={[previewDocStyles.summaryValue, strong && previewDocStyles.strong]}>{value}</Text>
     </View>
   );
 }
 
 function Asset({ label, uri }: { label: string; uri?: string | null }) {
   return (
-    <View style={styles.asset}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      {uri ? <Image source={{ uri }} style={styles.assetImage} contentFit="contain" /> : <Text style={styles.muted}>Not uploaded</Text>}
+    <View style={previewDocStyles.asset}>
+      <Text style={previewDocStyles.fieldLabel}>{label}</Text>
+      {uri ? <Image source={{ uri }} style={previewDocStyles.assetImage} contentFit="contain" /> : <Text style={previewDocStyles.muted}>Not uploaded</Text>}
     </View>
   );
 }
@@ -1513,6 +1513,58 @@ const shadow = Platform.select({
     shadowRadius: 18,
     elevation: 3,
   },
+});
+
+/** Styles for document preview sub-components (outside PreviewScreen scope). */
+const previewDocStyles = StyleSheet.create({
+  letterheadPaper: {
+    alignSelf: "center",
+    aspectRatio: 210 / 297,
+    backgroundColor: "#FFFFFF",
+    borderColor: "#D9D9D9",
+    borderRadius: 2,
+    borderWidth: 1,
+    maxWidth: 794,
+    minHeight: 1123,
+    padding: 28,
+    width: 794,
+    ...shadow,
+  },
+  webLetterheadPaper: { width: 794 },
+  previewLine: { alignItems: "center", flexDirection: "row", minHeight: 25 },
+  previewLineCompact: { flex: 1 },
+  lineLabel: { color: "#666666", fontSize: 13, fontWeight: "700", marginRight: 4 },
+  lineValue: {
+    borderBottomColor: "#B7B7B7",
+    borderBottomWidth: 1,
+    color: "#111111",
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "700",
+    minHeight: 22,
+  },
+  summaryRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 },
+  summaryLabel: { color: "#333333", flex: 1, fontSize: 11, fontWeight: "700" },
+  summaryValue: { color: "#111111", fontSize: 11, fontWeight: "900", textAlign: "right" },
+  strong: { fontSize: 14, fontWeight: "900" },
+  muted: { color: DocumentColors.muted, fontSize: 12, lineHeight: 18 },
+  sectionCard: { flex: 1, padding: 9 },
+  signatureRow: { flexDirection: "row", gap: 0, minHeight: 93 },
+  signBox: { alignItems: "flex-end", flex: 1, justifyContent: "space-between", minHeight: 93, padding: 12 },
+  signFor: { color: "#4A4A4A", fontSize: 18, fontWeight: "800", marginBottom: 8 },
+  assetRow: { flexDirection: "row", gap: 8, width: "100%" },
+  asset: {
+    alignItems: "center",
+    borderColor: "#EEEEEE",
+    borderRadius: 4,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 58,
+    padding: 6,
+  },
+  assetImage: { height: 38, width: "100%" },
+  signLabel: { color: "#4A4A4A", fontSize: 16, fontWeight: "500", marginTop: 10 },
+  fieldLabel: { color: "#555555", fontSize: 9, fontWeight: "800", marginBottom: 3, textTransform: "uppercase" },
 });
 
 const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create({
