@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import {
     Image,
     Linking,
+    Modal,
     Platform,
     Pressable,
     ScrollView,
@@ -23,6 +24,7 @@ import {
 } from "@/config/pricing";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeModeSelector } from "@/components/ui/theme-mode-selector";
 import { getMarketingLayout, MARKETING_BREAKPOINTS } from "@/components/marketing/marketing-layout";
 import { useAppTheme } from "@/theme/theme-context";
 
@@ -223,9 +225,11 @@ function Header({
 }) {
   const { width } = useWindowDimensions();
   const [open, setOpen] = useState(false);
-  const { isDark, theme, toggleTheme } = useAppTheme();
+  const { isDark, theme } = useAppTheme();
   const layout = getMarketingLayout(width);
   const isMobile = layout.isMobile;
+  const useCompactNav = layout.useCompactNav;
+  const drawerWidth = Math.min(320, Math.round(width * 0.86));
 
   function handleItem(item: { section?: SectionKey; href?: Href }) {
     setOpen(false);
@@ -240,41 +244,41 @@ function Header({
     if (item.href) goToRoute(item.href);
   }
 
+  const drawerLinks = [
+    ...navItems,
+    { label: "Sign In", href: "/signin" as Href },
+    { label: "Get Started Free", href: "/signup" as Href },
+  ];
+
   return (
     <View style={[styles.headerShell, { backgroundColor: isDark ? "rgba(22,24,28,0.95)" : "rgba(255,255,255,0.95)", borderBottomColor: theme.line }]}>
       <View style={[layout.container, styles.headerContainer, { paddingHorizontal: layout.tokens.headerPaddingHorizontal, minHeight: layout.tokens.headerMinHeight }]}>
+        {useCompactNav ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={open ? "Close navigation menu" : "Open navigation menu"}
+            onPress={() => setOpen((value) => !value)}
+            style={[styles.menuButton, styles.menuButtonCompact, { backgroundColor: theme.card, borderColor: theme.line }]}
+          >
+            <Ionicons name={open ? "close-outline" : "menu-outline"} size={22} color={theme.ink} />
+          </Pressable>
+        ) : null}
+
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="BrandDocs home"
           onPress={() => goToRoute("/")}
-          style={styles.logoButton}
+          style={[styles.logoButton, useCompactNav && styles.logoButtonCompact]}
         >
           <BrandLogo size={isMobile ? "small" : "medium"} variant="mark" disableNavigation />
         </Pressable>
 
-        {isMobile ? (
+        {useCompactNav ? (
           <View style={styles.headerMobileActions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={isDark ? "Switch to Light Mode" : "Switch to Night Mode"}
-              onPress={toggleTheme}
-              style={[styles.themeToggleBtn, { backgroundColor: theme.card, borderColor: theme.line }]}
-            >
-              <Ionicons
-                name={isDark ? "sunny" : "moon"}
-                size={18}
-                color={isDark ? "#FFAA2A" : theme.ink}
-              />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={open ? "Close navigation menu" : "Open navigation menu"}
-              onPress={() => setOpen((value) => !value)}
-              style={[styles.menuButton, { backgroundColor: theme.card, borderColor: theme.line }]}
-            >
-              <Ionicons name={open ? "close-outline" : "menu-outline"} size={24} color={theme.ink} />
-              <Text style={[styles.menuText, { color: theme.ink }]}>{open ? "Close" : "Menu"}</Text>
-            </Pressable>
+            <ThemeModeSelector compact />
+            {!isMobile ? (
+              <MarketingButton label="Sign In" href="/signin" variant="text" />
+            ) : null}
           </View>
         ) : (
           <>
@@ -292,21 +296,7 @@ function Header({
             </View>
 
             <View style={styles.headerRightActions}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={isDark ? "Switch to Light Mode" : "Switch to Night Mode"}
-                onPress={toggleTheme}
-                style={[styles.themeToggleBtn, { backgroundColor: theme.card, borderColor: theme.line }]}
-              >
-                <Ionicons
-                  name={isDark ? "sunny" : "moon"}
-                  size={18}
-                  color={isDark ? "#FFAA2A" : theme.ink}
-                />
-                <Text style={[styles.themeToggleText, { color: theme.ink }]}>
-                  {isDark ? "Light" : "Night"}
-                </Text>
-              </Pressable>
+              <ThemeModeSelector compact />
               <MarketingButton label="Sign In" href="/signin" variant="text" />
               <MarketingButton label="Get Started Free" href="/signup" />
             </View>
@@ -314,22 +304,55 @@ function Header({
         )}
       </View>
 
-      {isMobile && open ? (
-        <View style={[layout.container, styles.mobileMenu, { paddingHorizontal: layout.tokens.headerPaddingHorizontal }]}>
-          {[...navItems, { label: "Sign In", href: "/signin" as Href }, { label: "Get Started Free", href: "/signup" as Href }].map(
-            (item) => (
+      <Modal transparent visible={useCompactNav && open} animationType="fade" onRequestClose={() => setOpen(false)}>
+        <View style={styles.drawerRoot}>
+          <Pressable style={styles.drawerScrim} onPress={() => setOpen(false)} accessibilityLabel="Close navigation menu" />
+          <View style={[styles.drawerSheet, { width: drawerWidth, backgroundColor: theme.card, borderColor: theme.line }]}>
+            <View style={styles.drawerHeader}>
+              <BrandLogo size="small" variant="mark" disableNavigation />
               <Pressable
-                accessibilityRole="link"
-                key={item.label}
-                onPress={() => handleItem(item)}
-                style={({ pressed }) => [styles.mobileMenuItem, { backgroundColor: theme.card, borderColor: theme.line }, pressed && styles.mobileMenuItemPressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Close navigation menu"
+                onPress={() => setOpen(false)}
+                style={[styles.drawerCloseBtn, { backgroundColor: theme.background, borderColor: theme.line }]}
               >
-                <Text style={[styles.mobileMenuText, { color: theme.ink }]}>{item.label}</Text>
+                <Ionicons name="close-outline" size={20} color={theme.ink} />
               </Pressable>
-            )
-          )}
+            </View>
+
+            <ScrollView contentContainerStyle={styles.drawerLinks} showsVerticalScrollIndicator={false}>
+              {drawerLinks.map((item) => (
+                <Pressable
+                  accessibilityRole="link"
+                  key={item.label}
+                  onPress={() => handleItem(item)}
+                  style={({ pressed }) => [
+                    styles.drawerLink,
+                    {
+                      backgroundColor: item.label === "Get Started Free" ? theme.orangeSoft : theme.background,
+                      borderColor: item.label === "Get Started Free" ? theme.orange : theme.line,
+                    },
+                    pressed && styles.drawerLinkPressed,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.drawerLinkText,
+                      {
+                        color: item.label === "Get Started Free" ? theme.orangeDark : theme.ink,
+                        fontWeight: item.label === "Get Started Free" ? "800" : "700",
+                      },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={16} color={theme.muted} />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
         </View>
-      ) : null}
+      </Modal>
 
       {!compact ? <View style={[styles.headerLine, { backgroundColor: theme.line }]} /> : null}
     </View>
@@ -1184,13 +1207,72 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
+  logoButtonCompact: {
+    flex: 1,
+    marginRight: 0,
+  },
+  menuButtonCompact: {
+    marginRight: 10,
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  drawerRoot: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  drawerScrim: {
+    backgroundColor: "rgba(8, 8, 8, 0.48)",
+    flex: 1,
+  },
+  drawerSheet: {
+    borderRightWidth: 1,
+    height: "100%",
+    maxWidth: "86%",
+    paddingBottom: 24,
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === "web" ? 20 : 48,
+  },
+  drawerHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 18,
+  },
+  drawerCloseBtn: {
+    alignItems: "center",
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: "center",
+    width: 36,
+  },
+  drawerLinks: {
+    gap: 8,
+    paddingBottom: 24,
+  },
+  drawerLink: {
+    alignItems: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 48,
+    paddingHorizontal: 14,
+  },
+  drawerLinkPressed: {
+    opacity: 0.82,
+  },
+  drawerLinkText: {
+    fontSize: 15,
+  },
   headerCenterNav: {
     alignItems: "center",
     flex: 1,
     flexDirection: "row",
-    flexWrap: "wrap",
+    flexWrap: "nowrap",
     justifyContent: "center",
     minWidth: 0,
+    overflow: "hidden",
     paddingHorizontal: 8,
   },
   headerRightActions: {

@@ -47,6 +47,7 @@ export function getMarketingViewport(width: number): MarketingViewport {
 export function getMarketingLayout(width: number) {
   const viewport = getMarketingViewport(width);
   const tokens = viewport === "mobile" ? MARKETING_MOBILE : MARKETING_DESKTOP;
+  const useCompactNav = width < MARKETING_BREAKPOINTS.tablet;
 
   return {
     viewport,
@@ -54,6 +55,7 @@ export function getMarketingLayout(width: number) {
     isDesktop: viewport === "desktop",
     isTablet: width >= MARKETING_BREAKPOINTS.mobile && width < MARKETING_BREAKPOINTS.tablet,
     isWideDesktop: width >= MARKETING_BREAKPOINTS.wide,
+    useCompactNav,
     tokens,
     container: {
       width: "100%" as const,
@@ -62,4 +64,9 @@ export function getMarketingLayout(width: number) {
       alignSelf: "center" as const,
     },
   };
+}
+
+/** Collapse marketing navbar into hamburger + left drawer below tablet width. */
+export function shouldUseCompactMarketingNav(width: number) {
+  return width < MARKETING_BREAKPOINTS.tablet;
 }
