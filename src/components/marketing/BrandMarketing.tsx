@@ -24,7 +24,6 @@ import {
 } from "@/config/pricing";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { BrandLogo } from "@/components/brand-logo";
-import { ThemeModeSelector } from "@/components/ui/theme-mode-selector";
 import { getMarketingLayout, MARKETING_BREAKPOINTS } from "@/components/marketing/marketing-layout";
 import { useAppTheme } from "@/theme/theme-context";
 
@@ -270,12 +269,11 @@ function Header({
           onPress={() => goToRoute("/")}
           style={[styles.logoButton, useCompactNav && styles.logoButtonCompact]}
         >
-          <BrandLogo size={isMobile ? "small" : "medium"} variant="mark" disableNavigation />
+          <BrandLogo size={isMobile ? "small" : "medium"} variant={useCompactNav ? "mark" : "full"} disableNavigation />
         </Pressable>
 
         {useCompactNav ? (
           <View style={styles.headerMobileActions}>
-            <ThemeModeSelector compact />
             {!isMobile ? (
               <MarketingButton label="Sign In" href="/signin" variant="text" />
             ) : null}
@@ -296,7 +294,6 @@ function Header({
             </View>
 
             <View style={styles.headerRightActions}>
-              <ThemeModeSelector compact />
               <MarketingButton label="Sign In" href="/signin" variant="text" />
               <MarketingButton label="Get Started Free" href="/signup" />
             </View>

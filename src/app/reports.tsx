@@ -43,7 +43,7 @@ export default function ReportsScreen() {
 
         <View style={[styles.summaryCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.summaryIconBox, { backgroundColor: "#FFEDD5" }]}>
-            <Ionicons name="pie-chart" size={20} color="#EA580C" />
+            <Ionicons name="pie-chart" size={20} color=BrandColors.primary />
           </View>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>Pending Due</Text>
           <Text style={[styles.summaryValue, { color: theme.ink }]}>Rs. 12,500</Text>

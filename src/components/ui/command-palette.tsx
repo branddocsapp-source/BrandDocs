@@ -173,7 +173,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
         >
           {/* Header Search Input */}
           <View style={[styles.searchBar, { borderBottomColor: theme.line, backgroundColor: theme.searchSurface }]}>
-            <Ionicons name="search-outline" size={22} color="#EA580C" />
+            <Ionicons name="search-outline" size={22} color=BrandColors.primary />
             <TextInput
               autoFocus
               value={query}
@@ -217,7 +217,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                   ]}
                 >
                   <View style={[styles.iconWrapper, { backgroundColor: theme.orangeSoft }]}>
-                    <Ionicons name={item.icon} size={20} color="#EA580C" />
+                    <Ionicons name={item.icon} size={20} color=BrandColors.primary />
                   </View>
                   <View style={styles.textWrapper}>
                     <Text style={[styles.commandTitle, { color: theme.ink }]}>
@@ -240,7 +240,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           {/* Footer Shortcuts */}
           <View style={[styles.footer, { borderTopColor: theme.line, backgroundColor: theme.wash }]}>
             <Text style={[styles.footerText, { color: theme.muted }]}>
-              💡 Tip: Tap any tool to navigate instantly or press <Text style={{ fontWeight: "700", color: "#EA580C" }}>ESC</Text> to close
+              💡 Tip: Tap any tool to navigate instantly or press <Text style={{ fontWeight: "700", color: BrandColors.primary }}>ESC</Text> to close
             </Text>
           </View>
         </Pressable>

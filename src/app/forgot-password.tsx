@@ -70,7 +70,7 @@ export default function ForgotPasswordScreen() {
       {/* Lock Illustration Icon */}
       <View style={styles.illustrationContainer}>
         <View style={[styles.lockIconBox, { backgroundColor: theme.accentSurface }]}>
-          <Ionicons name="lock-closed" size={44} color="#EA580C" />
+          <Ionicons name="lock-closed" size={44} color=BrandColors.primary />
           <View style={styles.mailBadge}>
             <Ionicons name="mail" size={16} color="#FFFFFF" />
           </View>
@@ -100,7 +100,7 @@ export default function ForgotPasswordScreen() {
       <View style={styles.supportFooter}>
         <Text style={{ fontSize: 13, color: theme.muted, fontWeight: "500" }}>Need help?</Text>
         <Pressable onPress={() => router.push(withPreviewRoute("/support") as never)}>
-          <Text style={{ fontSize: 13, color: "#EA580C", fontWeight: "700" }}>Contact Support</Text>
+          <Text style={{ fontSize: 13, color: BrandColors.primary, fontWeight: "700" }}>Contact Support</Text>
         </Pressable>
       </View>
     </AuthLayout>
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -4,
     right: -4,
-    backgroundColor: "#EA580C",
+    backgroundColor: BrandColors.primary,
     borderRadius: 12,
     padding: 5,
     borderWidth: 2,

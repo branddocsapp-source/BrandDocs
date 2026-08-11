@@ -19,11 +19,12 @@ import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { Colors } from "@/theme/colors";
 import { BrandLogo } from "@/components/brand-logo";
 import { useAppTheme } from "@/theme/theme-context";
+import { BrandColors } from "@/theme/tokens";
 
 const authBrand = {
-  orange: "#EA580C",
-  orangeDark: "#C2410C",
-  orangeSoft: "#FFF7ED",
+  orange: BrandColors.primary,
+  orangeDark: BrandColors.primaryDark,
+  orangeSoft: BrandColors.primarySoft,
   ink: "#0F172A",
   text: "#334155",
   muted: "#64748B",
@@ -767,7 +768,7 @@ export function AuthInput({
     <View style={[
       styles.inputFrame,
       { backgroundColor: theme.inputSurface, borderColor: theme.line },
-      focused && { borderColor: "#EA580C", backgroundColor: theme.card },
+      focused && { borderColor: BrandColors.primary, backgroundColor: theme.card },
     ]}>
       {leftIcon ? <Ionicons name={leftIcon} size={19} color="#64748B" style={{ marginLeft: 14, marginRight: -4 }} /> : null}
       <TextInput
@@ -813,7 +814,7 @@ export function AuthCheckbox({ checked, onPress, children }: AuthCheckboxProps) 
       onPress={onPress}
       style={({ pressed }) => [styles.checkboxRow, pressed && styles.checkboxPressed]}
     >
-      <View style={[styles.checkboxBox, { borderColor: theme.line }, checked && { backgroundColor: "#EA580C", borderColor: "#EA580C" }]}>
+      <View style={[styles.checkboxBox, { borderColor: theme.line }, checked && { backgroundColor: BrandColors.primary, borderColor: BrandColors.primary }]}>
         {checked ? <Ionicons name="checkmark" size={15} color="#FFFFFF" /> : null}
       </View>
       <View style={styles.checkboxContent}>{children}</View>
@@ -826,7 +827,7 @@ export function AuthPrimaryButton({ label, loading, disabled, showArrow, onPress
     <Pressable
       style={({ hovered, pressed }) => [
         styles.primaryButton,
-        { backgroundColor: "#EA580C", borderRadius: 24, height: 50 },
+        { backgroundColor: BrandColors.primary, borderRadius: 24, height: 50 },
         hovered && !disabled && styles.primaryButtonHover,
         pressed && !disabled && { opacity: 0.85 },
         disabled && styles.primaryButtonDisabled,
@@ -852,7 +853,7 @@ export function InfoBox({ text }: { text: string }) {
   const { isDark } = useAppTheme();
   return (
     <View style={[styles.infoBox, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
-      <Ionicons name="information-circle" size={20} color="#EA580C" style={{ marginTop: 1 }} />
+      <Ionicons name="information-circle" size={20} color=BrandColors.primary style={{ marginTop: 1 }} />
       <Text style={[styles.infoBoxText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>{text}</Text>
     </View>
   );

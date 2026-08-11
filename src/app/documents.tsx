@@ -12,7 +12,7 @@ const documentItems = [
   { title: "Receipts", subtitle: "Create and manage receipts", route: "/receipt", icon: "document-text-outline", iconBg: "#CCFBF1", iconColor: "#0D9488" },
   { title: "Letterheads", subtitle: "Create and manage letterheads", route: "/letterhead", icon: "newspaper", iconBg: "#F3E8FF", iconColor: "#9333EA" },
   { title: "Visiting Cards", subtitle: "Create and manage visiting cards", route: "/visiting-card", icon: "id-card", iconBg: "#FCE7F3", iconColor: "#DB2777" },
-  { title: "Scan Receipt", subtitle: "Scan and save receipt documents", route: "/scan-receipt", icon: "scan", iconBg: "#FFEDD5", iconColor: "#EA580C" },
+  { title: "Scan Receipt", subtitle: "Scan and save receipt documents", route: "/scan-receipt", icon: "scan", iconBg: "#FFEDD5", iconColor: BrandColors.primary },
 ];
 
 export default function DocumentsScreen() {

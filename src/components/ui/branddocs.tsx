@@ -1185,7 +1185,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#EA580C",
+    backgroundColor: BrandColors.primary,
   },
   tipCard: {
     flexDirection: "row",

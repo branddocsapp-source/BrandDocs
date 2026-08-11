@@ -399,7 +399,7 @@ export default function BusinessSetupScreen() {
                       isSel && { borderColor: BrandColors.primary, backgroundColor: theme.orangeSoft },
                     ]}
                   >
-                    <Ionicons name={isSel ? "checkmark-circle" : "ellipse-outline"} size={20} color={isSel ? "#EA580C" : "#94A3B8"} />
+                    <Ionicons name={isSel ? "checkmark-circle" : "ellipse-outline"} size={20} color={isSel ? BrandColors.primary : "#94A3B8"} />
                     <Text style={[styles.categoryOptionText, { color: theme.ink }, isSel && { color: BrandColors.primary, fontWeight: "700" }]}>{cat}</Text>
                   </Pressable>
                 );
@@ -555,10 +555,10 @@ export default function BusinessSetupScreen() {
                     style={({ pressed }) => [styles.logoActionBtn, { borderColor: BrandColors.primary, backgroundColor: theme.accentSurface }, pressed && { opacity: 0.85 }]}
                   >
                     {logoProcessing ? (
-                      <ActivityIndicator size="small" color="#EA580C" />
+                      <ActivityIndicator size="small" color=BrandColors.primary />
                     ) : (
                       <>
-                        <Ionicons name="cloud-upload-outline" size={16} color="#EA580C" />
+                        <Ionicons name="cloud-upload-outline" size={16} color=BrandColors.primary />
                         <Text style={styles.logoActionTextPrimary}>{logoPreviewUrl ? "Replace Logo" : "Upload Logo"}</Text>
                       </>
                     )}
@@ -576,7 +576,7 @@ export default function BusinessSetupScreen() {
 
             {/* Info Callout Box */}
             <View style={[styles.infoBox, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
-              <Ionicons name="information-circle" size={22} color="#EA580C" style={{ marginTop: 1 }} />
+              <Ionicons name="information-circle" size={22} color=BrandColors.primary style={{ marginTop: 1 }} />
               <Text style={[styles.infoBoxText, { color: theme.infoText }]}>
                 Country selection will be used to set your default currency and tax settings. You can change these anytime from Settings.
               </Text>
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   skipBtnText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#EA580C",
+    color: BrandColors.primary,
     textAlign: "right",
   },
   wizardBody: {
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   orangeBtn: {
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#EA580C",
+    backgroundColor: BrandColors.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -896,7 +896,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   logoActionTextPrimary: {
-    color: "#EA580C",
+    color: BrandColors.primary,
     fontSize: 13,
     fontWeight: "800",
   },

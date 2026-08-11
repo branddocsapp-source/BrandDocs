@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
   viewAllLink: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#EA580C",
+    color: BrandColors.primary,
   },
   recentItemsList: {
     gap: 10,
