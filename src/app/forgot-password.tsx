@@ -69,7 +69,7 @@ export default function ForgotPasswordScreen() {
 
       {/* Lock Illustration Icon */}
       <View style={styles.illustrationContainer}>
-        <View style={[styles.lockIconBox, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.15)" : "#FFF7ED" }]}>
+        <View style={[styles.lockIconBox, { backgroundColor: theme.accentSurface }]}>
           <Ionicons name="lock-closed" size={44} color="#EA580C" />
           <View style={styles.mailBadge}>
             <Ionicons name="mail" size={16} color="#FFFFFF" />

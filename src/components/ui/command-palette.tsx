@@ -172,7 +172,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           onPress={(e) => e.stopPropagation()}
         >
           {/* Header Search Input */}
-          <View style={[styles.searchBar, { borderBottomColor: theme.line, backgroundColor: isDark ? "#171A21" : "#FAFAFA" }]}>
+          <View style={[styles.searchBar, { borderBottomColor: theme.line, backgroundColor: theme.searchSurface }]}>
             <Ionicons name="search-outline" size={22} color="#EA580C" />
             <TextInput
               autoFocus
@@ -191,7 +191,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                 <Ionicons name="close-circle" size={20} color={theme.muted} />
               </Pressable>
             ) : null}
-            <Pressable onPress={onClose} style={[styles.closeBadge, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "#E2E8F0" }]}>
+            <Pressable onPress={onClose} style={[styles.closeBadge, { backgroundColor: theme.line }]}>
               <Text style={[styles.closeBadgeText, { color: isDark ? "#CBD5E1" : "#475569" }]}>ESC</Text>
             </Pressable>
           </View>
@@ -213,10 +213,10 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                   style={({ pressed }) => [
                     styles.commandRow,
                     { borderBottomColor: theme.line },
-                    pressed && { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "rgba(234, 88, 12, 0.05)" },
+                    pressed && { backgroundColor: theme.accentSurface },
                   ]}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.2)" : "#FFF7ED" }]}>
+                  <View style={[styles.iconWrapper, { backgroundColor: theme.orangeSoft }]}>
                     <Ionicons name={item.icon} size={20} color="#EA580C" />
                   </View>
                   <View style={styles.textWrapper}>
@@ -227,7 +227,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                       {item.subtitle}
                     </Text>
                   </View>
-                  <View style={[styles.categoryTag, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }]}>
+                  <View style={[styles.categoryTag, { backgroundColor: theme.searchSurface }]}>
                     <Text style={[styles.categoryTagText, { color: isDark ? "#94A3B8" : "#64748B" }]}>
                       {item.category.toUpperCase()}
                     </Text>
@@ -238,7 +238,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           </ScrollView>
 
           {/* Footer Shortcuts */}
-          <View style={[styles.footer, { borderTopColor: theme.line, backgroundColor: isDark ? "#171A21" : "#F8FAFC" }]}>
+          <View style={[styles.footer, { borderTopColor: theme.line, backgroundColor: theme.wash }]}>
             <Text style={[styles.footerText, { color: theme.muted }]}>
               💡 Tip: Tap any tool to navigate instantly or press <Text style={{ fontWeight: "700", color: "#EA580C" }}>ESC</Text> to close
             </Text>

@@ -29,7 +29,7 @@ export default function DocumentsScreen() {
     <AppShell>
       {/* Page Title Header */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.docPageTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Documents</Text>
+        <Text style={[styles.docPageTitle, { color: theme.ink }]}>Documents</Text>
         <Text style={[styles.docPageSubtitle, { color: theme.muted }]}>Create and manage all your business documents</Text>
       </View>
 
@@ -41,7 +41,7 @@ export default function DocumentsScreen() {
             onPress={() => router.push(appRoute(item.route) as never)}
             style={({ pressed }) => [
               styles.documentRowCard,
-              { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" },
+              { backgroundColor: theme.card, borderColor: theme.line },
               pressed && { opacity: 0.8 },
             ]}
           >
@@ -49,7 +49,7 @@ export default function DocumentsScreen() {
               <Ionicons name={item.icon as never} size={22} color={item.iconColor} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.docItemTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{item.title}</Text>
+              <Text style={[styles.docItemTitle, { color: theme.ink }]}>{item.title}</Text>
               <Text style={[styles.docItemSubtitle, { color: theme.muted }]}>{item.subtitle}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.muted} />

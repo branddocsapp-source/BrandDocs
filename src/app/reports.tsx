@@ -27,31 +27,31 @@ export default function ReportsScreen() {
     <AppShell>
       {/* Title & Subtitle */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.pageTitleText, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Reports</Text>
+        <Text style={[styles.pageTitleText, { color: theme.ink }]}>Reports</Text>
         <Text style={[styles.pageSubtitleText, { color: theme.muted }]}>View insights and analytics</Text>
       </View>
 
       {/* Top 2 KPI Summary Cards */}
       <View style={styles.topSummaryRow}>
-        <View style={[styles.summaryCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
+        <View style={[styles.summaryCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.summaryIconBox, { backgroundColor: "#DCFCE7" }]}>
             <Ionicons name="trending-up" size={20} color="#16A34A" />
           </View>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>Total Sales</Text>
-          <Text style={[styles.summaryValue, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Rs. 45,230</Text>
+          <Text style={[styles.summaryValue, { color: theme.ink }]}>Rs. 45,230</Text>
         </View>
 
-        <View style={[styles.summaryCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
+        <View style={[styles.summaryCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.summaryIconBox, { backgroundColor: "#FFEDD5" }]}>
             <Ionicons name="pie-chart" size={20} color="#EA580C" />
           </View>
           <Text style={[styles.summaryLabel, { color: theme.muted }]}>Pending Due</Text>
-          <Text style={[styles.summaryValue, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Rs. 12,500</Text>
+          <Text style={[styles.summaryValue, { color: theme.ink }]}>Rs. 12,500</Text>
         </View>
       </View>
 
       {/* Section Title */}
-      <Text style={[styles.sectionHeadingText, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Available Reports</Text>
+      <Text style={[styles.sectionHeadingText, { color: theme.ink }]}>Available Reports</Text>
 
       {/* Reports List */}
       <View style={styles.reportsListStack}>
@@ -61,7 +61,7 @@ export default function ReportsScreen() {
             onPress={() => router.push(appRoute("/documents") as never)}
             style={({ pressed }) => [
               styles.reportRowCard,
-              { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" },
+              { backgroundColor: theme.card, borderColor: theme.line },
               pressed && { opacity: 0.8 },
             ]}
           >
@@ -69,7 +69,7 @@ export default function ReportsScreen() {
               <Ionicons name={report.icon as never} size={22} color={report.iconColor} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.reportTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{report.title}</Text>
+              <Text style={[styles.reportTitle, { color: theme.ink }]}>{report.title}</Text>
               <Text style={[styles.reportSubtitle, { color: theme.muted }]}>{report.subtitle}</Text>
             </View>
             <View style={styles.downloadIconBox}>

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
 
@@ -15,6 +16,11 @@ export type ThemePalette = {
   orangeDark: string;
   orangeSoft: string;
   wash: string;
+  accentSurface: string;
+  accentBorder: string;
+  searchSurface: string;
+  inputSurface: string;
+  infoText: string;
 };
 
 export const lightPalette: ThemePalette = {
@@ -28,21 +34,31 @@ export const lightPalette: ThemePalette = {
   orange: "#F6A21A",
   orangeDark: "#D98200",
   orangeSoft: "#FFF7EA",
-  wash: "#FBFAF7",
+  wash: "#F5F4F0",
+  accentSurface: "#FFFBF5",
+  accentBorder: "#FED7AA",
+  searchSurface: "#F2F1EC",
+  inputSurface: "#FAFAFA",
+  infoText: "#7C2D12",
 };
 
 export const darkPalette: ThemePalette = {
-  background: "#0C0D0E",
-  white: "#16181C",
-  card: "#1C1E24",
-  ink: "#FFFFFF",
-  text: "#D0D4DC",
-  muted: "#949AA5",
-  line: "#2A2E38",
+  background: "#121110",
+  white: "#1C1B19",
+  card: "#1F1E1C",
+  ink: "#F7F4EF",
+  text: "#C8C3B8",
+  muted: "#9C968C",
+  line: "#34312D",
   orange: "#F6A21A",
   orangeDark: "#FFAA2A",
-  orangeSoft: "#282012",
-  wash: "#111317",
+  orangeSoft: "#2B2318",
+  wash: "#171615",
+  accentSurface: "#241C14",
+  accentBorder: "#4A3824",
+  searchSurface: "#232220",
+  inputSurface: "#232220",
+  infoText: "#E8C4A8",
 };
 
 type ThemeContextType = {
@@ -63,63 +79,68 @@ const ThemeContext = createContext<ThemeContextType>({
 
 const THEME_STORAGE_KEY = "branddocs.theme_mode";
 
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "light" || value === "dark" || value === "system";
+}
+
+function applyWebThemeClass(isDark: boolean) {
+  if (typeof document === "undefined") return;
+
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  document.body.classList.toggle("dark-mode", isDark);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useRNColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
-        if (saved === "light" || saved === "dark" || saved === "system") {
+    let isMounted = true;
+
+    async function hydrateThemeMode() {
+      try {
+        const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (isMounted && isThemeMode(saved)) {
           setThemeModeState(saved);
         }
+      } catch {
+        // Ignore storage read errors
+      } finally {
+        if (isMounted) setHydrated(true);
       }
-    } catch {
-      // Ignore local storage read errors
     }
+
+    hydrateThemeMode();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  function setThemeMode(mode: ThemeMode) {
+  const isDark = themeMode === "dark" || (themeMode === "system" && systemColorScheme === "dark");
+  const theme = isDark ? darkPalette : lightPalette;
+
+  useEffect(() => {
+    if (!hydrated) return;
+    applyWebThemeClass(isDark);
+  }, [hydrated, isDark]);
+
+  async function setThemeMode(mode: ThemeMode) {
     setThemeModeState(mode);
     try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(THEME_STORAGE_KEY, mode);
-        if (mode === "dark") {
-          document.documentElement.setAttribute("data-theme", "dark");
-          document.body.classList.add("dark-mode");
-        } else if (mode === "light") {
-          document.documentElement.setAttribute("data-theme", "light");
-          document.body.classList.remove("dark-mode");
-        } else {
-          document.documentElement.removeAttribute("data-theme");
-          document.body.classList.remove("dark-mode");
-        }
-      }
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
     } catch {
-      // Ignore local storage write errors
+      // Ignore storage write errors
     }
   }
 
-  const isDark =
-    themeMode === "dark" || (themeMode === "system" && systemColorScheme === "dark");
-
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      if (isDark) {
-        document.documentElement.setAttribute("data-theme", "dark");
-        document.body.classList.add("dark-mode");
-      } else {
-        document.documentElement.setAttribute("data-theme", "light");
-        document.body.classList.remove("dark-mode");
-      }
-    }
-  }, [isDark]);
-
-  const theme = isDark ? darkPalette : lightPalette;
-
   function toggleTheme() {
-    setThemeMode(isDark ? "light" : "dark");
+    if (themeMode === "system") {
+      void setThemeMode(isDark ? "light" : "dark");
+      return;
+    }
+    void setThemeMode(isDark ? "light" : "dark");
   }
 
   return (

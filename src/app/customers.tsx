@@ -27,7 +27,7 @@ export default function CustomersScreen() {
     <AppShell>
       {/* Title & Subtitle */}
       <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.pageTitleText, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Customers</Text>
+        <Text style={[styles.pageTitleText, { color: theme.ink }]}>Customers</Text>
         <Text style={[styles.pageSubtitleText, { color: theme.muted }]}>Manage your clients and customers</Text>
       </View>
 
@@ -37,7 +37,7 @@ export default function CustomersScreen() {
           onPress={() => router.push(appRoute("/profile") as never)}
           style={({ pressed }) => [
             styles.actionPillBtn,
-            { backgroundColor: isDark ? "rgba(234, 88, 12, 0.15)" : "#FFF7ED" },
+            { backgroundColor: theme.accentSurface },
             pressed && { opacity: 0.8 },
           ]}
         >
@@ -49,7 +49,7 @@ export default function CustomersScreen() {
           onPress={() => router.push(appRoute("/profile") as never)}
           style={({ pressed }) => [
             styles.actionPillBtn,
-            { backgroundColor: isDark ? "rgba(234, 88, 12, 0.15)" : "#FFF7ED" },
+            { backgroundColor: theme.accentSurface },
             pressed && { opacity: 0.8 },
           ]}
         >
@@ -59,7 +59,7 @@ export default function CustomersScreen() {
       </View>
 
       {/* Section Title */}
-      <Text style={[styles.sectionHeadingText, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Recent Customers</Text>
+      <Text style={[styles.sectionHeadingText, { color: theme.ink }]}>Recent Customers</Text>
 
       {/* Customer List */}
       <View style={styles.customerListStack}>
@@ -69,7 +69,7 @@ export default function CustomersScreen() {
             onPress={() => router.push(appRoute("/profile") as never)}
             style={({ pressed }) => [
               styles.customerRowCard,
-              { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" },
+              { backgroundColor: theme.card, borderColor: theme.line },
               pressed && { opacity: 0.8 },
             ]}
           >
@@ -77,7 +77,7 @@ export default function CustomersScreen() {
               <Text style={styles.avatarLetter}>{cust.initial}</Text>
             </View>
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={[styles.customerName, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{cust.name}</Text>
+              <Text style={[styles.customerName, { color: theme.ink }]}>{cust.name}</Text>
               <View style={styles.contactDetailsRow}>
                 <View style={styles.detailItem}>
                   <Ionicons name="call-outline" size={13} color={theme.muted} />

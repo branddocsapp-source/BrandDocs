@@ -34,7 +34,7 @@ function waitForSplashDisplay() {
 }
 
 export function BrandDocsSplashScreen() {
-  const { isDark } = useAppTheme();
+  const { isDark, theme } = useAppTheme();
 
   return (
     <Animated.View
@@ -42,7 +42,7 @@ export function BrandDocsSplashScreen() {
       exiting={FadeOut.duration(500)}
       style={[
         styles.container,
-        { backgroundColor: isDark ? "#121418" : "#F7F3EC" },
+        { backgroundColor: theme.background },
       ]}
     >
       <View style={styles.contentCenter}>

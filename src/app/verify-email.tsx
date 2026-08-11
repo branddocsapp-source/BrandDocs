@@ -66,7 +66,7 @@ export default function VerifyEmailScreen() {
 
       {/* Envelope Illustration with Checkmark */}
       <View style={styles.illustrationContainer}>
-        <View style={[styles.envelopeIconBox, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.15)" : "#FFF7ED" }]}>
+        <View style={[styles.envelopeIconBox, { backgroundColor: theme.accentSurface }]}>
           <Ionicons name="mail-open-outline" size={48} color="#EA580C" />
           <View style={styles.checkBadge}>
             <Ionicons name="checkmark" size={16} color="#FFFFFF" />
@@ -75,7 +75,7 @@ export default function VerifyEmailScreen() {
       </View>
 
       {/* Email Pill Card */}
-      <View style={[styles.emailPillCard, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
+      <View style={[styles.emailPillCard, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
         <Text style={[styles.emailPillLabel, { color: theme.muted }]}>Email:</Text>
         <Text style={[styles.emailPillValue, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{userEmail}</Text>
       </View>

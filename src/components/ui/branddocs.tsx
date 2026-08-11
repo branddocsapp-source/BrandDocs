@@ -32,6 +32,7 @@ import {
 import { auth } from "@/firebase";
 import { loadBusinessProfile, BusinessProfile, getCompanyInitials, getCachedBusinessProfile } from "@/services/business-profile";
 import { CommandPalette } from "@/components/ui/command-palette";
+import { ThemeModeSelector } from "@/components/ui/theme-mode-selector";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type RouteValue = string | { pathname: string; params?: Record<string, string> };
@@ -256,7 +257,7 @@ export function DocumentCard({
   const { isDark, theme } = useAppTheme();
   return (
     <AppCard style={styles.documentCard}>
-      <View style={[styles.documentIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
+      <View style={[styles.documentIcon, { backgroundColor: theme.orangeSoft }]}>
         <Ionicons name={icon} size={20} color={BrandColors.primary} />
       </View>
       <View style={styles.documentCopy}>
@@ -277,7 +278,7 @@ export function EmptyState({ title, message, action }: { title: string; message:
   const { isDark, theme } = useAppTheme();
   return (
     <View style={[styles.stateBox, { borderColor: theme.line }]}>
-      <View style={[styles.stateIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
+      <View style={[styles.stateIcon, { backgroundColor: theme.orangeSoft }]}>
         <Ionicons name="file-tray-outline" size={24} color={BrandColors.primary} />
       </View>
       <Text style={[styles.stateTitle, { color: theme.ink }]}>{title}</Text>
@@ -398,12 +399,12 @@ export function MobileHeaderLogo() {
 }
 
 export function TipCard({ text }: { text: string }) {
-  const { isDark } = useAppTheme();
+  const { theme } = useAppTheme();
   return (
-    <View style={[styles.tipCard, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFFBF5", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
-      <Ionicons name="bulb-outline" size={22} color="#EA580C" style={{ marginTop: 1 }} />
-      <Text style={[styles.tipText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>
-        <Text style={{ fontWeight: "700" }}>Tip: </Text>
+    <View style={[styles.tipCard, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
+      <Ionicons name="bulb-outline" size={22} color={BrandColors.primary} style={{ marginTop: 1 }} />
+      <Text style={[styles.tipText, { color: theme.text }]}>
+        <Text style={{ fontWeight: "700", color: theme.ink }}>Tip: </Text>
         {text}
       </Text>
     </View>
@@ -453,7 +454,7 @@ export function DesktopSidebar() {
               onPress={() => router.push(appRoute(item.route) as never)}
               style={({ pressed }) => [
                 styles.sidebarItem,
-                active && { backgroundColor: isDark ? theme.card : BrandColors.primarySoft },
+                active && { backgroundColor: theme.orangeSoft },
                 pressed && styles.pressed,
               ]}
             >
@@ -475,7 +476,7 @@ export function MobileBottomNavigation() {
 
   return (
     <View style={styles.floatingNavWrapper} pointerEvents="box-none">
-      <View style={[styles.floatingBottomNav, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.1)" : "#F1F5F9" }]}>
+      <View style={[styles.floatingBottomNav, { backgroundColor: theme.card, borderColor: theme.line }]}>
         {mainNavigation.map((item) => {
           const active = isActiveRoute(pathname, item);
           return (
@@ -486,14 +487,14 @@ export function MobileBottomNavigation() {
               onPress={() => router.push(appRoute(item.route) as never)}
               style={({ pressed }) => [
                 styles.floatingNavItem,
-                active && { backgroundColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FFF7ED" },
+                active && { backgroundColor: theme.orangeSoft },
                 pressed && styles.pressed,
               ]}
             >
               <Ionicons
                 name={active ? (item.icon.replace("-outline", "") as IconName) : item.icon}
                 size={22}
-                color={active ? "#EA580C" : isDark ? "#94A3B8" : "#64748B"}
+                color={active ? BrandColors.primary : theme.muted}
               />
             </Pressable>
           );
@@ -525,7 +526,7 @@ export function AppShell({
   const router = useRouter();
   const appRoute = usePreviewRoute();
   const { isWebsite, usesSidebar } = useResponsiveLayout();
-  const { isDark, theme, toggleTheme } = useAppTheme();
+  const { isDark, theme } = useAppTheme();
   const [profile, setProfile] = useState<BusinessProfile | null>(() => getCachedBusinessProfile(auth.currentUser?.uid));
   const [commandPaletteVisible, setCommandPaletteVisible] = useState(false);
 
@@ -564,49 +565,48 @@ export function AppShell({
       <View style={[styles.shell, { backgroundColor: theme.background }]}>
         {usesSidebar ? <DesktopSidebar /> : null}
         <View style={[styles.workspace, { backgroundColor: theme.wash }]}>
-          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg, height: 60 }]}>
+          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && styles.desktopTopBar, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg, height: 60 }]}>
             {!usesSidebar ? (
               <View style={styles.mobileTopBarRow}>
                 <Pressable onPress={() => setCommandPaletteVisible(true)} style={styles.mobileHeaderIconBtn}>
-                  <Ionicons name="menu-outline" size={24} color={isDark ? "#F8FAFC" : "#0F172A"} />
+                  <Ionicons name="menu-outline" size={24} color={theme.ink} />
                 </Pressable>
                 <MobileHeaderLogo />
-                <Pressable onPress={toggleTheme} style={styles.mobileHeaderIconBtn}>
-                  <Ionicons name="notifications-outline" size={22} color={isDark ? "#F8FAFC" : "#0F172A"} />
-                  <View style={styles.notificationDot} />
-                </Pressable>
+                <ThemeModeSelector compact />
               </View>
             ) : (
-              <View style={styles.topActions}>
-                <Pressable
-                  onPress={() => setCommandPaletteVisible(true)}
-                  style={({ pressed }) => [
-                    styles.searchPill,
-                    { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F2F4F7", borderColor: theme.line },
-                    pressed && styles.pressed,
-                  ]}
-                  accessibilityLabel="Open Quick Search & Command Palette"
-                >
-                  <Ionicons name="search-outline" size={16} color={theme.muted} />
-                  <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
-                </Pressable>
-                <IconButton
-                  icon={isDark ? "sunny-outline" : "moon-outline"}
-                  accessibilityLabel="Toggle Theme Mode"
-                  onPress={toggleTheme}
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Open profile menu"
-                  onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
-                  style={({ pressed }) => [styles.avatarButton, pressed && styles.pressed]}
-                >
-                  {resolvedLogoUrl ? (
-                    <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
-                  ) : (
-                    <Text style={styles.avatarText}>{resolvedInitials}</Text>
-                  )}
-                </Pressable>
+              <View style={styles.desktopTopBarInner}>
+                <View style={styles.topBarSearchCenter}>
+                  <Pressable
+                    onPress={() => setCommandPaletteVisible(true)}
+                    style={({ pressed }) => [
+                      styles.searchPill,
+                      styles.searchPillDesktop,
+                      { backgroundColor: theme.searchSurface, borderColor: theme.line },
+                      pressed && styles.pressed,
+                    ]}
+                    accessibilityLabel="Open Quick Search & Command Palette"
+                  >
+                    <Ionicons name="search-outline" size={16} color={theme.muted} />
+                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
+                  </Pressable>
+                </View>
+
+                <View style={styles.topBarRightActions}>
+                  <ThemeModeSelector compact />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Open profile menu"
+                    onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
+                    style={({ pressed }) => [styles.avatarButton, pressed && styles.pressed]}
+                  >
+                    {resolvedLogoUrl ? (
+                      <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
+                    ) : (
+                      <Text style={styles.avatarText}>{resolvedInitials}</Text>
+                    )}
+                  </Pressable>
+                </View>
               </View>
             )}
           </View>
@@ -648,9 +648,37 @@ const styles = StyleSheet.create({
     borderBottomColor: BrandColors.border,
     borderBottomWidth: 1,
     flexDirection: "row",
-    justifyContent: "space-between",
     minHeight: 68,
     paddingHorizontal: BrandSpacing.xl,
+    width: "100%",
+  },
+  desktopTopBarInner: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    minHeight: 68,
+    position: "relative",
+    width: "100%",
+  },
+  topBarSearchCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    left: 0,
+    pointerEvents: "box-none",
+    position: "absolute",
+    right: 0,
+  },
+  searchPillDesktop: {
+    maxWidth: 420,
+    minWidth: 240,
+    width: "42%",
+  },
+  topBarRightActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: BrandSpacing.sm,
+    marginLeft: "auto",
+    zIndex: 2,
   },
   desktopTopBar: {
     backgroundColor: BrandColors.surface,

@@ -27,6 +27,7 @@ import {
 } from "@/services/business-profile";
 import { getCountryOptions } from "@/services/country-rules";
 import { useAppTheme } from "@/theme/theme-context";
+import { BrandColors } from "@/theme/tokens";
 import { pickLogoImage } from "@/utils/pick-logo-image";
 
 const COUNTRY_OPTIONS = getCountryOptions();
@@ -195,7 +196,7 @@ export default function BusinessSetupScreen() {
 
   if (showSuccess) {
     return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? "#0F172A" : "#FFFFFF" }]}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
         <ScrollView contentContainerStyle={styles.centerContainer}>
           <BrandLogo size="medium" disableNavigation />
 
@@ -225,7 +226,7 @@ export default function BusinessSetupScreen() {
               </View>
             </View>
 
-            <Text style={[styles.successTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+            <Text style={[styles.successTitle, { color: theme.ink }]}>
               Company Profile{"\n"}Created Successfully!
             </Text>
             <Text style={[styles.successSubtitle, { color: theme.muted }]}>
@@ -246,7 +247,7 @@ export default function BusinessSetupScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? "#0F172A" : "#FFFFFF" }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {/* Top Step Header */}
       <View style={styles.wizardHeader}>
         <Pressable
@@ -257,7 +258,7 @@ export default function BusinessSetupScreen() {
           style={styles.headerBtn}
         >
           <Ionicons name="chevron-back" size={20} color={isDark ? "#FFFFFF" : "#0F172A"} />
-          <Text style={[styles.headerBtnText, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Back</Text>
+          <Text style={[styles.headerBtnText, { color: theme.ink }]}>Back</Text>
         </Pressable>
 
         <Text style={[styles.stepIndicatorText, { color: theme.muted }]}>
@@ -282,7 +283,7 @@ export default function BusinessSetupScreen() {
         {step === 1 ? (
           <View style={styles.stepFormStack}>
             <View style={styles.titleCopyCenter}>
-              <Text style={[styles.formTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.formTitle, { color: theme.ink }]}>
                 Business Information
               </Text>
               <Text style={[styles.formSubtitle, { color: theme.muted }]}>
@@ -291,42 +292,42 @@ export default function BusinessSetupScreen() {
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Business Name *
               </Text>
-              <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+              <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                 <Ionicons name="business-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
                 <TextInput
                   value={businessName}
                   onChangeText={setBusinessName}
                   placeholder="Enter business name"
                   placeholderTextColor={theme.muted}
-                  style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                  style={[styles.pillTextInput, { color: theme.ink }]}
                 />
               </View>
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Owner / Contact Name
               </Text>
-              <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+              <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                 <Ionicons name="person-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
                 <TextInput
                   value={ownerName}
                   onChangeText={setOwnerName}
                   placeholder="Enter owner name"
                   placeholderTextColor={theme.muted}
-                  style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                  style={[styles.pillTextInput, { color: theme.ink }]}
                 />
               </View>
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Business Email
               </Text>
-              <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+              <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                 <Ionicons name="mail-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
                 <TextInput
                   value={businessEmail}
@@ -335,16 +336,16 @@ export default function BusinessSetupScreen() {
                   autoCapitalize="none"
                   placeholder="Enter business email"
                   placeholderTextColor={theme.muted}
-                  style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                  style={[styles.pillTextInput, { color: theme.ink }]}
                 />
               </View>
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Phone Number
               </Text>
-              <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+              <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                 <Ionicons name="call-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
                 <TextInput
                   value={businessPhone}
@@ -352,7 +353,7 @@ export default function BusinessSetupScreen() {
                   keyboardType="phone-pad"
                   placeholder="Enter phone number"
                   placeholderTextColor={theme.muted}
-                  style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                  style={[styles.pillTextInput, { color: theme.ink }]}
                 />
               </View>
             </View>
@@ -377,7 +378,7 @@ export default function BusinessSetupScreen() {
         {step === 2 ? (
           <View style={styles.stepFormStack}>
             <View style={styles.titleCopyCenter}>
-              <Text style={[styles.formTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.formTitle, { color: theme.ink }]}>
                 Business Category
               </Text>
               <Text style={[styles.formSubtitle, { color: theme.muted }]}>
@@ -394,12 +395,12 @@ export default function BusinessSetupScreen() {
                     onPress={() => setBusinessType(cat)}
                     style={[
                       styles.categoryOption,
-                      { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line },
-                      isSel && { borderColor: "#EA580C", backgroundColor: isDark ? "rgba(234, 88, 12, 0.15)" : "#FFF7ED" },
+                      { backgroundColor: theme.inputSurface, borderColor: theme.line },
+                      isSel && { borderColor: BrandColors.primary, backgroundColor: theme.orangeSoft },
                     ]}
                   >
                     <Ionicons name={isSel ? "checkmark-circle" : "ellipse-outline"} size={20} color={isSel ? "#EA580C" : "#94A3B8"} />
-                    <Text style={[styles.categoryOptionText, { color: isDark ? "#FFFFFF" : "#0F172A" }, isSel && { color: "#EA580C", fontWeight: "700" }]}>{cat}</Text>
+                    <Text style={[styles.categoryOptionText, { color: theme.ink }, isSel && { color: BrandColors.primary, fontWeight: "700" }]}>{cat}</Text>
                   </Pressable>
                 );
               })}
@@ -419,7 +420,7 @@ export default function BusinessSetupScreen() {
         {step === 3 ? (
           <View style={styles.stepFormStack}>
             <View style={styles.titleCopyCenter}>
-              <Text style={[styles.formTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.formTitle, { color: theme.ink }]}>
                 Business Address
               </Text>
               <Text style={[styles.formSubtitle, { color: theme.muted }]}>
@@ -429,34 +430,34 @@ export default function BusinessSetupScreen() {
 
             {/* Address Line 1 */}
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Address Line 1 *
               </Text>
-              <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+              <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                 <Ionicons name="business-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
                 <TextInput
                   value={addressLine1}
                   onChangeText={setAddressLine1}
                   placeholder="Enter address line 1"
                   placeholderTextColor={theme.muted}
-                  style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                  style={[styles.pillTextInput, { color: theme.ink }]}
                 />
               </View>
             </View>
 
             {/* Address Line 2 */}
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Address Line 2 (Optional)
               </Text>
-              <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+              <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                 <Ionicons name="business-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
                 <TextInput
                   value={addressLine2}
                   onChangeText={setAddressLine2}
                   placeholder="Enter address line 2"
                   placeholderTextColor={theme.muted}
-                  style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A" }]}
+                  style={[styles.pillTextInput, { color: theme.ink }]}
                 />
               </View>
             </View>
@@ -464,49 +465,49 @@ export default function BusinessSetupScreen() {
             {/* City, State, ZIP Row */}
             <View style={styles.tripleFieldRow}>
               <View style={[styles.fieldGroup, { flex: 1 }]}>
-                <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+                <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                   City *
                 </Text>
-                <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+                <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                   <Ionicons name="location-outline" size={17} color="#64748B" style={{ marginLeft: 10 }} />
                   <TextInput
                     value={city}
                     onChangeText={setCity}
                     placeholder="Enter city"
                     placeholderTextColor={theme.muted}
-                    style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A", fontSize: 13 }]}
+                    style={[styles.pillTextInput, { color: theme.ink, fontSize: 13 }]}
                   />
                 </View>
               </View>
 
               <View style={[styles.fieldGroup, { flex: 1 }]}>
-                <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+                <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                   State *
                 </Text>
-                <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+                <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                   <Ionicons name="map-outline" size={17} color="#64748B" style={{ marginLeft: 10 }} />
                   <TextInput
                     value={stateProvince}
                     onChangeText={setStateProvince}
                     placeholder="Enter state"
                     placeholderTextColor={theme.muted}
-                    style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A", fontSize: 13 }]}
+                    style={[styles.pillTextInput, { color: theme.ink, fontSize: 13 }]}
                   />
                 </View>
               </View>
 
               <View style={[styles.fieldGroup, { flex: 1 }]}>
-                <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+                <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                   ZIP Code *
                 </Text>
-                <View style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+                <View style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
                   <Ionicons name="mail-outline" size={17} color="#64748B" style={{ marginLeft: 10 }} />
                   <TextInput
                     value={zipCode}
                     onChangeText={setZipCode}
                     placeholder="Enter ZIP code"
                     placeholderTextColor={theme.muted}
-                    style={[styles.pillTextInput, { color: isDark ? "#FFFFFF" : "#0F172A", fontSize: 13 }]}
+                    style={[styles.pillTextInput, { color: theme.ink, fontSize: 13 }]}
                   />
                 </View>
               </View>
@@ -514,15 +515,15 @@ export default function BusinessSetupScreen() {
 
             {/* Country Picker Field */}
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Country *
               </Text>
               <Pressable
                 onPress={() => setShowCountryPicker(true)}
-                style={[styles.inputPillShell, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}
+                style={[styles.inputPillShell, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}
               >
                 <Ionicons name="globe-outline" size={19} color="#64748B" style={{ marginLeft: 14 }} />
-                <Text style={[styles.countrySelectText, { color: country ? (isDark ? "#FFFFFF" : "#0F172A") : theme.muted }]}>
+                <Text style={[styles.countrySelectText, { color: country ? theme.ink : theme.muted }]}>
                   {country || "Select country"}
                 </Text>
                 <Ionicons name="chevron-down" size={18} color="#64748B" style={{ marginRight: 14 }} />
@@ -531,15 +532,15 @@ export default function BusinessSetupScreen() {
 
             {/* Company Logo Upload */}
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+              <Text style={[styles.fieldLabel, { color: theme.ink }]}>
                 Company Logo (Optional)
               </Text>
               <Text style={[styles.logoHint, { color: theme.muted }]}>
                 Upload your logo and we will automatically remove the white background for invoices, quotations, receipts, and visiting cards.
               </Text>
 
-              <View style={[styles.logoUploadCard, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
-                <View style={[styles.logoPreviewBox, { backgroundColor: isDark ? "#0F172A" : "#FFFFFF", borderColor: theme.line }]}>
+              <View style={[styles.logoUploadCard, { backgroundColor: theme.inputSurface, borderColor: theme.line }]}>
+                <View style={[styles.logoPreviewBox, { backgroundColor: theme.background, borderColor: theme.line }]}>
                   {logoPreviewUrl ? (
                     <Image source={{ uri: logoPreviewUrl }} style={styles.logoPreviewImage} contentFit="contain" />
                   ) : (
@@ -551,7 +552,7 @@ export default function BusinessSetupScreen() {
                   <Pressable
                     onPress={handlePickLogo}
                     disabled={logoProcessing}
-                    style={({ pressed }) => [styles.logoActionBtn, { borderColor: "#EA580C", backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED" }, pressed && { opacity: 0.85 }]}
+                    style={({ pressed }) => [styles.logoActionBtn, { borderColor: BrandColors.primary, backgroundColor: theme.accentSurface }, pressed && { opacity: 0.85 }]}
                   >
                     {logoProcessing ? (
                       <ActivityIndicator size="small" color="#EA580C" />
@@ -574,9 +575,9 @@ export default function BusinessSetupScreen() {
             </View>
 
             {/* Info Callout Box */}
-            <View style={[styles.infoBox, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
+            <View style={[styles.infoBox, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
               <Ionicons name="information-circle" size={22} color="#EA580C" style={{ marginTop: 1 }} />
-              <Text style={[styles.infoBoxText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>
+              <Text style={[styles.infoBoxText, { color: theme.infoText }]}>
                 Country selection will be used to set your default currency and tax settings. You can change these anytime from Settings.
               </Text>
             </View>
@@ -611,15 +612,15 @@ export default function BusinessSetupScreen() {
       {/* Country Selection Modal */}
       <Modal transparent visible={showCountryPicker} animationType="fade" onRequestClose={() => setShowCountryPicker(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowCountryPicker(false)}>
-          <Pressable style={[styles.modalCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF" }]} onPress={(e) => e.stopPropagation()}>
-            <Text style={[styles.modalTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>Select Country</Text>
+          <Pressable style={[styles.modalCard, { backgroundColor: theme.card }]} onPress={(e) => e.stopPropagation()}>
+            <Text style={[styles.modalTitle, { color: theme.ink }]}>Select Country</Text>
 
             <TextInput
               value={countrySearch}
               onChangeText={setCountrySearch}
               placeholder="Search country..."
               placeholderTextColor={theme.muted}
-              style={[styles.searchInput, { color: isDark ? "#FFFFFF" : "#0F172A", borderColor: theme.line }]}
+              style={[styles.searchInput, { color: theme.ink, borderColor: theme.line }]}
             />
 
             <ScrollView style={{ maxHeight: 320, marginTop: 10 }}>
@@ -630,11 +631,11 @@ export default function BusinessSetupScreen() {
                   style={({ pressed }) => [
                     styles.countryItemRow,
                     { borderBottomColor: theme.line },
-                    countryCode === item.countryCode && { backgroundColor: isDark ? "rgba(234, 88, 12, 0.15)" : "#FFF7ED" },
+                    countryCode === item.countryCode && { backgroundColor: theme.orangeSoft },
                     pressed && { opacity: 0.8 },
                   ]}
                 >
-                  <Text style={[styles.countryItemName, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>{item.country}</Text>
+                  <Text style={[styles.countryItemName, { color: theme.ink }]}>{item.country}</Text>
                   <Text style={{ fontSize: 13, color: theme.muted }}>{item.currencyCode}</Text>
                 </Pressable>
               ))}

@@ -279,58 +279,58 @@ export default function DashboardScreen() {
         onPress={() => router.push(appRoute("/profile") as never)}
         style={({ pressed }) => [
           styles.businessProfileBanner,
-          { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFFBF5", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" },
+          { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder },
           pressed && { opacity: 0.8 },
         ]}
       >
-        <View style={styles.businessProfileIconBox}>
-          <Ionicons name="business" size={22} color="#EA580C" />
+        <View style={[styles.businessProfileIconBox, isDark && { backgroundColor: "rgba(246, 162, 26, 0.18)" }]}>
+          <Ionicons name="business" size={22} color={BrandColors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.businessProfileTitle, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+          <Text style={[styles.businessProfileTitle, { color: theme.ink }]}>
             {companyName}
           </Text>
-          <Text style={styles.businessProfileSubtitle}>View Profile</Text>
+          <Text style={[styles.businessProfileSubtitle, { color: BrandColors.primary }]}>View Profile</Text>
         </View>
-        <Ionicons name="chevron-down" size={18} color="#EA580C" />
+        <Ionicons name="chevron-down" size={18} color={BrandColors.primary} />
       </Pressable>
 
       {/* 2x2 Metrics Cards */}
       <View style={styles.metricsGrid}>
-        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: "#E0F2FE" }]}>
+        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(2, 132, 199, 0.16)" : "#E0F2FE" }]}>
             <Ionicons name="document-text" size={20} color="#0284C7" />
           </View>
           <Text style={[styles.metricLabel, { color: theme.muted }]}>Invoices</Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>24</Text>
-          <Text style={styles.metricSubtext}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: "#DCFCE7" }]}>
+        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(22, 163, 74, 0.16)" : "#DCFCE7" }]}>
             <Ionicons name="document-text" size={20} color="#16A34A" />
           </View>
           <Text style={[styles.metricLabel, { color: theme.muted }]}>Quotations</Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>18</Text>
-          <Text style={styles.metricSubtext}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: "#CCFBF1" }]}>
+        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(13, 148, 136, 0.16)" : "#CCFBF1" }]}>
             <Ionicons name="document-text-outline" size={20} color="#0D9488" />
           </View>
           <Text style={[styles.metricLabel, { color: theme.muted }]}>Receipts</Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>12</Text>
-          <Text style={styles.metricSubtext}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0" }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: "#FFEDD5" }]}>
+        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(246, 162, 26, 0.16)" : "#FFEDD5" }]}>
             <Ionicons name="scan-outline" size={20} color="#EA580C" />
           </View>
           <Text style={[styles.metricLabel, { color: theme.muted }]}>Scan Receipts</Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>32</Text>
-          <Text style={styles.metricSubtext}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
       </View>
 
@@ -353,12 +353,12 @@ export default function DashboardScreen() {
             onPress={() => router.push(appRoute(action.route) as never)}
             style={({ pressed }) => [
               styles.quickActionPill,
-              { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED" },
+              { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder, borderWidth: 1 },
               pressed && { opacity: 0.75 },
             ]}
           >
-            <Ionicons name={action.icon as never} size={22} color="#EA580C" />
-            <Text style={styles.quickActionLabel}>{action.title}</Text>
+            <Ionicons name={action.icon as never} size={22} color={BrandColors.primary} />
+            <Text style={[styles.quickActionLabel, { color: theme.ink }]}>{action.title}</Text>
           </Pressable>
         ))}
       </View>
@@ -367,16 +367,16 @@ export default function DashboardScreen() {
       <View style={styles.recentHeaderRow}>
         <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Recent Documents</Text>
         <Pressable onPress={() => router.push(appRoute("/documents") as never)}>
-          <Text style={styles.viewAllLink}>View All</Text>
+          <Text style={[styles.viewAllLink, { color: BrandColors.primary }]}>View All</Text>
         </Pressable>
       </View>
 
       <View style={styles.recentItemsList}>
         <Pressable
           onPress={() => router.push(appRoute("/invoice") as never)}
-          style={[styles.recentRowItem, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }]}
+          style={[styles.recentRowItem, { backgroundColor: theme.card, borderColor: theme.line }]}
         >
-          <View style={[styles.recentIconBox, { backgroundColor: "#CCFBF1" }]}>
+          <View style={[styles.recentIconBox, { backgroundColor: isDark ? "rgba(13, 148, 136, 0.16)" : "#CCFBF1" }]}>
             <Ionicons name="document-text-outline" size={20} color="#0D9488" />
           </View>
           <View style={{ flex: 1 }}>
@@ -388,9 +388,9 @@ export default function DashboardScreen() {
 
         <Pressable
           onPress={() => router.push(appRoute("/scan-receipt") as never)}
-          style={[styles.recentRowItem, { backgroundColor: isDark ? "#1E293B" : "#FFFFFF", borderColor: isDark ? "rgba(255,255,255,0.08)" : "#F1F5F9" }]}
+          style={[styles.recentRowItem, { backgroundColor: theme.card, borderColor: theme.line }]}
         >
-          <View style={[styles.recentIconBox, { backgroundColor: "#FEE2E2" }]}>
+          <View style={[styles.recentIconBox, { backgroundColor: isDark ? "rgba(220, 38, 38, 0.16)" : "#FEE2E2" }]}>
             <Ionicons name="scan-outline" size={20} color="#DC2626" />
           </View>
           <View style={{ flex: 1 }}>

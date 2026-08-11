@@ -613,7 +613,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
   return (
     <ScrollView
-      style={[styles.page, { backgroundColor: isDark ? "#0F172A" : "#FAF8F5" }]}
+      style={[styles.page, { backgroundColor: theme.background }]}
       contentContainerStyle={{
         flexGrow: 1,
         alignItems: "center",
@@ -627,7 +627,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         style={[
           styles.authCardContainer,
           {
-            backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
+            backgroundColor: theme.card,
             borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0",
           },
         ]}
@@ -766,8 +766,8 @@ export function AuthInput({
   return (
     <View style={[
       styles.inputFrame,
-      { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: isDark ? "rgba(255,255,255,0.12)" : "#E2E8F0" },
-      focused && { borderColor: "#EA580C", backgroundColor: isDark ? "#1E293B" : "#FFFFFF" },
+      { backgroundColor: theme.inputSurface, borderColor: theme.line },
+      focused && { borderColor: "#EA580C", backgroundColor: theme.card },
     ]}>
       {leftIcon ? <Ionicons name={leftIcon} size={19} color="#64748B" style={{ marginLeft: 14, marginRight: -4 }} /> : null}
       <TextInput
@@ -851,7 +851,7 @@ export function AuthPrimaryButton({ label, loading, disabled, showArrow, onPress
 export function InfoBox({ text }: { text: string }) {
   const { isDark } = useAppTheme();
   return (
-    <View style={[styles.infoBox, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
+    <View style={[styles.infoBox, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
       <Ionicons name="information-circle" size={20} color="#EA580C" style={{ marginTop: 1 }} />
       <Text style={[styles.infoBoxText, { color: isDark ? "#FED7AA" : "#7C2D12" }]}>{text}</Text>
     </View>
