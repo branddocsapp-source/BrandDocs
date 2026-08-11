@@ -518,7 +518,7 @@ export function QuickAccessDrawer({
 }) {
   const router = useRouter();
   const appRoute = usePreviewRoute();
-  const { isDark, toggleTheme, theme } = useAppTheme();
+  const { isDark, toggleTheme, theme, themeMode } = useAppTheme();
 
   if (!visible) return null;
 
@@ -543,7 +543,6 @@ export function QuickAccessDrawer({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.drawerOverlay}>
-        <Pressable style={styles.drawerBackdrop} onPress={onClose} />
         <Animated.View entering={FadeIn.duration(200)} style={[styles.drawerContent, { backgroundColor: theme.card, borderColor: theme.line }]}>
           {/* Drawer Header */}
           <View style={[styles.drawerHeader, { borderBottomColor: theme.line }]}>
@@ -607,7 +606,9 @@ export function QuickAccessDrawer({
                   {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 </Text>
                 <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>
-                  Currently using {isDark ? "Dark" : "Light"} theme
+                  {themeMode === "system"
+                    ? `Following device · ${isDark ? "Dark" : "Light"}`
+                    : `Currently using ${isDark ? "Dark" : "Light"} theme`}
                 </Text>
               </View>
             </Pressable>
@@ -627,6 +628,7 @@ export function QuickAccessDrawer({
             </Pressable>
           </ScrollView>
         </Animated.View>
+        <Pressable style={styles.drawerBackdrop} onPress={onClose} accessibilityLabel="Close quick access menu" />
       </View>
     </Modal>
   );

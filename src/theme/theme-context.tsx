@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
 
 import { BrandColors } from "@/theme/brand-colors";
 
-export type ThemeMode = "system";
+export type ThemeMode = "light" | "dark" | "system";
 
 export type ThemePalette = {
   background: string;
@@ -78,6 +79,12 @@ const ThemeContext = createContext<ThemeContextType>({
   setThemeMode: () => {},
 });
 
+const THEME_STORAGE_KEY = "branddocs.theme_mode";
+
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "light" || value === "dark" || value === "system";
+}
+
 function applyWebThemeClass(isDark: boolean) {
   if (typeof document === "undefined") return;
 
@@ -87,21 +94,61 @@ function applyWebThemeClass(isDark: boolean) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useRNColorScheme();
-  const isDark = systemColorScheme === "dark";
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function hydrateThemeMode() {
+      try {
+        const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (isMounted && isThemeMode(saved)) {
+          setThemeModeState(saved);
+        }
+      } catch {
+        // Ignore storage read errors
+      } finally {
+        if (isMounted) setHydrated(true);
+      }
+    }
+
+    hydrateThemeMode();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isDark = themeMode === "dark" || (themeMode === "system" && systemColorScheme === "dark");
   const theme = isDark ? darkPalette : lightPalette;
 
   useEffect(() => {
+    if (!hydrated) return;
     applyWebThemeClass(isDark);
-  }, [isDark]);
+  }, [hydrated, isDark]);
+
+  async function setThemeMode(mode: ThemeMode) {
+    setThemeModeState(mode);
+    try {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+      // Ignore storage write errors
+    }
+  }
+
+  function toggleTheme() {
+    void setThemeMode(isDark ? "light" : "dark");
+  }
 
   return (
     <ThemeContext.Provider
       value={{
-        themeMode: "system",
+        themeMode,
         isDark,
         theme,
-        toggleTheme: () => {},
-        setThemeMode: () => {},
+        toggleTheme,
+        setThemeMode,
       }}
     >
       {children}
