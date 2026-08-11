@@ -11,6 +11,7 @@ import { Platform } from "react-native";
 
 import { db, storage } from "@/firebase";
 import { Colors } from "@/theme/colors";
+import { processLogoAssetForUpload } from "@/utils/remove-logo-background";
 
 export type BusinessProfile = {
   id?: string;
@@ -295,7 +296,8 @@ async function uploadAssetToStorage(
   asset: BusinessProfileAssetInput,
   existingPath?: string | null
 ) {
-  const uri = asset.uri;
+  let preparedAsset = asset;
+  const uri = preparedAsset.uri;
   if (!uri) {
     return { url: null, storagePath: null };
   }
@@ -304,14 +306,20 @@ async function uploadAssetToStorage(
     return { url: uri, storagePath: existingPath || null };
   }
 
-  const webFile = Platform.OS === "web" ? asset.file : null;
-  const mimeType = webFile?.type || inferMimeType(uri, asset);
-  const dataUriParts = getDataUriParts(uri);
-  const base64Payload = asset.base64 || dataUriParts?.base64;
-  const sizeBytes = webFile?.size || asset.fileSize || (base64Payload ? getBase64ByteSize(base64Payload) : null);
+  if (kind === "logo") {
+    preparedAsset = (await processLogoAssetForUpload(preparedAsset)) || preparedAsset;
+  }
+
+  const webFile = Platform.OS === "web" ? preparedAsset.file : null;
+  const mimeType = webFile?.type || inferMimeType(preparedAsset.uri || uri, preparedAsset);
+  const dataUriParts = getDataUriParts(preparedAsset.uri || uri);
+  const base64Payload = preparedAsset.base64 || dataUriParts?.base64;
+  const sizeBytes = webFile?.size || preparedAsset.fileSize || (base64Payload ? getBase64ByteSize(base64Payload) : null);
   validateAssetForUpload(kind, mimeType, sizeBytes);
 
-  const storagePath = existingPath || `users/${user.uid}/businesses/${businessId}/${kind}.${getFileExtension(mimeType)}`;
+  const storagePath =
+    existingPath ||
+    `users/${user.uid}/businesses/${businessId}/${kind}.${kind === "logo" ? "png" : getFileExtension(mimeType)}`;
 
   try {
     console.log("[BrandDocs] Starting optional asset upload.", {
@@ -321,7 +329,7 @@ async function uploadAssetToStorage(
       storagePath,
       hasAuthUser: !!user.uid,
       usesWebFile: !!webFile,
-      fileName: webFile?.name || asset.fileName,
+      fileName: webFile?.name || preparedAsset.fileName,
       contentType: mimeType,
       sizeBytes,
     });
@@ -333,7 +341,10 @@ async function uploadAssetToStorage(
       }
       downloadUrl = await withFirebaseTimeout(uploadWebAsset(webFile, storagePath, mimeType), `Firebase Storage ${kind} web upload`);
     } else {
-      downloadUrl = await withFirebaseTimeout(uploadNativeAsset(kind, uri, storagePath, mimeType, base64Payload), `Firebase Storage ${kind} native upload`);
+      downloadUrl = await withFirebaseTimeout(
+        uploadNativeAsset(kind, preparedAsset.uri || uri, storagePath, mimeType, base64Payload),
+        `Firebase Storage ${kind} native upload`
+      );
     }
 
     console.log("[BrandDocs] Optional asset upload completed.", { kind, storagePath });

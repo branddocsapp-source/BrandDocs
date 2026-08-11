@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -19,11 +20,14 @@ import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import {
   BusinessProfile,
+  BusinessProfileAssetInput,
+  BusinessProfilePreviousAssets,
   loadBusinessProfile,
   saveBusinessProfile,
 } from "@/services/business-profile";
 import { getCountryOptions } from "@/services/country-rules";
 import { useAppTheme } from "@/theme/theme-context";
+import { pickLogoImage } from "@/utils/pick-logo-image";
 
 const COUNTRY_OPTIONS = getCountryOptions();
 
@@ -54,6 +58,10 @@ export default function BusinessSetupScreen() {
   const [countrySearch, setCountrySearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [logoAsset, setLogoAsset] = useState<BusinessProfileAssetInput | null>(null);
+  const [previousAssets, setPreviousAssets] = useState<BusinessProfilePreviousAssets>({});
+  const [logoProcessing, setLogoProcessing] = useState(false);
 
   const { isAppPreview } = useResponsiveLayout();
 
@@ -84,6 +92,13 @@ export default function BusinessSetupScreen() {
       if (profile.country) setCountry(profile.country);
       if (profile.countryCode) setCountryCode(profile.countryCode);
       if (profile.defaultCurrency) setCurrency(profile.defaultCurrency);
+      setLogoPreviewUrl(profile.branding?.logoUrl || null);
+      setPreviousAssets({
+        logo: {
+          url: profile.branding?.logoUrl || null,
+          storagePath: profile.branding?.logoStoragePath || null,
+        },
+      });
     }
 
     hydrate();
@@ -97,6 +112,32 @@ export default function BusinessSetupScreen() {
     setCountryCode(option.countryCode);
     setCurrency(option.currencyCode);
     setShowCountryPicker(false);
+  }
+
+  async function handlePickLogo() {
+    if (logoProcessing) return;
+
+    try {
+      setLogoProcessing(true);
+      const picked = await pickLogoImage();
+      if (!picked) return;
+
+      setLogoAsset(picked.asset);
+      setLogoPreviewUrl(picked.asset.uri || null);
+
+      if (picked.backgroundRemoved) {
+        Alert.alert("Logo Ready", "Background removed automatically. Your logo will appear cleanly on all documents.");
+      }
+    } catch (error: any) {
+      Alert.alert("Logo Upload Failed", error?.message || "We could not process the selected logo.");
+    } finally {
+      setLogoProcessing(false);
+    }
+  }
+
+  function handleRemoveLogo() {
+    setLogoAsset({ uri: null });
+    setLogoPreviewUrl(null);
   }
 
   async function handleCompleteSetup() {
@@ -128,7 +169,17 @@ export default function BusinessSetupScreen() {
       };
 
       if (auth.currentUser) {
-        await saveBusinessProfile(auth.currentUser, profileToSave);
+        await saveBusinessProfile(
+          auth.currentUser,
+          {
+            ...profileToSave,
+            branding: {
+              logoUrl: logoPreviewUrl,
+            },
+          },
+          previousAssets,
+          logoAsset ? { logo: logoAsset } : undefined
+        );
       }
       setShowSuccess(true);
     } catch (error: any) {
@@ -478,6 +529,50 @@ export default function BusinessSetupScreen() {
               </Pressable>
             </View>
 
+            {/* Company Logo Upload */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: isDark ? "#FFFFFF" : "#0F172A" }]}>
+                Company Logo (Optional)
+              </Text>
+              <Text style={[styles.logoHint, { color: theme.muted }]}>
+                Upload your logo and we will automatically remove the white background for invoices, quotations, receipts, and visiting cards.
+              </Text>
+
+              <View style={[styles.logoUploadCard, { backgroundColor: isDark ? "#1E293B" : "#FAFAFA", borderColor: theme.line }]}>
+                <View style={[styles.logoPreviewBox, { backgroundColor: isDark ? "#0F172A" : "#FFFFFF", borderColor: theme.line }]}>
+                  {logoPreviewUrl ? (
+                    <Image source={{ uri: logoPreviewUrl }} style={styles.logoPreviewImage} contentFit="contain" />
+                  ) : (
+                    <Ionicons name="image-outline" size={28} color="#94A3B8" />
+                  )}
+                </View>
+
+                <View style={styles.logoUploadActions}>
+                  <Pressable
+                    onPress={handlePickLogo}
+                    disabled={logoProcessing}
+                    style={({ pressed }) => [styles.logoActionBtn, { borderColor: "#EA580C", backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED" }, pressed && { opacity: 0.85 }]}
+                  >
+                    {logoProcessing ? (
+                      <ActivityIndicator size="small" color="#EA580C" />
+                    ) : (
+                      <>
+                        <Ionicons name="cloud-upload-outline" size={16} color="#EA580C" />
+                        <Text style={styles.logoActionTextPrimary}>{logoPreviewUrl ? "Replace Logo" : "Upload Logo"}</Text>
+                      </>
+                    )}
+                  </Pressable>
+
+                  {logoPreviewUrl ? (
+                    <Pressable onPress={handleRemoveLogo} style={({ pressed }) => [styles.logoActionBtn, { borderColor: theme.line }, pressed && { opacity: 0.85 }]}>
+                      <Ionicons name="trash-outline" size={16} color={theme.muted} />
+                      <Text style={[styles.logoActionTextSecondary, { color: theme.muted }]}>Remove</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+
             {/* Info Callout Box */}
             <View style={[styles.infoBox, { backgroundColor: isDark ? "rgba(234, 88, 12, 0.12)" : "#FFF7ED", borderColor: isDark ? "rgba(234, 88, 12, 0.25)" : "#FED7AA" }]}>
               <Ionicons name="information-circle" size={22} color="#EA580C" style={{ marginTop: 1 }} />
@@ -758,5 +853,54 @@ const styles = StyleSheet.create({
   countryItemName: {
     fontSize: 14.5,
     fontWeight: "600",
+  },
+  logoHint: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  logoUploadCard: {
+    alignItems: "center",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 14,
+    padding: 14,
+  },
+  logoPreviewBox: {
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1,
+    height: 84,
+    justifyContent: "center",
+    overflow: "hidden",
+    width: 84,
+  },
+  logoPreviewImage: {
+    height: "100%",
+    width: "100%",
+  },
+  logoUploadActions: {
+    flex: 1,
+    gap: 8,
+  },
+  logoActionBtn: {
+    alignItems: "center",
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 6,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  logoActionTextPrimary: {
+    color: "#EA580C",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  logoActionTextSecondary: {
+    fontSize: 13,
+    fontWeight: "700",
   },
 });
