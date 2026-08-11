@@ -133,7 +133,9 @@ export const BrandShadows = {
 } as const;
 
 export const BrandLayout = {
-  maxContentWidth: 1160,
+  maxContentWidth: 1320,
+  desktopContentWidth: 1200,
+  tabletContentWidth: 760,
   mobileContentWidth: 560,
   sidebarWidth: 244,
   bottomNavHeight: 76,

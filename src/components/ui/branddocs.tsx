@@ -32,7 +32,6 @@ import {
 import { auth } from "@/firebase";
 import { loadBusinessProfile, BusinessProfile, getCompanyInitials, getCachedBusinessProfile } from "@/services/business-profile";
 import { CommandPalette } from "@/components/ui/command-palette";
-import { ThemeModeSelector } from "@/components/ui/theme-mode-selector";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type RouteValue = string | { pathname: string; params?: Record<string, string> };
@@ -414,7 +413,6 @@ export function TipCard({ text }: { text: string }) {
 const mainNavigation: { label: string; icon: IconName; route: string; aliases?: string[] }[] = [
   { label: "Dashboard", icon: "grid-outline", route: "/dashboard" },
   { label: "Documents", icon: "document-text-outline", route: "/documents", aliases: ["/invoice", "/quotation", "/table-quotation", "/letterhead", "/receipt", "/visiting-card", "/scan-receipt"] },
-  { label: "Customers", icon: "people-outline", route: "/customers", aliases: ["/customers"] },
   { label: "Reports", icon: "copy-outline", route: "/reports" },
   { label: "Settings", icon: "settings-outline", route: "/settings" },
 ];
@@ -554,7 +552,13 @@ export function AppShell({
   const content = (
     <Animated.View
       entering={FadeIn.duration(300)}
-      style={[styles.contentInner, !usesSidebar && styles.mobileContentInner, contentStyle]}
+      style={[
+        styles.contentInner,
+        !usesSidebar && styles.mobileContentInner,
+        isWebsite && !usesSidebar && styles.webTabletContentInner,
+        isWebsite && usesSidebar && styles.desktopContentInner,
+        contentStyle,
+      ]}
     >
       {children}
     </Animated.View>
@@ -572,7 +576,6 @@ export function AppShell({
                   <Ionicons name="menu-outline" size={24} color={theme.ink} />
                 </Pressable>
                 <MobileHeaderLogo />
-                <ThemeModeSelector compact />
               </View>
             ) : (
               <View style={styles.desktopTopBarInner}>
@@ -593,7 +596,6 @@ export function AppShell({
                 </View>
 
                 <View style={styles.topBarRightActions}>
-                  <ThemeModeSelector compact />
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Open profile menu"
@@ -744,6 +746,13 @@ const styles = StyleSheet.create({
     maxWidth: BrandLayout.maxContentWidth,
     paddingHorizontal: BrandSpacing["3xl"],
     width: "100%",
+  },
+  desktopContentInner: {
+    maxWidth: BrandLayout.maxContentWidth,
+    paddingHorizontal: BrandSpacing["4xl"],
+  },
+  webTabletContentInner: {
+    maxWidth: BrandLayout.tabletContentWidth,
   },
   mobileContentInner: {
     maxWidth: BrandLayout.mobileContentWidth,

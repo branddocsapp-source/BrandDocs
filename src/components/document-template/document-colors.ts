@@ -1,10 +1,12 @@
-/** Unified orange document template palette — matches reference UI designs */
+import { BrandColors } from "@/theme/tokens";
+
+/** Unified orange document template palette — aligned with BrandDocs brand colors */
 export const DocumentColors = {
-  accent: "#EA580C",
-  accentDark: "#C2410C",
-  accentSoft: "#FFF7ED",
-  accentBorder: "#FFEDD5",
-  accentMuted: "#FED7AA",
+  accent: BrandColors.primary,
+  accentDark: BrandColors.primaryDark,
+  accentSoft: BrandColors.primarySoft,
+  accentBorder: BrandColors.primarySubtle,
+  accentMuted: BrandColors.primarySubtle,
   ink: "#0F172A",
   inkSecondary: "#334155",
   muted: "#475569",
@@ -12,9 +14,9 @@ export const DocumentColors = {
   line: "#E2E8F0",
   lineStrong: "#CBD5E1",
   paper: "#FFFFFF",
-  tableHeaderBg: "#EA580C",
+  tableHeaderBg: BrandColors.primary,
   tableHeaderText: "#FFFFFF",
-  grandTotalBg: "#EA580C",
+  grandTotalBg: BrandColors.primary,
   grandTotalText: "#FFFFFF",
   rowAlt: "#FAFAFA",
 } as const;

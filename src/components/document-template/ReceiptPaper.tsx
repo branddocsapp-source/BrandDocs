@@ -1,6 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
+import { CustomerSuggestField } from "@/components/customer-suggest-field";
 import {
   DocumentBrandHeader,
   DocumentColors,
@@ -10,6 +12,7 @@ import {
   DocumentTaxBar,
   HexagonBadge,
 } from "@/components/document-template";
+import { SavedCustomerProfile } from "@/services/customer-directory";
 import { getPaymentMethodLabel, ReceiptRecord } from "@/services/receipts";
 
 type ReceiptPaperProps = {
@@ -17,10 +20,11 @@ type ReceiptPaperProps = {
   editable?: boolean;
   onFieldChange?: (field: keyof ReceiptRecord, value: any) => void;
   onReceivedFromChange?: (field: keyof ReceiptRecord["receivedFrom"], value: string) => void;
+  onSelectSavedCustomer?: (customer: SavedCustomerProfile) => void;
   isDesktop?: boolean;
 };
 
-export function ReceiptPaper({ receipt, editable = false, onFieldChange, onReceivedFromChange, isDesktop }: ReceiptPaperProps) {
+export function ReceiptPaper({ receipt, editable = false, onFieldChange, onReceivedFromChange, onSelectSavedCustomer, isDesktop }: ReceiptPaperProps) {
   const isPaidReceipt = (receipt.receiptTitle || "").toUpperCase().includes("PAID");
   const currencySymbol = receipt.company.currency === "INR" || !receipt.company.currency ? "₹" : receipt.company.currency;
 
@@ -66,13 +70,22 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
             editable={editable}
             onChangeText={editable ? (v) => setField("receiptDate", v) : undefined}
           />
-          <DocumentMetaField
-            icon="person-outline"
-            label={isPaidReceipt ? "Paid To" : "Received From"}
-            value={receipt.receivedFrom.name}
-            editable={editable}
-            onChangeText={editable ? (v) => setFrom("name", v) : undefined}
-          />
+          <View style={styles.metaFieldRow}>
+            <Ionicons name="person-outline" size={13} color={DocumentColors.accent} style={{ width: 18 }} />
+            <Text style={styles.metaFieldLabel}>{isPaidReceipt ? "Paid To" : "Received From"}</Text>
+            <Text style={styles.metaFieldColon}>:</Text>
+            {editable ? (
+              <CustomerSuggestField
+                value={receipt.receivedFrom.name}
+                onChangeText={(value) => setFrom("name", value)}
+                onSelectCustomer={(customer) => onSelectSavedCustomer?.(customer)}
+                containerStyle={{ flex: 1 }}
+                inputStyle={styles.metaFieldValue}
+              />
+            ) : (
+              <Text style={styles.metaFieldValue}>{receipt.receivedFrom.name}</Text>
+            )}
+          </View>
           <DocumentMetaField
             icon="call-outline"
             label="Mobile No."
@@ -203,6 +216,10 @@ function SummaryLine({ label, value, accent }: { label: string; value: string; a
 const styles = StyleSheet.create({
   bodyRow: { flexDirection: "row", gap: 20, marginTop: 16 },
   metaColumn: { flex: 1 },
+  metaFieldRow: { alignItems: "center", flexDirection: "row", gap: 6, marginBottom: 8, minHeight: 24 },
+  metaFieldLabel: { color: DocumentColors.muted, fontSize: 12, fontWeight: "700", minWidth: 92 },
+  metaFieldColon: { color: DocumentColors.muted, fontSize: 12, fontWeight: "700" },
+  metaFieldValue: { color: DocumentColors.ink, flex: 1, fontSize: 12, fontWeight: "600", minHeight: 22, padding: 0 },
   amountColumn: { gap: 12, width: 280 },
   amountBox: {
     alignItems: "center",

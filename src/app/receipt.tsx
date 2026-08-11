@@ -43,6 +43,7 @@ import {
 import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
 import { ReceiptPaper } from "@/components/document-template/ReceiptPaper";
+import { SavedCustomerProfile } from "@/services/customer-directory";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -152,6 +153,22 @@ export default function ReceiptScreen() {
       ...current,
       receivedFrom: { ...current.receivedFrom, [field]: value }
     } : current));
+  }
+
+  function applySavedCustomer(customer: SavedCustomerProfile) {
+    setDraft((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        receivedFrom: {
+          ...current.receivedFrom,
+          name: customer.name || current.receivedFrom.name,
+          phone: customer.phone || current.receivedFrom.phone,
+          email: customer.email || current.receivedFrom.email,
+          address: customer.address || current.receivedFrom.address,
+        },
+      };
+    });
   }
 
   async function handleDelete(receipt: ReceiptRecord) {
@@ -289,6 +306,7 @@ export default function ReceiptScreen() {
                     isDesktop={isDesktop}
                     onFieldChange={updateDraftField}
                     onReceivedFromChange={updateReceivedFromField}
+                    onSelectSavedCustomer={applySavedCustomer}
                   />
                 </View>
               </View>

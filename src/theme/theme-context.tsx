@@ -1,8 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
 
-export type ThemeMode = "light" | "dark" | "system";
+import { BrandColors } from "@/theme/tokens";
+
+export type ThemeMode = "system";
 
 export type ThemePalette = {
   background: string;
@@ -25,18 +26,18 @@ export type ThemePalette = {
 
 export const lightPalette: ThemePalette = {
   background: "#FBFAF7",
-  white: "#FFFFFF",
-  card: "#FFFFFF",
-  ink: "#191A17",
+  white: BrandColors.background,
+  card: BrandColors.card,
+  ink: BrandColors.text,
   text: "#343631",
-  muted: "#676B63",
-  line: "#E8E5DE",
-  orange: "#F6A21A",
-  orangeDark: "#D98200",
-  orangeSoft: "#FFF7EA",
-  wash: "#F5F4F0",
-  accentSurface: "#FFFBF5",
-  accentBorder: "#FED7AA",
+  muted: BrandColors.textSecondary,
+  line: BrandColors.border,
+  orange: BrandColors.primary,
+  orangeDark: BrandColors.primaryDark,
+  orangeSoft: BrandColors.primarySoft,
+  wash: BrandColors.surface,
+  accentSurface: BrandColors.primarySoft,
+  accentBorder: BrandColors.primarySubtle,
   searchSurface: "#F2F1EC",
   inputSurface: "#FAFAFA",
   infoText: "#7C2D12",
@@ -50,8 +51,8 @@ export const darkPalette: ThemePalette = {
   text: "#C8C3B8",
   muted: "#9C968C",
   line: "#34312D",
-  orange: "#F6A21A",
-  orangeDark: "#FFAA2A",
+  orange: BrandColors.primary,
+  orangeDark: "#FF9533",
   orangeSoft: "#2B2318",
   wash: "#171615",
   accentSurface: "#241C14",
@@ -77,12 +78,6 @@ const ThemeContext = createContext<ThemeContextType>({
   setThemeMode: () => {},
 });
 
-const THEME_STORAGE_KEY = "branddocs.theme_mode";
-
-function isThemeMode(value: string | null): value is ThemeMode {
-  return value === "light" || value === "dark" || value === "system";
-}
-
 function applyWebThemeClass(isDark: boolean) {
   if (typeof document === "undefined") return;
 
@@ -92,65 +87,21 @@ function applyWebThemeClass(isDark: boolean) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useRNColorScheme();
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function hydrateThemeMode() {
-      try {
-        const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        if (isMounted && isThemeMode(saved)) {
-          setThemeModeState(saved);
-        }
-      } catch {
-        // Ignore storage read errors
-      } finally {
-        if (isMounted) setHydrated(true);
-      }
-    }
-
-    hydrateThemeMode();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const isDark = themeMode === "dark" || (themeMode === "system" && systemColorScheme === "dark");
+  const isDark = systemColorScheme === "dark";
   const theme = isDark ? darkPalette : lightPalette;
 
   useEffect(() => {
-    if (!hydrated) return;
     applyWebThemeClass(isDark);
-  }, [hydrated, isDark]);
-
-  async function setThemeMode(mode: ThemeMode) {
-    setThemeModeState(mode);
-    try {
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
-    } catch {
-      // Ignore storage write errors
-    }
-  }
-
-  function toggleTheme() {
-    if (themeMode === "system") {
-      void setThemeMode(isDark ? "light" : "dark");
-      return;
-    }
-    void setThemeMode(isDark ? "light" : "dark");
-  }
+  }, [isDark]);
 
   return (
     <ThemeContext.Provider
       value={{
-        themeMode,
+        themeMode: "system",
         isDark,
         theme,
-        toggleTheme,
-        setThemeMode,
+        toggleTheme: () => {},
+        setThemeMode: () => {},
       }}
     >
       {children}

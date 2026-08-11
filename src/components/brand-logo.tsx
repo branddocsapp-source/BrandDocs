@@ -1,9 +1,9 @@
 import React from "react";
-import { Platform, StyleSheet, View, Pressable, Text } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
-import { useAppTheme } from "@/theme/theme-context";
 import { useRouter } from "expo-router";
+
+import { useAppTheme } from "@/theme/theme-context";
 import { auth } from "@/firebase";
 import { BrandColors } from "@/theme/tokens";
 
@@ -16,12 +16,27 @@ type BrandLogoProps = {
   showTagline?: boolean;
 };
 
-function LogoMark({ size }: { size: number }) {
-  return (
-    <View style={[styles.mark, { width: size, height: size, borderRadius: size * 0.22 }]}>
-      <Ionicons name="document-text" size={Math.round(size * 0.5)} color="#FFFFFF" />
-    </View>
-  );
+const logoAssets = {
+  icon: require("@/assets/images/branddocs-logo-icon.png"),
+  full: require("@/assets/images/branddocs-logo-full.png"),
+  light: require("@/assets/images/branddocs-logo-light.jpg"),
+  dark: require("@/assets/images/branddocs-logo-dark.jpg"),
+};
+
+function getLogoDimensions(size: BrandLogoProps["size"], variant: BrandLogoProps["variant"]) {
+  const isSmall = size === "small";
+  const isLarge = size === "large";
+  const isXLarge = size === "xlarge";
+
+  if (variant === "full") {
+    return {
+      width: isSmall ? 220 : isLarge ? 340 : isXLarge ? 380 : 280,
+      height: isSmall ? 65 : isLarge ? 100 : isXLarge ? 112 : 85,
+    };
+  }
+
+  const markSize = isSmall ? 32 : isLarge ? 44 : isXLarge ? 72 : 38;
+  return { width: markSize, height: markSize };
 }
 
 export function BrandLogo({
@@ -34,16 +49,10 @@ export function BrandLogo({
 }: BrandLogoProps) {
   const { isDark } = useAppTheme();
   const router = useRouter();
-
-  const isSmall = size === "small";
-  const isLarge = size === "large";
   const isXLarge = size === "xlarge";
-
-  const markSize = isSmall ? 32 : isLarge ? 44 : isXLarge ? 72 : 38;
-  const fontSize = isSmall ? 20 : isLarge ? 28 : isXLarge ? 44 : 24;
-  const taglineSize = isXLarge ? 18 : isSmall ? 10 : 11;
-  const inkColor = isDark ? "#FFFFFF" : "#232323";
+  const taglineSize = isXLarge ? 18 : size === "small" ? 10 : 11;
   const mutedColor = isDark ? "#A09D9A" : "#595551";
+  const dimensions = getLogoDimensions(size, variant);
 
   const handlePress = () => {
     if (onPress) {
@@ -54,37 +63,27 @@ export function BrandLogo({
     router.push(target as any);
   };
 
-  const useMark = variant === "mark" || stacked || isXLarge;
+  const logoSource = variant === "full"
+    ? (isDark ? logoAssets.dark : logoAssets.light)
+    : logoAssets.icon;
 
-  const content = useMark ? (
-    <View style={[styles.container, (stacked || isXLarge) && styles.containerStacked, !stacked && !isXLarge && styles.containerRow]}>
-      <LogoMark size={markSize} />
-      <View style={[(stacked || isXLarge) && styles.stackedTextBlock]}>
-        <Text style={[styles.wordmark, { fontSize }]}>
-          <Text style={{ color: BrandColors.primary, fontWeight: "800" }}>Brand</Text>
-          <Text style={{ color: inkColor, fontWeight: "800" }}>Docs</Text>
-        </Text>
-        {(showTagline || isXLarge) ? (
-          <Text style={[styles.tagline, { color: mutedColor, fontSize: taglineSize }]}>
-            {isXLarge ? "Professional documents.\nReady in seconds." : "DOCUMENTS • BRANDING • BUSINESS"}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-  ) : (
-    <View style={styles.container}>
+  const content = (
+    <View style={[styles.container, (stacked || isXLarge) && styles.containerStacked]}>
       <Image
-        source={require("@/assets/images/branddocs-logo-full.png")}
-        style={{
-          width: isSmall ? 220 : isLarge ? 340 : 280,
-          height: isSmall ? 65 : isLarge ? 100 : 85,
-          ...(Platform.OS === "web"
-            ? ({ backgroundColor: "transparent" } as object)
-            : null),
-        }}
+        source={logoSource}
+        style={[
+          dimensions,
+          Platform.OS === "web" ? ({ backgroundColor: "transparent" } as object) : null,
+        ]}
         contentFit="contain"
         transition={0}
+        accessibilityLabel="BrandDocs"
       />
+      {(showTagline || isXLarge) ? (
+        <Text style={[styles.tagline, { color: mutedColor, fontSize: taglineSize }]}>
+          {isXLarge ? "Professional documents.\nReady in seconds." : "DOCUMENTS • BRANDING • BUSINESS"}
+        </Text>
+      ) : null}
     </View>
   );
 
@@ -109,9 +108,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "transparent",
     flexDirection: "row",
-  },
-  containerRow: {
-    alignItems: "center",
     gap: 10,
   },
   containerStacked: {
@@ -119,19 +115,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 16,
     justifyContent: "center",
-  },
-  stackedTextBlock: {
-    alignItems: "center",
-  },
-  mark: {
-    alignItems: "center",
-    backgroundColor: BrandColors.primary,
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  wordmark: {
-    letterSpacing: -0.4,
-    lineHeight: undefined,
   },
   tagline: {
     fontWeight: "600",

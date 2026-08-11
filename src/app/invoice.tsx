@@ -44,6 +44,8 @@ import {
   DocumentSectionTitle,
   DocumentTaxBar,
 } from "@/components/document-template";
+import { CustomerDottedField, CustomerGstinField } from "@/components/customer-suggest-field";
+import { SavedCustomerProfile } from "@/services/customer-directory";
 
 const documentOptions: { type: DocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
@@ -309,6 +311,26 @@ export default function InvoiceScreen() {
     ));
   }
 
+  function applySavedCustomer(customer: SavedCustomerProfile) {
+    setDraftDocument((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        customer: {
+          ...current.customer,
+          name: customer.name || current.customer.name,
+          phone: customer.phone || current.customer.phone,
+          email: customer.email || current.customer.email,
+          address: customer.address || current.customer.address,
+          state: customer.state || current.customer.state,
+          stateCode: customer.stateCode || current.customer.stateCode,
+          pin: customer.pin || current.customer.pin,
+          gstin: customer.gstin || current.customer.gstin,
+        },
+      };
+    });
+  }
+
   function updateBankField(field: keyof InvoiceRecord["bank"], value: string) {
     setDraftDocument((current) => (
       current ? { ...current, bank: { ...current.bank, [field]: value } } : current
@@ -566,14 +588,25 @@ export default function InvoiceScreen() {
                   <View style={styles.partiesGrid}>
                     <View style={styles.partyBox}>
                       <DocumentSectionTitle icon="person-outline" title="BILL TO" />
-                      <DottedField label="Name" value={draftDocument.customer.name} onChangeText={(value) => updateCustomerField("name", value)} />
+                      <CustomerDottedField
+                        label="Name"
+                        value={draftDocument.customer.name}
+                        onChangeText={(value) => updateCustomerField("name", value)}
+                        onSelectCustomer={applySavedCustomer}
+                      />
                       <DottedField label="Address" value={draftDocument.customer.address} onChangeText={(value) => updateCustomerField("address", value)} />
                       <View style={styles.recipientLine}>
                         <DottedField label="State" value={draftDocument.customer.state || ""} onChangeText={(value) => updateCustomerField("state", value)} compact />
                         <DottedField label="State Code" value={draftDocument.customer.stateCode || ""} onChangeText={(value) => updateCustomerField("stateCode", value)} compact />
                         <DottedField label="PIN" value={draftDocument.customer.pin || ""} onChangeText={(value) => updateCustomerField("pin", value)} compact />
                       </View>
-                      {isTaxDocument ? <BoxedGstinField value={draftDocument.customer.gstin || ""} onChangeText={(value) => updateCustomerField("gstin", value)} /> : null}
+                      {isTaxDocument ? (
+                        <CustomerGstinField
+                          value={draftDocument.customer.gstin || ""}
+                          onChangeText={(value) => updateCustomerField("gstin", value)}
+                          onSelectCustomer={applySavedCustomer}
+                        />
+                      ) : null}
                     </View>
                     <View style={styles.partyBox}>
                       <DocumentSectionTitle icon="car-outline" title="SHIP TO" />

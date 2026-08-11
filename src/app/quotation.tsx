@@ -43,6 +43,8 @@ import {
   DocumentSectionTitle,
   DocumentTaxBar,
 } from "@/components/document-template";
+import { CustomerInlineField } from "@/components/customer-suggest-field";
+import { SavedCustomerProfile } from "@/services/customer-directory";
 
 const quotationOptions: { type: QuotationDocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
@@ -263,6 +265,23 @@ export default function QuotationScreen() {
     setDraftQuotation((current) => (current ? { ...current, client: { ...current.client, [field]: value } } : current));
   }
 
+  function applySavedCustomer(customer: SavedCustomerProfile) {
+    setDraftQuotation((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        client: {
+          ...current.client,
+          name: customer.name || current.client.name,
+          companyName: customer.companyName || current.client.companyName,
+          address: customer.address || current.client.address,
+          email: customer.email || current.client.email,
+          phone: customer.phone || current.client.phone,
+        },
+      };
+    });
+  }
+
   function updateItem(itemId: string, field: keyof QuotationItem, value: string) {
     setDraftQuotation((current) => {
       if (!current) return current;
@@ -437,7 +456,13 @@ export default function QuotationScreen() {
                   <View style={styles.clientGrid}>
                     <View style={styles.clientBox}>
                       <DocumentSectionTitle icon="person-outline" title={isTableQuotation ? "QUOTED TO" : "TO"} />
-                      <InlineInput value={draftQuotation.client.name} onChangeText={(value) => updateClientField("name", value)} textStyle={styles.clientName} placeholder="Client Name" />
+                      <CustomerInlineField
+                        value={draftQuotation.client.name}
+                        onChangeText={(value) => updateClientField("name", value)}
+                        onSelectCustomer={applySavedCustomer}
+                        textStyle={styles.clientName}
+                        placeholder="Client Name"
+                      />
                       <InlineInput value={draftQuotation.client.companyName} onChangeText={(value) => updateClientField("companyName", value)} textStyle={styles.mutedInput} placeholder="Client Company" />
                       <InlineInput value={draftQuotation.client.address} onChangeText={(value) => updateClientField("address", value)} textStyle={styles.mutedInput} multiline placeholder="Client Address" />
                       <InlineInput value={draftQuotation.client.email} onChangeText={(value) => updateClientField("email", value)} textStyle={styles.mutedInput} placeholder="Client Email" />

@@ -296,8 +296,8 @@ export default function DashboardScreen() {
       </Pressable>
 
       {/* 2x2 Metrics Cards */}
-      <View style={styles.metricsGrid}>
-        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+      <View style={[styles.metricsGrid, usesSidebar && isWideDesktop && styles.metricsGridWide]}>
+        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(2, 132, 199, 0.16)" : "#E0F2FE" }]}>
             <Ionicons name="document-text" size={20} color="#0284C7" />
           </View>
@@ -306,7 +306,7 @@ export default function DashboardScreen() {
           <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(22, 163, 74, 0.16)" : "#DCFCE7" }]}>
             <Ionicons name="document-text" size={20} color="#16A34A" />
           </View>
@@ -315,7 +315,7 @@ export default function DashboardScreen() {
           <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
           <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(13, 148, 136, 0.16)" : "#CCFBF1" }]}>
             <Ionicons name="document-text-outline" size={20} color="#0D9488" />
           </View>
@@ -324,9 +324,9 @@ export default function DashboardScreen() {
           <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
         </View>
 
-        <View style={[styles.metricCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(246, 162, 26, 0.16)" : "#FFEDD5" }]}>
-            <Ionicons name="scan-outline" size={20} color="#EA580C" />
+        <View style={[styles.metricCard, usesSidebar && isWideDesktop && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
+          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(255, 122, 0, 0.16)" : BrandColors.primarySoft }]}>
+            <Ionicons name="scan-outline" size={20} color={BrandColors.primary} />
           </View>
           <Text style={[styles.metricLabel, { color: theme.muted }]}>Scan Receipts</Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>32</Text>
@@ -339,7 +339,7 @@ export default function DashboardScreen() {
         <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Quick Actions</Text>
       </View>
 
-      <View style={styles.quickActions3x2}>
+      <View style={[styles.quickActions3x2, usesSidebar && isWideDesktop && styles.quickActionsWide]}>
         {[
           { title: "Create Invoice", icon: "document-text", route: "/invoice" },
           { title: "Create Quotation", icon: "document-text", route: "/quotation" },
@@ -353,6 +353,7 @@ export default function DashboardScreen() {
             onPress={() => router.push(appRoute(action.route) as never)}
             style={({ pressed }) => [
               styles.quickActionPill,
+              usesSidebar && isWideDesktop && styles.quickActionPillWide,
               { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder, borderWidth: 1 },
               pressed && { opacity: 0.75 },
             ]}
@@ -657,7 +658,7 @@ const styles = StyleSheet.create({
   businessProfileSubtitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#EA580C",
+    color: BrandColors.primary,
     marginTop: 2,
   },
   metricsGrid: {
@@ -666,12 +667,20 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 24,
   },
+  metricsGridWide: {
+    flexWrap: "nowrap",
+  },
   metricCard: {
     width: "48%",
     padding: 14,
     borderRadius: 18,
     borderWidth: 1,
     gap: 4,
+  },
+  metricCardWide: {
+    flex: 1,
+    minWidth: 0,
+    width: "auto",
   },
   metricIconBox: {
     width: 36,
@@ -712,6 +721,9 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 24,
   },
+  quickActionsWide: {
+    flexWrap: "nowrap",
+  },
   quickActionPill: {
     width: "31.5%",
     paddingVertical: 14,
@@ -720,6 +732,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
+  },
+  quickActionPillWide: {
+    flex: 1,
+    minWidth: 0,
+    width: "auto",
   },
   quickActionLabel: {
     fontSize: 11.5,

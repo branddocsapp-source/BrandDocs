@@ -5,22 +5,15 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-nativ
 import { signOut } from "firebase/auth";
 
 import { AppShell, PrimaryButton, SecondaryButton } from "@/components/ui/branddocs";
-import { ThemeModeSelector } from "@/components/ui/theme-mode-selector";
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
-import { ThemeMode, useAppTheme } from "@/theme/theme-context";
+import { useAppTheme } from "@/theme/theme-context";
 import { BrandColors } from "@/theme/tokens";
-
-const APPEARANCE_OPTIONS: Array<{ mode: ThemeMode; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
-  { mode: "light", label: "Light", icon: "sunny-outline" },
-  { mode: "dark", label: "Dark", icon: "moon-outline" },
-  { mode: "system", label: "System Default", icon: "phone-portrait-outline" },
-];
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { isAppPreview } = useResponsiveLayout();
-  const { isDark, theme, themeMode, setThemeMode } = useAppTheme();
+  const { isDark, theme } = useAppTheme();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const [taxModalVisible, setTaxModalVisible] = useState(false);
@@ -57,7 +50,7 @@ export default function SettingsScreen() {
       title: "Business Details",
       subtitle: "Update business name, address, logo",
       icon: "business-outline",
-      iconBg: isDark ? "rgba(246, 162, 26, 0.16)" : "#FFEDD5",
+      iconBg: isDark ? "rgba(255, 122, 0, 0.16)" : BrandColors.primarySoft,
       iconColor: BrandColors.primary,
       action: () => router.push(appRoute("/business-setup") as never),
     },
@@ -92,41 +85,6 @@ export default function SettingsScreen() {
       <View style={{ marginBottom: 20 }}>
         <Text style={[styles.pageTitleText, { color: theme.ink }]}>Settings</Text>
         <Text style={[styles.pageSubtitleText, { color: theme.muted }]}>Manage your application preferences</Text>
-      </View>
-
-      <View style={[styles.appearanceCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
-        <View style={styles.appearanceHeader}>
-          <View>
-            <Text style={[styles.appearanceTitle, { color: theme.ink }]}>Appearance</Text>
-            <Text style={[styles.appearanceSubtitle, { color: theme.muted }]}>
-              Match your device or choose light and dark manually.
-            </Text>
-          </View>
-          <ThemeModeSelector compact />
-        </View>
-
-        <View style={styles.appearanceOptions}>
-          {APPEARANCE_OPTIONS.map((option) => {
-            const selected = themeMode === option.mode;
-            return (
-              <Pressable
-                key={option.mode}
-                onPress={() => setThemeMode(option.mode)}
-                style={({ pressed }) => [
-                  styles.appearanceOption,
-                  {
-                    backgroundColor: selected ? theme.orangeSoft : theme.background,
-                    borderColor: selected ? BrandColors.primary : theme.line,
-                  },
-                  pressed && { opacity: 0.85 },
-                ]}
-              >
-                <Ionicons name={option.icon} size={18} color={selected ? BrandColors.primary : theme.muted} />
-                <Text style={[styles.appearanceOptionText, { color: selected ? theme.ink : theme.text }]}>{option.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
       </View>
 
       <View style={styles.settingsStack}>
@@ -199,45 +157,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 4,
   },
-  appearanceCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    gap: 14,
-    marginBottom: 20,
-    padding: 16,
-  },
-  appearanceHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  appearanceTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  appearanceSubtitle: {
-    fontSize: 12.5,
-    fontWeight: "500",
-    marginTop: 2,
-  },
-  appearanceOptions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  appearanceOption: {
-    alignItems: "center",
-    borderRadius: 999,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  appearanceOptionText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
   settingsStack: {
     gap: 12,
     marginBottom: 24,
@@ -251,15 +170,15 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   settingIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
     alignItems: "center",
+    borderRadius: 14,
+    height: 44,
     justifyContent: "center",
+    width: 44,
   },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
   settingSubtitle: {
     fontSize: 12.5,
@@ -267,34 +186,31 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logoutButton: {
-    flexDirection: "row",
     alignItems: "center",
+    borderRadius: 18,
+    flexDirection: "row",
+    gap: 10,
     justifyContent: "center",
     paddingVertical: 16,
-    borderRadius: 18,
-    gap: 10,
-    marginTop: 8,
-    marginBottom: 24,
   },
   logoutText: {
-    fontSize: 16,
-    fontWeight: "800",
     color: "#DC2626",
+    fontSize: 15,
+    fontWeight: "800",
   },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.45)",
+    flex: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: 24,
   },
   modalCard: {
-    width: "100%",
+    borderRadius: 18,
+    borderWidth: 1,
     maxWidth: 400,
     padding: 20,
-    borderRadius: 20,
-    gap: 12,
-    borderWidth: 1,
+    width: "100%",
   },
   modalTitle: {
     fontSize: 18,
@@ -302,19 +218,20 @@ const styles = StyleSheet.create({
   },
   modalSubtitle: {
     fontSize: 13,
-    fontWeight: "500",
+    marginBottom: 14,
+    marginTop: 4,
   },
   modalInput: {
-    borderWidth: 1,
     borderRadius: 12,
-    padding: 12,
-    fontSize: 15,
-    marginTop: 8,
+    borderWidth: 1,
+    fontSize: 14,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   modalActions: {
     flexDirection: "row",
-    justifyContent: "flex-end",
     gap: 10,
-    marginTop: 12,
+    justifyContent: "flex-end",
   },
 });
