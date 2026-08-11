@@ -63,14 +63,15 @@ export function PrivacySecurityScreen() {
 }
 
 export function PrivacyConsentCenterScreen() {
+  const { theme } = useAppTheme();
   return (
     <ScreenShell title="Privacy & Consent Center" subtitle="Optional controls are off by default and can be withdrawn at any time. Permission prompts remain contextual.">
       <ConsentControls />
-      <View style={styles.noteCard}>
-        <Text style={styles.noteTitle}>Contextual Permissions</Text>
-        <Text style={styles.noteText}>Location, camera, photo library, notifications and tracking are not requested automatically. They must wait for a relevant feature and explanatory screen.</Text>
+      <View style={[styles.noteCard, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <Text style={[styles.noteTitle, { color: theme.ink }]}>Contextual Permissions</Text>
+        <Text style={[styles.noteText, { color: theme.muted }]}>Location, camera, photo library, notifications and tracking are not requested automatically. They must wait for a relevant feature and explanatory screen.</Text>
       </View>
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}>
         <ActionRow title="Location Access" subtitle="Not requested. Future location features must ask contextually first." icon="location-outline" onPress={() => showComingSoon("Location Access")} />
         <ActionRow title="Camera Access" subtitle="Requested only when opening Receipt Scanner." icon="camera-outline" onPress={() => router.push("/scan-receipt" as never)} />
         <ActionRow title="Photo Library Access" subtitle="Requested only when selecting an upload." icon="image-outline" onPress={() => router.push({ pathname: "/business-setup", params: { mode: "edit" } } as never)} />
@@ -81,9 +82,10 @@ export function PrivacyConsentCenterScreen() {
 }
 
 export function SecuritySettingsScreen() {
+  const { theme } = useAppTheme();
   return (
     <ScreenShell title="Security" subtitle="Security controls and backend-safe placeholders. No secrets, tokens or credentials are shown.">
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}>
         <ActionRow title="Change Password" subtitle="Use password reset until in-app change password is configured." icon="key-outline" onPress={() => router.push("/forgot-password" as never)} />
         <ActionRow title="Two-Factor Authentication" subtitle="Coming in Commercial Version." icon="lock-closed-outline" onPress={() => showComingSoon("Two-Factor Authentication")} />
         <ActionRow title="Active Sessions" subtitle="Coming in Commercial Version." icon="desktop-outline" onPress={() => showComingSoon("Active Sessions")} />
