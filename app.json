@@ -4,18 +4,17 @@
     "slug": "BrandDocs",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/branddocs-logo-icon.png",
     "scheme": "branddocs",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.branddocs.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#0A0A0A",
+        "foregroundImage": "./assets/images/branddocs-logo-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -28,9 +27,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#0A0A0A",
+          "image": "./assets/images/branddocs-logo-dark.jpg",
+          "imageWidth": 220
         }
       ],
       "expo-image",
