@@ -31,7 +31,7 @@ export function BrandLogo({
   onPress,
   disableNavigation = false,
 }: BrandLogoProps) {
-  const { isDark, theme } = useAppTheme();
+  const { isDark } = useAppTheme();
   const router = useRouter();
   const stackSize = brandStackSizes[size];
 
@@ -45,13 +45,7 @@ export function BrandLogo({
   };
 
   const content = (
-    <View
-      style={[
-        styles.stackWrap,
-        align === "left" ? styles.alignLeft : styles.alignCenter,
-        { backgroundColor: theme.background },
-      ]}
-    >
+    <View style={[styles.stackWrap, align === "left" ? styles.alignLeft : styles.alignCenter]}>
       <Image
         source={isDark ? logoAssets.brandDark : logoAssets.brandLight}
         style={[
