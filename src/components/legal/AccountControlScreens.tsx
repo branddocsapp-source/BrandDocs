@@ -44,9 +44,10 @@ function ActionRow({ title, subtitle, icon, onPress }: { title: string; subtitle
 }
 
 export function PrivacySecurityScreen() {
+  const { theme } = useAppTheme();
   return (
     <ScreenShell title="Privacy & Security" subtitle="Manage consent, privacy rights, security settings and account controls.">
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}>
         <ActionRow title="Privacy & Consent Center" subtitle="Withdraw optional consent and marketing preferences." icon="shield-checkmark-outline" onPress={() => router.push("/privacy-consent" as never)} />
         <ActionRow title="View My Data" subtitle="Open profile, company and document areas you can review." icon="eye-outline" onPress={() => router.push("/profile" as never)} />
         <ActionRow title="Export My Data" subtitle="Request a data export record." icon="download-outline" onPress={() => router.push("/data-export" as never)} />

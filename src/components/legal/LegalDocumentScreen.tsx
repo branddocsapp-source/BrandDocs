@@ -60,20 +60,25 @@ export function LegalDocumentScreen({ document }: { document: LegalDocument }) {
 }
 
 export function LegalCenterScreen() {
-  const { theme } = useAppTheme();
+  const { isDark, theme } = useAppTheme();
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.headerRow}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="chevron-back" size={19} color={BrandColors.text} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={[styles.backButton, { backgroundColor: theme.card, borderColor: theme.line }]}
+            >
+              <Ionicons name="chevron-back" size={19} color={theme.ink} />
             </Pressable>
           </View>
-          <View style={styles.hero}>
+          <View style={[styles.hero, { borderBottomColor: theme.line }]}>
             <Text style={styles.badge}>Draft - Legal Review Required</Text>
-            <Text accessibilityRole="header" style={styles.title}>Legal & Privacy Center</Text>
-            <Text style={styles.summary}>
+            <Text accessibilityRole="header" style={[styles.title, { color: theme.ink }]}>Legal & Privacy Center</Text>
+            <Text style={[styles.summary, { color: theme.muted }]}>
               Central access to BrandDocs draft legal, privacy, security, export and account-control documents.
             </Text>
           </View>
@@ -83,13 +88,17 @@ export function LegalCenterScreen() {
                 accessibilityRole="link"
                 key={item.key}
                 onPress={() => router.push(item.route as never)}
-                style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.card,
+                  { backgroundColor: theme.card, borderColor: theme.line },
+                  pressed && styles.pressed,
+                ]}
               >
-                <View style={styles.cardIcon}>
+                <View style={[styles.cardIcon, { backgroundColor: theme.orangeSoft }]}>
                   <Ionicons name="document-text-outline" size={20} color={BrandColors.primary} />
                 </View>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardText}>{item.summary}</Text>
+                <Text style={[styles.cardTitle, { color: theme.ink }]}>{item.title}</Text>
+                <Text style={[styles.cardText, { color: theme.muted }]}>{item.summary}</Text>
                 <Text style={styles.cardMeta}>Version {item.version}</Text>
               </Pressable>
             ))}
