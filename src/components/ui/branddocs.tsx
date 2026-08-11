@@ -546,12 +546,6 @@ export function QuickAccessDrawer({
         <Animated.View entering={FadeIn.duration(200)} style={[styles.drawerContent, { backgroundColor: theme.card, borderColor: theme.line }]}>
           {/* Drawer Header */}
           <View style={[styles.drawerHeader, { borderBottomColor: theme.line }]}>
-            <View style={styles.drawerHeaderTop}>
-              <BrandLogo size="small" align="left" disableNavigation />
-              <Pressable onPress={onClose} style={[styles.drawerCloseBtn, { backgroundColor: theme.line }]}>
-                <Ionicons name="close" size={18} color={theme.ink} />
-              </Pressable>
-            </View>
             <View style={styles.drawerUserRow}>
               <View style={[styles.avatarButton, { width: 42, height: 42, borderRadius: 21 }]}>
                 {profile?.branding?.logoUrl ? (
@@ -569,6 +563,9 @@ export function QuickAccessDrawer({
                 </Text>
               </View>
             </View>
+            <Pressable onPress={onClose} style={[styles.drawerCloseBtn, { backgroundColor: theme.line }]}>
+              <Ionicons name="close" size={18} color={theme.ink} />
+            </Pressable>
           </View>
 
           {/* Quick Access Action Items */}
@@ -1423,14 +1420,12 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   drawerHeader: {
-    gap: 14,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-  },
-  drawerHeaderTop: {
     alignItems: "center",
+    borderBottomWidth: 1,
     flexDirection: "row",
+    gap: 12,
     justifyContent: "space-between",
+    paddingBottom: 16,
   },
   drawerUserRow: {
     flexDirection: "row",
