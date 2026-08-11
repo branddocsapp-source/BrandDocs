@@ -126,11 +126,11 @@ export function searchSavedCustomers(customers: SavedCustomerProfile[], query: s
 
   return customers
     .filter((customer) => {
-      const name = customer.name.toLowerCase();
-      const company = customer.companyName.toLowerCase();
-      const gstin = customer.gstin.toLowerCase();
-      const phone = customer.phone.replace(/\D/g, "");
-      const email = customer.email.toLowerCase();
+      const name = (customer.name || "").toLowerCase();
+      const company = (customer.companyName || "").toLowerCase();
+      const gstin = (customer.gstin || "").toLowerCase();
+      const phone = (customer.phone || "").replace(/\D/g, "");
+      const email = (customer.email || "").toLowerCase();
       const queryDigits = normalizedQuery.replace(/\D/g, "");
 
       return (

@@ -390,11 +390,11 @@ export function PageHeader({
 }
 
 export function AppLogo({ compact }: { compact?: boolean }) {
-  return <BrandLogo size={compact ? "small" : "medium"} />;
+  return <BrandLogo size={compact ? "small" : "medium"} variant={compact ? "mark" : "full"} disableNavigation />;
 }
 
 export function MobileHeaderLogo() {
-  return <BrandLogo size="small" />;
+  return <BrandLogo size="small" variant="mark" disableNavigation />;
 }
 
 export function TipCard({ text }: { text: string }) {

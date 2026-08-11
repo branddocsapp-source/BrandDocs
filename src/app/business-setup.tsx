@@ -190,8 +190,8 @@ export default function BusinessSetupScreen() {
     }
   }
 
-  const filteredCountries = COUNTRY_OPTIONS.filter((c) =>
-    c.country.toLowerCase().includes(countrySearch.toLowerCase())
+  const filteredCountries = COUNTRY_OPTIONS.filter((option) =>
+    option.country.toLowerCase().includes(countrySearch.trim().toLowerCase())
   );
 
   if (showSuccess) {

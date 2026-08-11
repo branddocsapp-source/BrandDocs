@@ -842,15 +842,15 @@ export default function PreviewScreen() {
 function HexagonLogo({ size = 48 }: { size?: number }) {
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-      <Ionicons name="document-text" size={size * 0.7} color="DocumentColors.accent" />
+      <Ionicons name="document-text" size={size * 0.7} color={DocumentColors.accent} />
     </View>
   );
 }
 
 function HexagonBadge({ text }: { text: string }) {
   return (
-    <View style={{ borderWidth: 1.5, borderColor: "DocumentColors.accent", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, alignItems: "center", justifyContent: "center" }}>
-      <Text style={{ fontSize: 14, fontWeight: "800", color: "DocumentColors.accent" }}>{text}</Text>
+    <View style={{ borderWidth: 1.5, borderColor: DocumentColors.accent, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, alignItems: "center", justifyContent: "center" }}>
+      <Text style={{ fontSize: 14, fontWeight: "800", color: DocumentColors.accent }}>{text}</Text>
     </View>
   );
 }
@@ -878,13 +878,13 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
           </View>
           <View style={{ width: 1, backgroundColor: "#E2E8F0", marginHorizontal: 16 }} />
           <View style={{ width: 220, gap: 4 }}>
-            <Text style={{ fontSize: 11, color: "DocumentColors.accent", fontWeight: "700" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{receipt.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
-            <Text style={{ fontSize: 11, color: "DocumentColors.accent", fontWeight: "700" }}>PAN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).pan || "ABCDE1234F"}</Text></Text>
-            <Text style={{ fontSize: 11, color: "DocumentColors.accent", fontWeight: "700" }}>CIN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).cin || "U74999MH2020PTC123456"}</Text></Text>
+            <Text style={{ fontSize: 11, color: DocumentColors.accent, fontWeight: "700" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{receipt.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+            <Text style={{ fontSize: 11, color: DocumentColors.accent, fontWeight: "700" }}>PAN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).pan || "ABCDE1234F"}</Text></Text>
+            <Text style={{ fontSize: 11, color: DocumentColors.accent, fontWeight: "700" }}>CIN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).cin || "U74999MH2020PTC123456"}</Text></Text>
             
             <View style={{ marginTop: 16, alignItems: "flex-end" }}>
               <Text style={{ fontSize: 16, fontWeight: "900", color: "#0F172A" }}>MONEY PAID</Text>
-              <Text style={{ fontSize: 26, fontWeight: "900", color: "DocumentColors.accent", letterSpacing: -0.5 }}>RECEIPT</Text>
+              <Text style={{ fontSize: 26, fontWeight: "900", color: DocumentColors.accent, letterSpacing: -0.5 }}>RECEIPT</Text>
               <Text style={{ fontSize: 12, fontWeight: "700", color: "#475569", marginTop: 2 }}>(Payment Made)</Text>
               <View style={{ marginTop: 6 }}>
                 <HexagonBadge text={currencySymbol} />
@@ -934,7 +934,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
           {/* Amount Box Right */}
           <View style={{ width: 280, gap: 12 }}>
             <View style={{ backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FFEDD5", borderRadius: 16, padding: 20, alignItems: "center" }}>
-              <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", textTransform: "uppercase" }}>PAID THE SUM OF</Text>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, textTransform: "uppercase" }}>PAID THE SUM OF</Text>
               <Text style={{ fontSize: 32, fontWeight: "900", color: "#0F172A", marginVertical: 8 }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
               <Text style={{ fontSize: 12, fontWeight: "600", color: "#475569", textAlign: "center" }}>({receipt.amountInWords || "Rupees Five Thousand Only"})</Text>
             </View>
@@ -942,7 +942,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
             {/* Payment Details Table */}
             <View style={{ borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, overflow: "hidden" }}>
               <View style={{ backgroundColor: "#FFF7ED", padding: 8, alignItems: "center" }}>
-                <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent" }}>PAYMENT DETAILS</Text>
+                <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent }}>PAYMENT DETAILS</Text>
               </View>
               <View style={{ padding: 10, gap: 6 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -955,8 +955,8 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
                 </View>
                 <View style={{ height: 1, backgroundColor: "#E2E8F0" }} />
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Text style={{ fontSize: 12, fontWeight: "800", color: "DocumentColors.accent" }}>TOTAL AMOUNT PAID</Text>
-                  <Text style={{ fontSize: 13, fontWeight: "900", color: "DocumentColors.accent" }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "800", color: DocumentColors.accent }}>TOTAL AMOUNT PAID</Text>
+                  <Text style={{ fontSize: 13, fontWeight: "900", color: DocumentColors.accent }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
                 </View>
               </View>
             </View>
@@ -965,7 +965,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
 
         {/* Confirmation Statement Box */}
         <View style={{ marginTop: 20, backgroundColor: "#FAFAFA", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, padding: 14 }}>
-          <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", marginBottom: 4 }}>📜 RECEIVED WITH THANKS</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>📜 RECEIVED WITH THANKS</Text>
           <Text style={{ fontSize: 12, color: "#334155", lineHeight: 18 }}>
             I, the undersigned, hereby confirm that I have received the sum of {currencySymbol} {receipt.amount.toFixed(2)} ({receipt.amountInWords || "Rupees Five Thousand Only"}) from {receipt.company.name} towards {receipt.notes || "Labour Payment"} on the date mentioned above.
           </Text>
@@ -997,16 +997,16 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
 
         {/* Notes Box */}
         <View style={{ marginTop: 20, backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FED7AA", borderRadius: 12, padding: 12 }}>
-          <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", marginBottom: 4 }}>NOTES:</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>NOTES:</Text>
           <Text style={{ fontSize: 11, color: "#7C2D12" }}>• This is a payment made receipt.</Text>
           <Text style={{ fontSize: 11, color: "#7C2D12" }}>• This does not require any stamp or signature.</Text>
           <Text style={{ fontSize: 11, color: "#7C2D12" }}>• Keep this receipt safely for your records.</Text>
         </View>
 
         {/* Bottom Footer Bar */}
-        <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "DocumentColors.accent", paddingTop: 12, alignItems: "center", gap: 4 }}>
+        <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: DocumentColors.accent, paddingTop: 12, alignItems: "center", gap: 4 }}>
           <Text style={{ fontSize: 11, color: "#475569" }}>📞 {receipt.company.phone}   |   ✉️ {receipt.company.email}   |   🌐 {receipt.company.website}</Text>
-          <Text style={{ fontSize: 12, fontWeight: "800", color: "DocumentColors.accent" }}>Thank you for your business!</Text>
+          <Text style={{ fontSize: 12, fontWeight: "800", color: DocumentColors.accent }}>Thank you for your business!</Text>
         </View>
       </View>
     );
@@ -1030,13 +1030,13 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
         </View>
         <View style={{ width: 1, backgroundColor: "#E2E8F0", marginHorizontal: 16 }} />
         <View style={{ width: 220, gap: 4 }}>
-          <Text style={{ fontSize: 11, color: "DocumentColors.accent", fontWeight: "700" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{receipt.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
-          <Text style={{ fontSize: 11, color: "DocumentColors.accent", fontWeight: "700" }}>PAN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).pan || "ABCDE1234F"}</Text></Text>
-          <Text style={{ fontSize: 11, color: "DocumentColors.accent", fontWeight: "700" }}>CIN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).cin || "U74999MH2020PTC123456"}</Text></Text>
+          <Text style={{ fontSize: 11, color: DocumentColors.accent, fontWeight: "700" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{receipt.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+          <Text style={{ fontSize: 11, color: DocumentColors.accent, fontWeight: "700" }}>PAN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).pan || "ABCDE1234F"}</Text></Text>
+          <Text style={{ fontSize: 11, color: DocumentColors.accent, fontWeight: "700" }}>CIN    : <Text style={{ color: "#0F172A" }}>{(receipt.company as any).cin || "U74999MH2020PTC123456"}</Text></Text>
 
           <View style={{ marginTop: 16, alignItems: "flex-end" }}>
             <Text style={{ fontSize: 16, fontWeight: "900", color: "#0F172A" }}>MONEY RECEIVED</Text>
-            <Text style={{ fontSize: 26, fontWeight: "900", color: "DocumentColors.accent", letterSpacing: -0.5 }}>RECEIPT</Text>
+            <Text style={{ fontSize: 26, fontWeight: "900", color: DocumentColors.accent, letterSpacing: -0.5 }}>RECEIPT</Text>
             <View style={{ marginTop: 6 }}>
               <HexagonBadge text={currencySymbol} />
             </View>
@@ -1085,7 +1085,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
         {/* Right Highlight & Breakdown Box */}
         <View style={{ width: 280, gap: 12 }}>
           <View style={{ backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FFEDD5", borderRadius: 16, padding: 20, alignItems: "center" }}>
-            <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", textTransform: "uppercase" }}>RECEIVED THE SUM OF</Text>
+            <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, textTransform: "uppercase" }}>RECEIVED THE SUM OF</Text>
             <Text style={{ fontSize: 30, fontWeight: "900", color: "#0F172A", marginVertical: 8 }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
             <Text style={{ fontSize: 11, fontWeight: "600", color: "#475569", textAlign: "center" }}>({receipt.amountInWords || "Rupees Fifteen Thousand Three Hundred Only"})</Text>
           </View>
@@ -1093,7 +1093,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
           {/* Payment Breakdown Table */}
           <View style={{ borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, overflow: "hidden" }}>
             <View style={{ backgroundColor: "#FFF7ED", padding: 8, alignItems: "center" }}>
-              <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent" }}>DETAILS OF PAYMENT</Text>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent }}>DETAILS OF PAYMENT</Text>
             </View>
             <View style={{ padding: 10, gap: 6 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -1110,8 +1110,8 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
               </View>
               <View style={{ height: 1, backgroundColor: "#E2E8F0" }} />
               <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent" }}>TOTAL AMOUNT RECEIVED</Text>
-                <Text style={{ fontSize: 13, fontWeight: "900", color: "DocumentColors.accent" }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+                <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent }}>TOTAL AMOUNT RECEIVED</Text>
+                <Text style={{ fontSize: 13, fontWeight: "900", color: DocumentColors.accent }}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
               </View>
             </View>
           </View>
@@ -1120,7 +1120,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
 
       {/* On Account Of Box */}
       <View style={{ marginTop: 20, backgroundColor: "#FAFAFA", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, padding: 14 }}>
-        <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", marginBottom: 4 }}>📄 ON ACCOUNT OF</Text>
+        <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>📄 ON ACCOUNT OF</Text>
         <Text style={{ fontSize: 12, color: "#334155" }}>
           Payment received against Invoice No. {receipt.paymentReference || "INV-2024-0158"} towards supply of goods.
         </Text>
@@ -1129,7 +1129,7 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
       {/* Signatures & Cursive Thank You */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 28, alignItems: "flex-end" }}>
         <View>
-          <Text style={{ fontSize: 22, fontWeight: "700", color: "DocumentColors.accent", fontStyle: "italic" }}>Thank You!</Text>
+          <Text style={{ fontSize: 22, fontWeight: "700", color: DocumentColors.accent, fontStyle: "italic" }}>Thank You!</Text>
           <Text style={{ fontSize: 12, fontWeight: "600", color: "#475569" }}>For your payment.</Text>
         </View>
 
@@ -1147,9 +1147,9 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
       </View>
 
       {/* Bottom Footer Bar */}
-      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "DocumentColors.accent", paddingTop: 12, alignItems: "center", gap: 4 }}>
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: DocumentColors.accent, paddingTop: 12, alignItems: "center", gap: 4 }}>
         <Text style={{ fontSize: 11, color: "#475569" }}>📞 {receipt.company.phone}   |   ✉️ {receipt.company.email}   |   🌐 {receipt.company.website}</Text>
-        <Text style={{ fontSize: 12, fontWeight: "800", color: "DocumentColors.accent" }}>Thank you for your business!</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: DocumentColors.accent }}>Thank you for your business!</Text>
       </View>
     </View>
   );
@@ -1300,7 +1300,7 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
         </View>
 
         <View style={{ width: 240, alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 24, fontWeight: "900", color: "DocumentColors.accent", letterSpacing: -0.5 }}>TABLE QUOTATION</Text>
+          <Text style={{ fontSize: 24, fontWeight: "900", color: DocumentColors.accent, letterSpacing: -0.5 }}>TABLE QUOTATION</Text>
           <View style={{ marginTop: 8, gap: 3, alignItems: "flex-end" }}>
             <Text style={{ fontSize: 11, color: "#475569" }}>Quotation No.  :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>{quotation.quotationNumber}</Text></Text>
             <Text style={{ fontSize: 11, color: "#475569" }}>Date                 :  <Text style={{ fontWeight: "700", color: "#0F172A" }}>{quotation.quotationDate}</Text></Text>
@@ -1313,22 +1313,22 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
 
       {/* Tax Bar */}
       <View style={{ flexDirection: "row", justifyContent: "space-around", backgroundColor: "#FFF7ED", paddingVertical: 6, marginVertical: 12, borderRadius: 8 }}>
-        <Text style={{ fontSize: 11, fontWeight: "700", color: "DocumentColors.accent" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{quotation.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
-        <Text style={{ fontSize: 11, fontWeight: "700", color: "DocumentColors.accent" }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
-        <Text style={{ fontSize: 11, fontWeight: "700", color: "DocumentColors.accent" }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>GSTIN : <Text style={{ color: "#0F172A" }}>{quotation.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
       </View>
 
       {/* Quoted To & Subject Block */}
       <View style={{ flexDirection: "row", gap: 20, marginVertical: 10 }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent" }}>👤 QUOTED TO</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent }}>👤 QUOTED TO</Text>
           <Text style={{ fontSize: 14, fontWeight: "800", color: "#0F172A" }}>{quotation.client.name || "Rahul Traders"}</Text>
           <Text style={{ fontSize: 11, color: "#475569" }}>{quotation.client.address || "456, Market Road, Pune - 411001"}</Text>
           <Text style={{ fontSize: 11, color: "#475569" }}>GSTIN : 27ABCDE1234F1Z5</Text>
         </View>
 
         <View style={{ flex: 1.2, gap: 4 }}>
-          <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent" }}>📝 SUBJECT</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent }}>📝 SUBJECT</Text>
           <Text style={{ fontSize: 13, fontWeight: "700", color: "#0F172A" }}>{quotation.subject || "Quotation for Office Stationery & Related Products"}</Text>
           <Text style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>Dear Sir/Madam,</Text>
           <Text style={{ fontSize: 11, color: "#475569" }}>Thank you for your enquiry. Please find below our best offer for the required products / services as per your requirements.</Text>
@@ -1336,8 +1336,8 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
       </View>
 
       {/* Table with Solid Orange Header */}
-      <View style={{ marginTop: 14, borderWidth: 1, borderColor: "DocumentColors.accent", borderRadius: 8, overflow: "hidden" }}>
-        <View style={{ flexDirection: "row", backgroundColor: "DocumentColors.accent", paddingVertical: 8, paddingHorizontal: 6 }}>
+      <View style={{ marginTop: 14, borderWidth: 1, borderColor: DocumentColors.accent, borderRadius: 8, overflow: "hidden" }}>
+        <View style={{ flexDirection: "row", backgroundColor: DocumentColors.accent, paddingVertical: 8, paddingHorizontal: 6 }}>
           <Text style={{ width: 30, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>#</Text>
           <Text style={{ flex: 2, fontSize: 10, fontWeight: "800", color: "#FFFFFF" }}>DESCRIPTION OF GOODS / SERVICES</Text>
           <Text style={{ width: 70, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>HSN/SAC</Text>
@@ -1377,7 +1377,7 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>CGST @ 9%</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(totals.subtotal * 0.09).toFixed(2)}</Text></View>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 11, color: "#475569" }}>SGST @ 9%</Text><Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>{currencySymbol} {(totals.subtotal * 0.09).toFixed(2)}</Text></View>
           </View>
-          <View style={{ backgroundColor: "DocumentColors.accent", padding: 8, flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ backgroundColor: DocumentColors.accent, padding: 8, flexDirection: "row", justifyContent: "space-between" }}>
             <Text style={{ fontSize: 12, fontWeight: "900", color: "#FFFFFF" }}>GRAND TOTAL</Text>
             <Text style={{ fontSize: 13, fontWeight: "900", color: "#FFFFFF" }}>{currencySymbol} {(totals.subtotal * 1.18).toFixed(2)}</Text>
           </View>
@@ -1387,14 +1387,14 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
       {/* Terms & Conditions & Signatures */}
       <View style={{ flexDirection: "row", gap: 16, marginTop: 20 }}>
         <View style={{ flex: 1, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, padding: 12 }}>
-          <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", marginBottom: 4 }}>📜 TERMS & CONDITIONS</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>📜 TERMS & CONDITIONS</Text>
           <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>1. This quotation is valid up to {quotation.validUntil}.</Text>
           <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>2. Prices are inclusive of all applicable taxes.</Text>
           <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>3. Delivery will be within 5 to 7 working days from date of confirmation.</Text>
         </View>
 
         <View style={{ flex: 1, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, padding: 12 }}>
-          <Text style={{ fontSize: 11, fontWeight: "800", color: "DocumentColors.accent", marginBottom: 4 }}>📝 NOTES</Text>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>📝 NOTES</Text>
           <Text style={{ fontSize: 11, color: "#64748B" }}>{quotation.notes || "Add notes or special instructions here..."}</Text>
         </View>
       </View>
@@ -1411,9 +1411,9 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
       </View>
 
       {/* Bottom Footer Bar */}
-      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "DocumentColors.accent", paddingTop: 12, alignItems: "center", gap: 4 }}>
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: DocumentColors.accent, paddingTop: 12, alignItems: "center", gap: 4 }}>
         <Text style={{ fontSize: 11, color: "#475569" }}>📞 {quotation.company.phone}   |   ✉️ {quotation.company.email}   |   🌐 {quotation.company.website}</Text>
-        <Text style={{ fontSize: 12, fontWeight: "800", color: "DocumentColors.accent" }}>Thank you for your business!</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: DocumentColors.accent }}>Thank you for your business!</Text>
       </View>
     </View>
   );
@@ -1451,12 +1451,12 @@ function LetterheadPreview({ letterhead, isDesktop }: { letterhead: LetterheadRe
       {/* Sub-header Bar with Tax Badges */}
       {isTemplate1 ? (
         <View style={{ flexDirection: "row", justifyContent: "space-around", backgroundColor: "#FFF7ED", paddingVertical: 6, marginVertical: 12, borderRadius: 8 }}>
-          <Text style={{ fontSize: 11, fontWeight: "700", color: "DocumentColors.accent" }}>GSTIN : <Text style={{ color: "#0F172A" }}>{letterhead.company.taxNumber || "27ABCDE1234F1Z5"}</Text></Text>
-          <Text style={{ fontSize: 11, fontWeight: "700", color: "DocumentColors.accent" }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
-          <Text style={{ fontSize: 11, fontWeight: "700", color: "DocumentColors.accent" }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>GSTIN : <Text style={{ color: "#0F172A" }}>{letterhead.company.taxNumber || "27ABCDE1234F1Z5"}</Text></Text>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
         </View>
       ) : (
-        <View style={{ height: 3, backgroundColor: "DocumentColors.accent", marginVertical: 12 }} />
+        <View style={{ height: 3, backgroundColor: DocumentColors.accent, marginVertical: 12 }} />
       )}
 
       {/* Document Body Area */}
@@ -1467,9 +1467,9 @@ function LetterheadPreview({ letterhead, isDesktop }: { letterhead: LetterheadRe
       </View>
 
       {/* Bottom Footer Bar */}
-      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: "DocumentColors.accent", paddingTop: 12, alignItems: "center", gap: 4 }}>
+      <View style={{ marginTop: "auto", borderTopWidth: 1, borderTopColor: DocumentColors.accent, paddingTop: 12, alignItems: "center", gap: 4 }}>
         <Text style={{ fontSize: 11, color: "#475569" }}>📞 {letterhead.company.phone}   |   ✉️ {letterhead.company.email}   |   🌐 {letterhead.company.website}</Text>
-        <Text style={{ fontSize: 12, fontWeight: "800", color: "DocumentColors.accent" }}>Thank you for your business!</Text>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: DocumentColors.accent }}>Thank you for your business!</Text>
       </View>
     </View>
   );

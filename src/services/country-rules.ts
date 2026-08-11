@@ -268,8 +268,18 @@ export const CURRENCY_OPTIONS = [
 const COUNTRY_RULE_LOOKUP = new Map(COUNTRY_RULES.map((rule) => [rule.countryName.toLowerCase(), rule]));
 const COUNTRY_CODE_LOOKUP = new Map(COUNTRY_RULES.map((rule) => [rule.countryCode.toLowerCase(), rule]));
 
-export function getCountryOptions() {
-  return COUNTRY_RULES.map((rule) => rule.countryName).sort((left, right) => left.localeCompare(right));
+export type CountryOption = {
+  country: string;
+  countryCode: string;
+  currencyCode: string;
+};
+
+export function getCountryOptions(): CountryOption[] {
+  return COUNTRY_RULES.map((rule) => ({
+    country: rule.countryName,
+    countryCode: rule.countryCode,
+    currencyCode: rule.defaultCurrency,
+  })).sort((left, right) => left.country.localeCompare(right.country));
 }
 
 export function getCurrencyOptions() {
