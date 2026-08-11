@@ -93,9 +93,14 @@ export default function ForgotPasswordScreen() {
 
       <Pressable
         onPress={() => router.replace(withPreviewRoute("/signin") as never)}
-        style={{ marginTop: 16, alignItems: "center" }}
+        style={({ pressed }) => [
+          styles.backToSignInBtn,
+          { backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "#F1F5F9", borderColor: isDark ? "rgba(255,255,255,0.12)" : "#E2E8F0" },
+          pressed && { opacity: 0.8 },
+        ]}
       >
-        <Text style={styles.underlineLinkText}>Back to Sign In</Text>
+        <Ionicons name="arrow-back" size={16} color={BrandColors.primary} />
+        <Text style={[styles.backToSignInText, { color: isDark ? "#38BDF8" : BrandColors.primary }]}>Back to Sign In</Text>
       </Pressable>
 
       <View style={styles.supportFooter}>
@@ -132,14 +137,23 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
-  underlineLinkText: {
+  backToSignInBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  backToSignInText: {
     fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
-    textDecorationLine: "underline",
+    fontWeight: "800",
   },
   supportFooter: {
-    marginTop: 32,
+    marginTop: 28,
     alignItems: "center",
     gap: 4,
   },
