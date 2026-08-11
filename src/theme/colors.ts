@@ -1,4 +1,4 @@
-import { BrandColors } from "@/theme/tokens";
+import { BrandColors } from "@/theme/brand-colors";
 
 export const Colors = {
   primary: BrandColors.primary,

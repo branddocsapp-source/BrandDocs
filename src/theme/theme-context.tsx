@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
 
-import { BrandColors } from "@/theme/tokens";
+import { BrandColors } from "@/theme/brand-colors";
 
 export type ThemeMode = "system";
 
