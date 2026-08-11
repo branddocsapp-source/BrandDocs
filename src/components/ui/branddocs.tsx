@@ -389,8 +389,12 @@ export function PageHeader({
   );
 }
 
-export function AppLogo({ compact }: { compact?: boolean }) {
-  return <BrandLogo size={compact ? "small" : "medium"} variant={compact ? "mark" : "full"} disableNavigation />;
+export function AppLogo() {
+  return (
+    <View style={styles.sidebarLogoWrap}>
+      <BrandLogo layout="sidebar" size="medium" disableNavigation showTagline />
+    </View>
+  );
 }
 
 export function MobileHeaderLogo() {
@@ -452,12 +456,12 @@ export function DesktopSidebar() {
               onPress={() => router.push(appRoute(item.route) as never)}
               style={({ pressed }) => [
                 styles.sidebarItem,
-                active && { backgroundColor: theme.orangeSoft },
+                active && styles.sidebarItemActive,
                 pressed && styles.pressed,
               ]}
             >
-              <Ionicons name={item.icon} size={19} color={active ? BrandColors.primary : theme.muted} />
-              <Text style={[styles.sidebarText, { color: active ? BrandColors.primary : theme.text }]}>{item.label}</Text>
+              <Ionicons name={item.icon} size={19} color={active ? "#FFFFFF" : theme.muted} />
+              <Text style={[styles.sidebarText, { color: active ? "#FFFFFF" : theme.text }]}>{item.label}</Text>
             </Pressable>
           );
         })}
@@ -502,6 +506,131 @@ export function MobileBottomNavigation() {
   );
 }
 
+export function QuickAccessDrawer({
+  visible,
+  onClose,
+  profile,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  profile: BusinessProfile | null;
+}) {
+  const router = useRouter();
+  const appRoute = usePreviewRoute();
+  const { isDark, toggleTheme, theme } = useAppTheme();
+
+  if (!visible) return null;
+
+  const handleNavigate = (route: string) => {
+    onClose();
+    router.push(appRoute(route) as never);
+  };
+
+  const featureItems: { id: string; title: string; subtitle: string; icon: IconName; route: string }[] = [
+    { id: "invoice", title: "Tax Invoice", subtitle: "Itemized billing & GST/VAT tax compliance", icon: "receipt-outline", route: "/invoice" },
+    { id: "quotation", title: "Quotation", subtitle: "Sales proposal & cost estimate", icon: "reader-outline", route: "/quotation" },
+    { id: "visiting-card", title: "Visiting Card", subtitle: "Digital business card with vCard QR", icon: "id-card-outline", route: "/visiting-card" },
+    { id: "letterhead", title: "Letterhead", subtitle: "Official executive company letterhead", icon: "newspaper-outline", route: "/letterhead" },
+    { id: "receipt", title: "Payment Receipt", subtitle: "Instant payment & deposit proof", icon: "receipt-outline", route: "/receipt" },
+    { id: "scanner", title: "OCR Bill Scanner", subtitle: "Scan paper receipts with camera", icon: "scan-circle-outline", route: "/scan-receipt" },
+    { id: "documents", title: "All Documents Hub", subtitle: "Browse, filter & export stored files", icon: "folder-open-outline", route: "/documents" },
+    { id: "reports", title: "Financial Reports", subtitle: "Tax summaries & business analytics", icon: "bar-chart-outline", route: "/reports" },
+    { id: "business-setup", title: "Business Setup Profile", subtitle: "Edit logo, company name & tax IDs", icon: "briefcase-outline", route: "/business-setup" },
+    { id: "settings", title: "App Settings", subtitle: "System preferences, currency & security", icon: "settings-outline", route: "/settings" },
+  ];
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.drawerOverlay}>
+        <Pressable style={styles.drawerBackdrop} onPress={onClose} />
+        <Animated.View entering={FadeIn.duration(200)} style={[styles.drawerContent, { backgroundColor: theme.card, borderColor: theme.line }]}>
+          {/* Drawer Header */}
+          <View style={[styles.drawerHeader, { borderBottomColor: theme.line }]}>
+            <View style={styles.drawerUserRow}>
+              <View style={[styles.avatarButton, { width: 42, height: 42, borderRadius: 21 }]}>
+                {profile?.branding?.logoUrl ? (
+                  <Image source={{ uri: profile.branding.logoUrl }} style={styles.avatarImage} contentFit="cover" />
+                ) : (
+                  <Text style={[styles.avatarText, { fontSize: 13 }]}>{getCompanyInitials(profile?.name)}</Text>
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.drawerTitle, { color: theme.ink }]} numberOfLines={1}>
+                  {profile?.name || "BrandDocs Workspace"}
+                </Text>
+                <Text style={[styles.drawerSubtitle, { color: theme.muted }]} numberOfLines={1}>
+                  {profile?.email || auth.currentUser?.email || "Quick Access Menu"}
+                </Text>
+              </View>
+            </View>
+            <Pressable onPress={onClose} style={[styles.drawerCloseBtn, { backgroundColor: theme.line }]}>
+              <Ionicons name="close" size={18} color={theme.ink} />
+            </Pressable>
+          </View>
+
+          {/* Quick Access Action Items */}
+          <ScrollView style={styles.drawerScroll} showsVerticalScrollIndicator={false}>
+            <Text style={[styles.drawerSectionLabel, { color: theme.muted }]}>QUICK ACCESS FEATURES</Text>
+            {featureItems.map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() => handleNavigate(item.route)}
+                style={({ pressed }) => [
+                  styles.drawerRow,
+                  { borderBottomColor: theme.line },
+                  pressed && { backgroundColor: theme.orangeSoft },
+                ]}
+              >
+                <View style={[styles.drawerIconWrapper, { backgroundColor: theme.orangeSoft }]}>
+                  <Ionicons name={item.icon} size={18} color={BrandColors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>{item.title}</Text>
+                  <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>{item.subtitle}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={15} color={theme.muted} />
+              </Pressable>
+            ))}
+
+            {/* Preferences */}
+            <Text style={[styles.drawerSectionLabel, { color: theme.muted, marginTop: 16 }]}>PREFERENCES & ACCOUNT</Text>
+            <Pressable
+              onPress={() => toggleTheme()}
+              style={({ pressed }) => [styles.drawerRow, { borderBottomColor: theme.line }, pressed && { backgroundColor: theme.orangeSoft }]}
+            >
+              <View style={[styles.drawerIconWrapper, { backgroundColor: theme.orangeSoft }]}>
+                <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={18} color={BrandColors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>
+                  {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                </Text>
+                <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>
+                  Currently using {isDark ? "Dark" : "Light"} theme
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => handleNavigate("/profile")}
+              style={({ pressed }) => [styles.drawerRow, { borderBottomColor: theme.line }, pressed && { backgroundColor: theme.orangeSoft }]}
+            >
+              <View style={[styles.drawerIconWrapper, { backgroundColor: theme.orangeSoft }]}>
+                <Ionicons name="person-outline" size={18} color={BrandColors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>My Profile & Account</Text>
+                <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>Manage user credentials and subscription</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={15} color={theme.muted} />
+            </Pressable>
+          </ScrollView>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
 export function AppShell({
   children,
   profileInitials = "BD",
@@ -527,6 +656,7 @@ export function AppShell({
   const { isDark, theme } = useAppTheme();
   const [profile, setProfile] = useState<BusinessProfile | null>(() => getCachedBusinessProfile(auth.currentUser?.uid));
   const [commandPaletteVisible, setCommandPaletteVisible] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -572,13 +702,55 @@ export function AppShell({
           <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && styles.desktopTopBar, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg, height: 60 }]}>
             {!usesSidebar ? (
               <View style={styles.mobileTopBarRow}>
-                <Pressable onPress={() => setCommandPaletteVisible(true)} style={styles.mobileHeaderIconBtn}>
+                {/* Left: Hamburger Icon -> Opens Quick Access Side Drawer */}
+                <Pressable
+                  accessibilityLabel="Open Quick Access Menu"
+                  onPress={() => setDrawerVisible(true)}
+                  style={({ pressed }) => [styles.mobileHeaderIconBtn, pressed && styles.pressed]}
+                >
                   <Ionicons name="menu-outline" size={24} color={theme.ink} />
                 </Pressable>
-                <MobileHeaderLogo />
+
+                {/* Center: Persistent Search Bar Input Pill */}
+                <Pressable
+                  accessibilityLabel="Open Search & Command Palette"
+                  onPress={() => setCommandPaletteVisible(true)}
+                  style={({ pressed }) => [
+                    styles.searchPill,
+                    styles.mobileSearchPill,
+                    { backgroundColor: theme.searchSurface, borderColor: theme.line },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Ionicons name="search-outline" size={16} color={BrandColors.primary} />
+                  <Text style={[styles.searchPillText, { color: theme.muted }]} numberOfLines={1}>
+                    Type a command or jump to tool...
+                  </Text>
+                </Pressable>
+
+                {/* Right: Profile Section Avatar Button */}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open Profile"
+                  onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
+                  style={({ pressed }) => [styles.avatarButton, styles.mobileAvatarButton, pressed && styles.pressed]}
+                >
+                  {resolvedLogoUrl ? (
+                    <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
+                  ) : (
+                    <Text style={styles.avatarText}>{resolvedInitials}</Text>
+                  )}
+                </Pressable>
               </View>
             ) : (
               <View style={styles.desktopTopBarInner}>
+                <Pressable
+                  accessibilityLabel="Open Quick Access Menu"
+                  onPress={() => setDrawerVisible(true)}
+                  style={({ pressed }) => [styles.mobileHeaderIconBtn, { marginRight: 12 }, pressed && styles.pressed]}
+                >
+                  <Ionicons name="menu-outline" size={24} color={theme.ink} />
+                </Pressable>
                 <View style={styles.topBarSearchCenter}>
                   <Pressable
                     onPress={() => setCommandPaletteVisible(true)}
@@ -590,8 +762,8 @@ export function AppShell({
                     ]}
                     accessibilityLabel="Open Quick Search & Command Palette"
                   >
-                    <Ionicons name="search-outline" size={16} color={theme.muted} />
-                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Search tools...</Text>
+                    <Ionicons name="search-outline" size={16} color={BrandColors.primary} />
+                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Type a command or jump to tool...</Text>
                   </Pressable>
                 </View>
 
@@ -619,6 +791,7 @@ export function AppShell({
           ) : content}
           {!usesSidebar ? <MobileBottomNavigation /> : null}
           <CommandPalette visible={commandPaletteVisible} onClose={() => setCommandPaletteVisible(false)} />
+          <QuickAccessDrawer visible={drawerVisible} onClose={() => setDrawerVisible(false)} profile={profile} />
           {profileMenu ? (
             <>
               <Pressable
@@ -1172,11 +1345,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
+  },
+  mobileSearchPill: {
+    flex: 1,
+    height: 38,
+    paddingHorizontal: 12,
   },
   mobileHeaderIconBtn: {
+    alignItems: "center",
+    justifyContent: "center",
     padding: 6,
-    borderRadius: 20,
-    position: "relative",
+    borderRadius: 10,
+  },
+  mobileAvatarButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   notificationDot: {
     position: "absolute",
@@ -1201,5 +1386,92 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 19,
+  },
+  drawerOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+  },
+  drawerBackdrop: {
+    flex: 1,
+  },
+  drawerContent: {
+    width: "82%",
+    maxWidth: 340,
+    height: "100%",
+    borderRightWidth: 1,
+    paddingTop: Platform.OS === "web" ? 20 : 48,
+    paddingBottom: 24,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 20,
+  },
+  drawerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    gap: 12,
+  },
+  drawerUserRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  drawerTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  drawerSubtitle: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  drawerCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  drawerScroll: {
+    flex: 1,
+    marginTop: 14,
+  },
+  drawerSectionLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  drawerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    gap: 12,
+    borderBottomWidth: 1,
+  },
+  drawerIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  drawerRowTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  drawerRowSubtitle: {
+    fontSize: 11,
+    marginTop: 1,
   },
 });
