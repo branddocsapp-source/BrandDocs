@@ -37,6 +37,13 @@ import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Colors } from "@/theme/colors";
 import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
 import { useToast } from "@/components/ui/toast-context";
+import {
+  DocumentBrandHeader,
+  DocumentColors,
+  DocumentFooter,
+  DocumentSectionTitle,
+  DocumentTaxBar,
+} from "@/components/document-template";
 
 const documentOptions: { type: DocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
@@ -520,34 +527,45 @@ export default function InvoiceScreen() {
                       position: "absolute",
                     }
                   ]}>
-                  <View style={styles.topStrip}>
-                    <View style={styles.stripBlock}>
-                      <InlineInput value={`GSTIN: ${draftDocument.company.taxRegistrationNumber}`} onChangeText={(value) => updateCompanyField("taxRegistrationNumber", value.replace(/^GSTIN:\s*/i, ""))} textStyle={styles.stripText} />
-                      <InlineInput value={`PAN: ${draftDocument.company.pan || ""}`} onChangeText={(value) => updateCompanyField("pan", value.replace(/^PAN:\s*/i, ""))} textStyle={styles.stripText} />
-                    </View>
-                    <Text style={styles.documentTitle}>{getDocumentTitle(draftDocument.documentType)}</Text>
-                    <View style={styles.stripBlockRight}>
-                      <InlineInput value={draftDocument.company.phone} onChangeText={(value) => updateCompanyField("phone", value)} textStyle={styles.stripTextRight} />
-                      <InlineInput value={draftDocument.company.email} onChangeText={(value) => updateCompanyField("email", value)} textStyle={styles.stripTextRight} />
-                    </View>
-                  </View>
+                  <DocumentBrandHeader
+                    company={{
+                      name: draftDocument.company.name,
+                      tagline: "Documents that build your business",
+                      address: draftDocument.company.address,
+                      phone: draftDocument.company.phone,
+                      email: draftDocument.company.email,
+                      website: draftDocument.company.website,
+                      logoUrl: draftDocument.company.logoUrl,
+                    }}
+                    documentTitle={getDocumentTitle(draftDocument.documentType).toUpperCase()}
+                    metaRows={[
+                      { label: isTaxDocument ? "Invoice No." : "Bill No.", value: draftDocument.documentNumber, onChange: (v) => updateDocumentField("documentNumber", v) },
+                      { label: "Date", value: draftDocument.invoiceDate, onChange: (v) => updateDocumentField("invoiceDate", v) },
+                      { label: "Due Date", value: draftDocument.dueDate, onChange: (v) => updateDocumentField("dueDate", v) },
+                      { label: "Place of Supply", value: draftDocument.company.state || "—", onChange: (v) => updateCompanyField("state", v) },
+                      { label: "Currency", value: draftDocument.company.currency, onChange: (v) => updateCompanyField("currency", v.toUpperCase()) },
+                    ]}
+                    editable
+                    onCompanyChange={(field, value) => {
+                      if (field === "name") updateCompanyField("name", value);
+                      if (field === "address") updateCompanyField("address", value);
+                      if (field === "phone") updateCompanyField("phone", value);
+                      if (field === "email") updateCompanyField("email", value);
+                      if (field === "website") updateCompanyField("website", value);
+                    }}
+                  />
 
-                  <View style={styles.companyPanel}>
-                    {draftDocument.company.logoUrl ? (
-                      <View style={styles.logoBox}>
-                        <Image source={{ uri: draftDocument.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
-                      </View>
-                    ) : null}
-                    <View style={styles.companyBlock}>
-                      <InlineInput value={draftDocument.company.name} onChangeText={(value) => updateCompanyField("name", value)} textStyle={styles.companyName} />
-                      <InlineInput value={`Office : ${draftDocument.company.address}`} onChangeText={(value) => updateCompanyField("address", value.replace(/^Office\s*:\s*/i, ""))} multiline textStyle={styles.companyAddress} />
-                      <InlineInput value={`Email: ${draftDocument.company.email}`} onChangeText={(value) => updateCompanyField("email", value.replace(/^Email:\s*/i, ""))} textStyle={styles.companyEmail} />
-                    </View>
-                  </View>
+                  <DocumentTaxBar
+                    gstin={draftDocument.company.taxRegistrationNumber}
+                    pan={draftDocument.company.pan}
+                    editable
+                    onGstinChange={(v) => updateCompanyField("taxRegistrationNumber", v)}
+                    onPanChange={(v) => updateCompanyField("pan", v)}
+                  />
 
                   <View style={styles.partiesGrid}>
                     <View style={styles.partyBox}>
-                      <Text style={styles.sectionLabel}>Recipient Detail :</Text>
+                      <DocumentSectionTitle icon="person-outline" title="BILL TO" />
                       <DottedField label="Name" value={draftDocument.customer.name} onChangeText={(value) => updateCustomerField("name", value)} />
                       <DottedField label="Address" value={draftDocument.customer.address} onChangeText={(value) => updateCustomerField("address", value)} />
                       <View style={styles.recipientLine}>
@@ -557,11 +575,14 @@ export default function InvoiceScreen() {
                       </View>
                       {isTaxDocument ? <BoxedGstinField value={draftDocument.customer.gstin || ""} onChangeText={(value) => updateCustomerField("gstin", value)} /> : null}
                     </View>
-                    <View style={styles.invoiceInfoBox}>
-                      <DottedField label={isTaxDocument ? "Invoice Serial No." : "Bill Serial No."} value={draftDocument.documentNumber} onChangeText={(value) => updateDocumentField("documentNumber", value)} />
-                      <DottedField label="Invoice Date" value={draftDocument.invoiceDate} onChangeText={(value) => updateDocumentField("invoiceDate", value)} />
-                      <DottedField label="Time" value={new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} onChangeText={() => undefined} />
-                      <DottedField label="Currency" value={draftDocument.company.currency} onChangeText={(value) => updateCompanyField("currency", value.toUpperCase())} />
+                    <View style={styles.partyBox}>
+                      <DocumentSectionTitle icon="car-outline" title="SHIP TO" />
+                      <DottedField label="Name" value={draftDocument.customer.name} onChangeText={(value) => updateCustomerField("name", value)} />
+                      <DottedField label="Address" value={draftDocument.customer.address} onChangeText={(value) => updateCustomerField("address", value)} />
+                      <View style={styles.recipientLine}>
+                        <DottedField label="State" value={draftDocument.customer.state || ""} onChangeText={(value) => updateCustomerField("state", value)} compact />
+                        <DottedField label="State Code" value={draftDocument.customer.stateCode || ""} onChangeText={(value) => updateCustomerField("stateCode", value)} compact />
+                      </View>
                     </View>
                   </View>
 
@@ -590,14 +611,14 @@ export default function InvoiceScreen() {
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.itemTable}>
                       <View style={[styles.itemRow, styles.itemHeaderRow]}>
-                        <Text style={[styles.tableCell, styles.serialCell]}>S.No.</Text>
-                        <Text style={[styles.tableCell, styles.itemCell]}>Description of Goods / Services</Text>
-                        <Text style={[styles.tableCell, styles.codeCell]}>SSN{"\n"}CODE</Text>
-                        <Text style={[styles.tableCell, styles.codeCell]}>HSN{"\n"}CODE</Text>
-                        <Text style={[styles.tableCell, styles.smallCell]}>Qty</Text>
-                        <Text style={[styles.tableCell, styles.smallCell]}>Rate</Text>
-                        <Text style={[styles.tableCell, styles.amountCell]}>VALUE{"\n"}Rs.        P.</Text>
-                        <Text style={[styles.tableCell, styles.actionCell]} />
+                        <Text style={[styles.tableCell, styles.headerCell, styles.serialCell]}>S.No.</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.itemCell]}>Description of Goods / Services</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.codeCell]}>SSN{"\n"}CODE</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.codeCell]}>HSN{"\n"}CODE</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Qty</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Rate</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.amountCell]}>VALUE{"\n"}Rs.        P.</Text>
+                        <Text style={[styles.tableCell, styles.headerCell, styles.actionCell]} />
                       </View>
 
                       {draftDocument.items.map((item, index) => (
@@ -740,6 +761,12 @@ export default function InvoiceScreen() {
                       <Text style={styles.signLabel}>Authorized Signatory</Text>
                     </View>
                   </View>
+
+                  <DocumentFooter
+                    phone={draftDocument.company.phone}
+                    email={draftDocument.company.email}
+                    website={draftDocument.company.website}
+                  />
                 </View>
               </View>
             </ScrollView>
@@ -913,8 +940,8 @@ function DottedField({
 }) {
   return (
     <View style={[{ alignItems: "center", flexDirection: "row", minHeight: 25 }, compact && { flex: 1 }]}>
-      <Text style={{ color: "#666666", fontSize: 13, fontWeight: "700", marginRight: 4 }}>{label}</Text>
-      <TextInput style={{ borderBottomColor: "#B7B7B7", borderBottomWidth: 1, color: "#111111", flex: 1, fontSize: 13, fontWeight: "700", minHeight: 22, padding: 0 }} value={value} onChangeText={onChangeText} />
+      <Text style={{ color: DocumentColors.muted, fontSize: 12, fontWeight: "700", marginRight: 4 }}>{label}</Text>
+      <TextInput style={{ borderBottomColor: DocumentColors.lineStrong, borderBottomWidth: 1, color: DocumentColors.ink, flex: 1, fontSize: 12, fontWeight: "600", minHeight: 22, padding: 0 }} value={value} onChangeText={onChangeText} />
     </View>
   );
 }
@@ -922,9 +949,9 @@ function DottedField({
 function BoxedGstinField({ value, onChangeText }: { value: string; onChangeText: (value: string) => void }) {
   return (
     <View style={{ alignItems: "center", flexDirection: "row", marginTop: 4 }}>
-      <Text style={{ color: "#666666", fontSize: 13, fontWeight: "700", marginRight: 4 }}>GSTIN :</Text>
+      <Text style={{ color: DocumentColors.accent, fontSize: 12, fontWeight: "700", marginRight: 4 }}>GSTIN :</Text>
       <TextInput
-        style={{ borderColor: "#8A8A8A", borderWidth: 1.4, color: "#111111", fontSize: 15, fontWeight: "800", height: 32, letterSpacing: 9, paddingHorizontal: 6, width: 374 }}
+        style={{ borderColor: DocumentColors.accent, borderWidth: 1.4, color: DocumentColors.ink, fontSize: 14, fontWeight: "800", height: 32, letterSpacing: 4, paddingHorizontal: 6, width: 280 }}
         value={value}
         onChangeText={(nextValue) => onChangeText(nextValue.toUpperCase())}
         autoCapitalize="characters"
@@ -1031,41 +1058,25 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
   webEditorContent: { maxWidth: 1120, paddingHorizontal: 40, paddingTop: 24 },
   errorBox: { alignSelf: "center", backgroundColor: "#FFF2F0", borderColor: "#FFD2CC", borderRadius: 12, borderWidth: 1, marginBottom: 12, maxWidth: 794, padding: 12, width: "100%" },
   errorText: { color: theme.orangeDark, fontSize: 12, fontWeight: "700", lineHeight: 18 },
-  a4Paper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: "#FFFFFF", borderColor: "#8A8A8A", borderRadius: 1, borderWidth: 1.5, maxWidth: 794, minHeight: 1123, padding: 0, width: 794, ...shadow },
+  a4Paper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: DocumentColors.paper, borderColor: DocumentColors.line, borderRadius: 2, borderWidth: 1, maxWidth: 794, minHeight: 1123, padding: 32, width: 794, ...shadow },
   webA4Paper: { width: 794 },
-  topStrip: { alignItems: "flex-start", borderBottomColor: "#8A8A8A", borderBottomWidth: 1.3, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingBottom: 4, paddingTop: 10 },
-  stripBlock: { flex: 1 },
-  stripBlockRight: { flex: 1, alignItems: "flex-end" },
-  stripText: { color: "#4D4D4D", fontSize: 14, fontWeight: "700" },
-  stripTextRight: { color: "#4D4D4D", fontSize: 14, fontWeight: "700", textAlign: "right" },
-  documentTitle: { color: "#4A4A4A", flex: 1.1, fontSize: 18, fontWeight: "800", textAlign: "center", textDecorationLine: "underline" },
-  companyPanel: { alignItems: "center", borderBottomColor: "#8A8A8A", borderBottomWidth: 1.3, flexDirection: "row", gap: 10, minHeight: 118, paddingHorizontal: 16, paddingVertical: 4 },
-  logoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 4, borderWidth: 1, height: 62, justifyContent: "center", overflow: "hidden", width: 74 },
-  logoImage: { height: "100%", width: "100%" },
-  logoInitials: { color: theme.orangeDark, fontSize: 20, fontWeight: "900" },
-  companyBlock: { flex: 1 },
-  inlineInput: { color: "#111111", padding: 0 },
-  companyName: { color: "#4A4A4A", fontSize: 44, fontWeight: "900", lineHeight: 52, textAlign: "center" },
-  companyAddress: { color: "#4A4A4A", fontSize: 18, fontWeight: "800", lineHeight: 24, textAlign: "center" },
-  companyEmail: { color: "#4A4A4A", fontSize: 16, fontWeight: "800", textAlign: "center" },
-  companyMiniGrid: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 8 },
-  partiesGrid: { borderBottomColor: "#8A8A8A", borderBottomWidth: 1.3, flexDirection: "row", minHeight: 145 },
-  partyBox: { borderRightColor: "#8A8A8A", borderRightWidth: 1.3, flex: 1.55, paddingHorizontal: 16, paddingVertical: 8 },
-  invoiceInfoBox: { flex: 1, gap: 13, justifyContent: "center", paddingHorizontal: 16, paddingVertical: 8 },
-  sectionLabel: { color: "#606060", fontSize: 13, fontWeight: "800", marginBottom: 8 },
+  partiesGrid: { borderBottomColor: DocumentColors.line, borderBottomWidth: 1, flexDirection: "row", gap: 16, marginVertical: 12, minHeight: 130, paddingBottom: 12 },
+  partyBox: { flex: 1, gap: 4 },
+  sectionLabel: { color: DocumentColors.accent, fontSize: 11, fontWeight: "800", marginBottom: 8 },
   recipientLine: { flexDirection: "row", gap: 8 },
-  taxModeRow: { alignItems: "center", borderBottomColor: "#8A8A8A", borderBottomWidth: 1.3, flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 6 },
-  taxModePill: { borderColor: "#D8D8D8", borderRadius: 999, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7 },
-  taxModePillActive: { backgroundColor: theme.orangeSoft, borderColor: theme.orange },
+  taxModeRow: { alignItems: "center", borderBottomColor: DocumentColors.line, borderBottomWidth: 1, flexDirection: "row", gap: 8, paddingVertical: 8 },
+  taxModePill: { borderColor: DocumentColors.line, borderRadius: 999, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7 },
+  taxModePillActive: { backgroundColor: DocumentColors.accentSoft, borderColor: DocumentColors.accent },
   taxModeText: { color: theme.muted, fontSize: 11, fontWeight: "800" },
-  taxModeTextActive: { color: theme.orangeDark },
-  tableToolbar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 6 },
-  addRowButton: { alignItems: "center", backgroundColor: theme.orange, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
+  taxModeTextActive: { color: DocumentColors.accentDark },
+  tableToolbar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingVertical: 8 },
+  addRowButton: { alignItems: "center", backgroundColor: DocumentColors.accent, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
   addRowText: { color: "#FFFFFF", fontSize: 11, fontWeight: "800" },
-  itemTable: { borderColor: "#8A8A8A", borderLeftWidth: 0, borderRightWidth: 0, borderTopWidth: 0, minWidth: 792 },
+  itemTable: { borderColor: DocumentColors.accent, borderRadius: 8, borderWidth: 1, minWidth: 728, overflow: "hidden" },
   itemRow: { flexDirection: "row" },
-  itemHeaderRow: { backgroundColor: "#F6F6F6" },
-  tableCell: { borderRightColor: "#8A8A8A", borderRightWidth: 1.2, borderTopColor: "#8A8A8A", borderTopWidth: 1.2, color: "#555555", fontSize: 13, fontWeight: "700", minHeight: 28, padding: 5 },
+  itemHeaderRow: { backgroundColor: DocumentColors.accent },
+  headerCell: { color: DocumentColors.tableHeaderText },
+  tableCell: { borderRightColor: DocumentColors.line, borderRightWidth: 1, borderTopColor: DocumentColors.line, borderTopWidth: 1, color: DocumentColors.muted, fontSize: 10, fontWeight: "800", minHeight: 28, padding: 5 },
   serialCell: { textAlign: "center", width: 44 },
   itemCell: { width: 270 },
   codeCell: { textAlign: "center", width: 64 },

@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
 
+export { DocumentColors } from "@/components/document-template/document-colors";
+
 export const BrandColors = {
   primary: "#FF7A00",
   primaryDark: "#D95F00",

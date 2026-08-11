@@ -42,6 +42,7 @@ import {
 } from "@/services/receipts";
 import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
+import { ReceiptPaper } from "@/components/document-template/ReceiptPaper";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -205,12 +206,12 @@ export default function ReceiptScreen() {
 
   if (draft) {
     const paymentMethods: PaymentMethod[] = ["cash", "bank_transfer", "cheque", "card", "upi", "other"];
+    const isPaidReceipt = (draft.receiptTitle || "").toUpperCase().includes("PAID");
 
     return (
       <SafeAreaView style={[styles.safeArea, isWebsite && styles.webSafeArea]}>
         <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
           <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-            {/* Editor Header */}
             <View style={styles.editorHeader}>
               <Pressable style={styles.headerButton} onPress={() => setDraft(null)} accessibilityRole="button" accessibilityLabel="Back">
                 <Ionicons name="chevron-back" size={22} color={theme.ink} />
@@ -229,145 +230,68 @@ export default function ReceiptScreen() {
               </View>
             </View>
 
-            <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {/* Receipt Metadata */}
-              <AppCard style={styles.formSection}>
-                <Text style={[styles.sectionTitle, { color: theme.ink }]}>Receipt Info</Text>
-                
-                <Text style={[styles.inputLabel, { color: theme.ink, marginBottom: 6 }]}>Receipt Type</Text>
-                <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+            <View style={styles.typeToolbar}>
+              <Pressable
+                style={[styles.typePill, isPaidReceipt && styles.typePillActive]}
+                onPress={() => updateDraftField("receiptTitle", "MONEY PAID RECEIPT")}
+              >
+                <Text style={[styles.typePillText, isPaidReceipt && styles.typePillTextActive]}>Money Paid</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.typePill, !isPaidReceipt && styles.typePillActive]}
+                onPress={() => updateDraftField("receiptTitle", "MONEY RECEIVED RECEIPT")}
+              >
+                <Text style={[styles.typePillText, !isPaidReceipt && styles.typePillTextActive]}>Money Received</Text>
+              </Pressable>
+              <View style={styles.methodPicker}>
+                {paymentMethods.map((method) => (
                   <Pressable
-                    style={[
-                      styles.methodBox,
-                      { flex: 1 },
-                      (draft.receiptTitle || "").includes("PAID") && styles.methodBoxSelected,
-                    ]}
-                    onPress={() => updateDraftField("receiptTitle", "MONEY PAID RECEIPT")}
+                    key={method}
+                    style={[styles.methodChip, draft.paymentMethod === method && styles.methodChipActive]}
+                    onPress={() => updateDraftField("paymentMethod", method)}
                   >
-                    <Text style={[styles.methodText, (draft.receiptTitle || "").includes("PAID") && styles.methodTextSelected]}>
-                      Money Paid Receipt
+                    <Text style={[styles.methodChipText, draft.paymentMethod === method && styles.methodChipTextActive]}>
+                      {getPaymentMethodLabel(method)}
                     </Text>
                   </Pressable>
-                  <Pressable
-                    style={[
-                      styles.methodBox,
-                      { flex: 1 },
-                      !(draft.receiptTitle || "").includes("PAID") && styles.methodBoxSelected,
-                    ]}
-                    onPress={() => updateDraftField("receiptTitle", "MONEY RECEIVED RECEIPT")}
-                  >
-                    <Text style={[styles.methodText, !(draft.receiptTitle || "").includes("PAID") && styles.methodTextSelected]}>
-                      Money Received Receipt
-                    </Text>
-                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {fieldErrors.amount || fieldErrors["receivedFrom.name"] ? (
+              <View style={styles.errorBox}>
+                {Object.values(fieldErrors).map((error) => (
+                  <Text key={error} style={styles.errorText}>{error}</Text>
+                ))}
+              </View>
+            ) : null}
+
+            <ScrollView contentContainerStyle={[styles.editorContent, isWebsite && styles.webEditorContent, width < 820 && { minWidth: 0 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <View style={
+                width < 820 ? {
+                  width: baseWidth * scale,
+                  height: baseHeight * scale,
+                  overflow: "hidden",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  alignSelf: "center",
+                } : undefined
+              }>
+                <View style={
+                  width < 820 ? {
+                    transform: [{ scale: scale }],
+                    position: "absolute",
+                  } : undefined
+                }>
+                  <ReceiptPaper
+                    receipt={draft}
+                    editable
+                    isDesktop={isDesktop}
+                    onFieldChange={updateDraftField}
+                    onReceivedFromChange={updateReceivedFromField}
+                  />
                 </View>
-
-                <View style={styles.row}>
-                  <View style={styles.col}>
-                    <InputField
-                      label="Receipt Number"
-                      value={draft.receiptNumber}
-                      editable={false}
-                      style={{ backgroundColor: theme.wash }}
-                    />
-                  </View>
-                  <View style={styles.col}>
-                    <InputField
-                      label="Receipt Date"
-                      value={draft.receiptDate}
-                      placeholder="YYYY-MM-DD"
-                      onChangeText={(val) => updateDraftField("receiptDate", val)}
-                    />
-                  </View>
-                </View>
-              </AppCard>
-
-              {/* Received From Client */}
-              <AppCard style={styles.formSection}>
-                <Text style={[styles.sectionTitle, { color: theme.ink }]}>Received From (Customer)</Text>
-                <InputField
-                  label="Customer Name *"
-                  value={draft.receivedFrom.name}
-                  onChangeText={(val) => updateReceivedFromField("name", val)}
-                  errorText={fieldErrors["receivedFrom.name"]}
-                  placeholder="Enter client name"
-                />
-                <InputField
-                  label="Phone Number"
-                  value={draft.receivedFrom.phone}
-                  onChangeText={(val) => updateReceivedFromField("phone", val)}
-                  keyboardType="phone-pad"
-                  placeholder="Enter client contact number"
-                />
-                <InputField
-                  label="Email Address"
-                  value={draft.receivedFrom.email}
-                  onChangeText={(val) => updateReceivedFromField("email", val)}
-                  keyboardType="email-address"
-                  placeholder="Enter client email address"
-                />
-                <InputField
-                  label="Billing Address"
-                  value={draft.receivedFrom.address}
-                  onChangeText={(val) => updateReceivedFromField("address", val)}
-                  multiline
-                  placeholder="Enter client address details"
-                />
-              </AppCard>
-
-              {/* Payment Details */}
-              <AppCard style={styles.formSection}>
-                <Text style={[styles.sectionTitle, { color: theme.ink }]}>Payment Details</Text>
-                <InputField
-                  label={`Amount (${draft.company.currency}) *`}
-                  value={draft.amount ? String(draft.amount) : ""}
-                  onChangeText={(val) => {
-                    const parsed = parseFloat(val);
-                    updateDraftField("amount", isNaN(parsed) ? 0 : parsed);
-                  }}
-                  keyboardType="numeric"
-                  errorText={fieldErrors.amount}
-                  placeholder="0.00"
-                />
-                <InputField
-                  label="Amount in Words (Optional)"
-                  value={draft.amountInWords}
-                  onChangeText={(val) => updateDraftField("amountInWords", val)}
-                  placeholder="e.g. Five Hundred Dollars Only"
-                />
-
-                <Text style={[styles.inputLabel, { color: theme.ink }]}>Payment Method</Text>
-                <View style={styles.methodGrid}>
-                  {paymentMethods.map((method) => {
-                    const selected = draft.paymentMethod === method;
-                    return (
-                      <Pressable
-                        key={method}
-                        style={[styles.methodBox, selected && styles.methodBoxSelected]}
-                        onPress={() => updateDraftField("paymentMethod", method)}
-                      >
-                        <Text style={[styles.methodText, selected && styles.methodTextSelected]}>
-                          {getPaymentMethodLabel(method)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <InputField
-                  label="Transaction / Cheque / UPI Reference #"
-                  value={draft.paymentReference}
-                  onChangeText={(val) => updateDraftField("paymentReference", val)}
-                  placeholder="Payment reference reference number"
-                />
-                <InputField
-                  label="Payment For / Notes"
-                  value={draft.notes}
-                  onChangeText={(val) => updateDraftField("notes", val)}
-                  multiline
-                  placeholder="Enter receipt details or invoice reference description"
-                />
-              </AppCard>
+              </View>
             </ScrollView>
           </KeyboardAvoidingView>
         </Animated.View>
@@ -544,11 +468,82 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
     padding: BrandSpacing.lg,
     gap: BrandSpacing.lg,
     alignSelf: "center",
+    minWidth: 820,
     width: "100%",
-    maxWidth: 680,
   },
   webEditorContent: {
+    maxWidth: 1120,
     paddingVertical: BrandSpacing["2xl"],
+  },
+  typeToolbar: {
+    alignItems: "center",
+    backgroundColor: theme.card,
+    borderBottomColor: theme.line,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: BrandSpacing.sm,
+    paddingHorizontal: BrandSpacing.lg,
+    paddingVertical: BrandSpacing.sm,
+  },
+  typePill: {
+    borderColor: theme.line,
+    borderRadius: BrandRadius.pill,
+    borderWidth: 1,
+    paddingHorizontal: BrandSpacing.md,
+    paddingVertical: BrandSpacing.xs,
+  },
+  typePillActive: {
+    backgroundColor: BrandColors.primarySoft,
+    borderColor: BrandColors.primary,
+  },
+  typePillText: {
+    ...BrandTypography.caption,
+    color: theme.muted,
+  },
+  typePillTextActive: {
+    color: BrandColors.primaryDark,
+  },
+  methodPicker: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: BrandSpacing.xs,
+    marginLeft: "auto",
+  },
+  methodChip: {
+    borderColor: theme.line,
+    borderRadius: BrandRadius.pill,
+    borderWidth: 1,
+    paddingHorizontal: BrandSpacing.sm,
+    paddingVertical: 4,
+  },
+  methodChipActive: {
+    backgroundColor: BrandColors.primarySoft,
+    borderColor: BrandColors.primary,
+  },
+  methodChipText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: theme.muted,
+  },
+  methodChipTextActive: {
+    color: BrandColors.primaryDark,
+  },
+  errorBox: {
+    alignSelf: "center",
+    backgroundColor: "#FFF2F0",
+    borderColor: "#FFD2CC",
+    borderRadius: 12,
+    borderWidth: 1,
+    margin: BrandSpacing.md,
+    maxWidth: 794,
+    padding: 12,
+    width: "100%",
+  },
+  errorText: {
+    color: BrandColors.primaryDark,
+    fontSize: 12,
+    fontWeight: "700",
   },
   formSection: {
     padding: BrandSpacing.lg,

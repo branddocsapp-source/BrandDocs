@@ -43,6 +43,17 @@ import {
   getPaymentMethodLabel,
 } from "@/services/receipts";
 import { VisitingCardPreview } from "@/components/visiting-card/VisitingCardPreview";
+import { ReceiptPaper } from "@/components/document-template/ReceiptPaper";
+import {
+  DocumentBrandHeader,
+  DocumentColors,
+  DocumentFooter,
+  DocumentGrandTotalRow,
+  DocumentPaperShell,
+  DocumentSectionTitle,
+  DocumentTableHeader,
+  DocumentTaxBar,
+} from "@/components/document-template";
 import {
   duplicateVisitingCardRecord,
   loadVisitingCardById,
@@ -796,7 +807,7 @@ export default function PreviewScreen() {
                         position: "absolute",
                       } : undefined
                     }>
-                      <ReceiptPreview receipt={{ ...receipt, status: selectedReceiptStatus }} isDesktop={isDesktop} />
+                      <ReceiptPaper receipt={{ ...receipt, status: selectedReceiptStatus }} isDesktop={isDesktop} />
                     </View>
                   </View>
                 </>
@@ -1147,145 +1158,110 @@ function ReceiptPreview({ receipt, isDesktop }: { receipt: ReceiptRecord; isDesk
 function InvoicePreview({ invoice, isDesktop }: { invoice: InvoiceRecord; isDesktop: boolean }) {
   const isTaxInvoice = invoice.documentType === "tax_invoice";
   const currency = invoice.company.currency;
+  const currencySymbol = currency === "INR" ? "₹" : currency;
   const totals = useMemo(() => calculateDocumentTotals(invoice), [invoice]);
-  const copyLabels = isTaxInvoice
-    ? ["Original for Recipient", "Duplicate for Supplier / Seller Copy"]
-    : ["Recipient Copy", "Supplier Copy"];
 
   return (
-    <View style={[styles.invoicePaper, isDesktop && styles.webInvoicePaper]}>
-      <View style={styles.copyRow}>
-        {copyLabels.map((label) => (
-          <Text key={label} style={styles.copyLabel}>{label}</Text>
+    <DocumentPaperShell isDesktop={isDesktop}>
+      <DocumentBrandHeader
+        company={{
+          name: invoice.company.name,
+          tagline: "Documents that build your business",
+          address: invoice.company.address,
+          phone: invoice.company.phone,
+          email: invoice.company.email,
+          website: invoice.company.website,
+          logoUrl: invoice.company.logoUrl,
+        }}
+        documentTitle={getDocumentTitle(invoice.documentType).toUpperCase()}
+        metaRows={[
+          { label: isTaxInvoice ? "Invoice No." : "Bill No.", value: invoice.documentNumber },
+          { label: "Date", value: invoice.invoiceDate },
+          { label: "Due Date", value: invoice.dueDate },
+          { label: "Status", value: getStatusLabel(invoice.status) },
+          { label: "Currency", value: currency },
+        ]}
+      />
+
+      <DocumentTaxBar gstin={invoice.company.taxRegistrationNumber} pan={invoice.company.pan} />
+
+      <View style={{ flexDirection: "row", gap: 16, marginVertical: 12 }}>
+        <View style={{ flex: 1 }}>
+          <DocumentSectionTitle icon="person-outline" title="BILL TO" />
+          <PreviewLine label="Name" value={invoice.customer.name} />
+          <PreviewLine label="Address" value={invoice.customer.address} />
+          {isTaxInvoice ? <PreviewLine label="GSTIN" value={invoice.customer.gstin} /> : null}
+        </View>
+        <View style={{ flex: 1 }}>
+          <DocumentSectionTitle icon="car-outline" title="SHIP TO" />
+          <PreviewLine label="Name" value={invoice.customer.name} />
+          <PreviewLine label="Address" value={invoice.customer.address} />
+        </View>
+      </View>
+
+      <View style={{ borderColor: DocumentColors.accent, borderRadius: 8, borderWidth: 1, marginTop: 8, overflow: "hidden" }}>
+        <DocumentTableHeader
+          columns={[
+            { label: "#", width: 30, align: "center" },
+            { label: "DESCRIPTION OF GOODS / SERVICES", flex: 2 },
+            { label: "HSN/SAC", width: 70, align: "center" },
+            { label: "QTY.", width: 44, align: "center" },
+            { label: "RATE", width: 74, align: "right" },
+            { label: "AMOUNT", width: 84, align: "right" },
+          ]}
+        />
+        {invoice.items.map((item, index) => (
+          <View key={item.id} style={{ flexDirection: "row", paddingHorizontal: 6, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: DocumentColors.line, backgroundColor: index % 2 ? DocumentColors.rowAlt : DocumentColors.paper }}>
+            <Text style={{ width: 30, fontSize: 11, textAlign: "center", color: DocumentColors.muted }}>{index + 1}</Text>
+            <Text style={{ flex: 2, fontSize: 11, fontWeight: "600", color: DocumentColors.ink }}>{item.description || item.item}</Text>
+            <Text style={{ width: 70, fontSize: 11, textAlign: "center", color: DocumentColors.muted }}>{item.hsnSac}</Text>
+            <Text style={{ width: 44, fontSize: 11, textAlign: "center", color: DocumentColors.ink }}>{item.quantity}</Text>
+            <Text style={{ width: 74, fontSize: 11, textAlign: "right", color: DocumentColors.ink }}>{formatMoney(toNumber(item.rate), "")}</Text>
+            <Text style={{ width: 84, fontSize: 11, fontWeight: "700", textAlign: "right", color: DocumentColors.ink }}>{formatMoney(getLineAmount(item), "")}</Text>
+          </View>
         ))}
       </View>
 
-      <View style={styles.topStrip}>
-        <View style={styles.stripBlock}>
-          <Text style={styles.stripText}>GSTIN: {invoice.company.taxRegistrationNumber}</Text>
-          <Text style={styles.stripText}>PAN: {invoice.company.pan}</Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 16 }}>
+        <View style={{ flex: 1, paddingRight: 20 }}>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.muted }}>Amount in Words :</Text>
+          <Text style={{ fontSize: 12, fontWeight: "800", color: DocumentColors.ink, marginTop: 2 }}>{invoice.amountInWords}</Text>
         </View>
-        <Text style={styles.invoiceTitle}>{getDocumentTitle(invoice.documentType)}</Text>
-        <View style={styles.stripBlockRight}>
-          <Text style={styles.stripTextRight}>{invoice.company.phone}</Text>
-          <Text style={styles.stripTextRight}>{invoice.company.email}</Text>
+        <View style={{ width: 300, borderColor: DocumentColors.line, borderRadius: 10, borderWidth: 1, overflow: "hidden" }}>
+          <View style={{ padding: 8, gap: 4 }}>
+            <SummaryRow label="Sub Total" value={formatMoney(totals.subtotal, currencySymbol)} />
+            <SummaryRow label="Discount" value={formatMoney(invoice.discount, currencySymbol)} />
+            <SummaryRow label="Taxable Value" value={formatMoney(totals.taxableValue, currencySymbol)} />
+            {isTaxInvoice && invoice.taxMode === "CGST + SGST" ? (
+              <>
+                <SummaryRow label={`CGST ${invoice.cgstPercent}%`} value={formatMoney(totals.cgstAmount, currencySymbol)} />
+                <SummaryRow label={`SGST ${invoice.sgstPercent}%`} value={formatMoney(totals.sgstAmount, currencySymbol)} />
+              </>
+            ) : null}
+            {isTaxInvoice && invoice.taxMode === "IGST" ? (
+              <SummaryRow label={`IGST ${invoice.igstPercent}%`} value={formatMoney(totals.igstAmount, currencySymbol)} />
+            ) : null}
+          </View>
+          <DocumentGrandTotalRow label="GRAND TOTAL" value={formatMoney(totals.grandTotal, currencySymbol)} />
         </View>
       </View>
 
-      <View style={styles.companyHeader}>
-        {invoice.company.logoUrl ? (
-          <View style={styles.logoBox}>
-            <Image source={{ uri: invoice.company.logoUrl }} style={styles.logoImage} contentFit="contain" />
-          </View>
-        ) : null}
-        <View style={styles.companyCopy}>
-          <Text style={styles.companyName}>{invoice.company.name}</Text>
-          <Text style={styles.companyAddress}>Office : {invoice.company.address}</Text>
-          <Text style={styles.companyEmail}>Email: {invoice.company.email}</Text>
-          {invoice.company.website ? <Text style={styles.muted}>{invoice.company.website}</Text> : null}
+      <View style={{ flexDirection: "row", gap: 16, marginTop: 20 }}>
+        <View style={{ flex: 1, borderColor: DocumentColors.line, borderRadius: 12, borderWidth: 1, padding: 12 }}>
+          <DocumentSectionTitle icon="document-text-outline" title="BANK DETAILS" />
+          <Text style={styles.muted}>Bank: {invoice.bank.bankName}</Text>
+          <Text style={styles.muted}>A/C: {invoice.bank.accountNumber}</Text>
+          <Text style={styles.muted}>IFSC: {invoice.bank.ifscCode}</Text>
         </View>
-      </View>
-
-      <View style={styles.partiesGrid}>
-        <View style={styles.partyBox}>
-          <Text style={styles.sectionTitle}>Recipient Detail :</Text>
-          <PreviewLine label="Name" value={invoice.customer.name} />
-          <PreviewLine label="Address" value={invoice.customer.address} />
-          <View style={styles.recipientLine}>
-            <PreviewLine label="State" value={invoice.customer.state || ""} compact />
-            <PreviewLine label="State Code" value={invoice.customer.stateCode || ""} compact />
-            <PreviewLine label="PIN" value={invoice.customer.pin || ""} compact />
-          </View>
-          {isTaxInvoice ? (
-            <View style={styles.gstinPreviewField}>
-              <Text style={styles.lineLabel}>GSTIN :</Text>
-              <Text style={styles.gstinPreviewText}>{invoice.customer.gstin}</Text>
-            </View>
-          ) : null}
-        </View>
-        <View style={styles.invoiceInfoBox}>
-          <PreviewLine label={isTaxInvoice ? "Invoice Serial No." : "Bill Serial No."} value={invoice.documentNumber} />
-          <PreviewLine label="Invoice Date" value={invoice.invoiceDate} />
-          <PreviewLine label="Status" value={getStatusLabel(invoice.status)} />
-          <PreviewLine label="Currency" value={currency} />
-        </View>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.cell, styles.serialCell]}>S.No.</Text>
-            <Text style={[styles.cell, styles.itemCell]}>Description of Goods / Services</Text>
-            <Text style={[styles.cell, styles.codeCell]}>SSN{"\n"}CODE</Text>
-            <Text style={[styles.cell, styles.codeCell]}>HSN{"\n"}CODE</Text>
-            <Text style={[styles.cell, styles.smallCell]}>Qty</Text>
-            <Text style={[styles.cell, styles.smallCell]}>Rate</Text>
-            <Text style={[styles.cell, styles.amountCell]}>VALUE{"\n"}Rs.        P.</Text>
-          </View>
-          {invoice.items.map((item, index) => (
-            <View key={item.id} style={styles.tableRow}>
-              <Text style={[styles.cell, styles.serialCell]}>{index + 1}</Text>
-              <Text style={[styles.cell, styles.itemCell]}>{item.description || item.item}</Text>
-              <Text style={[styles.cell, styles.codeCell]}>{item.ssnCode}</Text>
-              <Text style={[styles.cell, styles.codeCell]}>{item.hsnSac}</Text>
-              <Text style={[styles.cell, styles.smallCell]}>{item.quantity}</Text>
-              <Text style={[styles.cell, styles.smallCell]}>{formatMoney(toNumber(item.rate), currency)}</Text>
-              <Text style={[styles.cell, styles.amountCell]}>{formatMoney(getLineAmount(item), currency)}</Text>
-            </View>
-          ))}
-          {Array.from({ length: Math.max(0, 12 - invoice.items.length) }).map((_, index) => (
-            <View key={`blank-${index}`} style={styles.tableRow}>
-              <Text style={[styles.cell, styles.serialCell]} />
-              <Text style={[styles.cell, styles.itemCell]} />
-              <Text style={[styles.cell, styles.codeCell]} />
-              <Text style={[styles.cell, styles.codeCell]} />
-              <Text style={[styles.cell, styles.smallCell]} />
-              <Text style={[styles.cell, styles.smallCell]} />
-              <Text style={[styles.cell, styles.amountCell]} />
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      <View style={styles.summaryArea}>
-        <View style={styles.bankTermsColumn}>
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Bank Details</Text>
-            <Text style={styles.muted}>Bank Name: {invoice.bank.bankName}</Text>
-            <Text style={styles.muted}>Account Number: {invoice.bank.accountNumber}</Text>
-            <Text style={styles.muted}>IFSC: {invoice.bank.ifscCode}</Text>
-            <Text style={styles.muted}>Branch: {invoice.bank.branchAddress}</Text>
-          </View>
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Terms & Conditions</Text>
-            <Text style={styles.muted}>{invoice.terms}</Text>
-          </View>
-        </View>
-
-        <View style={styles.summaryCard}>
-          <SummaryRow label={isTaxInvoice ? "Total Value Before Tax" : "Subtotal"} value={formatMoney(totals.subtotal, currency)} />
-          <SummaryRow label="Discount" value={formatMoney(invoice.discount, currency)} />
-          <SummaryRow label="Freight / Other Charges" value={formatMoney(invoice.freightCharges, currency)} />
-          <SummaryRow label={isTaxInvoice ? "Taxable Value" : "Total"} value={formatMoney(totals.taxableValue, currency)} />
-          {isTaxInvoice && invoice.taxMode === "CGST + SGST" ? (
-            <>
-              <SummaryRow label={`CGST ${invoice.cgstPercent}%`} value={formatMoney(totals.cgstAmount, currency)} />
-              <SummaryRow label={`SGST ${invoice.sgstPercent}%`} value={formatMoney(totals.sgstAmount, currency)} />
-            </>
-          ) : null}
-          {isTaxInvoice && invoice.taxMode === "IGST" ? <SummaryRow label={`IGST ${invoice.igstPercent}%`} value={formatMoney(totals.igstAmount, currency)} /> : null}
-          <View style={styles.divider} />
-          <SummaryRow label={isTaxInvoice ? "Gross Total Value" : "Grand Total"} value={formatMoney(totals.grandTotal, currency)} strong />
-          <View style={styles.wordsBox}>
-            <Text style={styles.sectionTitle}>Amount in Words</Text>
-            <Text style={styles.muted}>{invoice.amountInWords}</Text>
-          </View>
+        <View style={{ flex: 1, borderColor: DocumentColors.line, borderRadius: 12, borderWidth: 1, padding: 12 }}>
+          <DocumentSectionTitle icon="list-outline" title="TERMS & CONDITIONS" />
+          <Text style={styles.muted}>{invoice.terms}</Text>
         </View>
       </View>
 
       <View style={styles.signatureRow}>
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Notes</Text>
+          <DocumentSectionTitle icon="create-outline" title="NOTES" />
           <Text style={styles.muted}>{invoice.notes}</Text>
         </View>
         <View style={styles.signBox}>
@@ -1297,7 +1273,9 @@ function InvoicePreview({ invoice, isDesktop }: { invoice: InvoiceRecord; isDesk
           <Text style={styles.signLabel}>Authorized Signatory</Text>
         </View>
       </View>
-    </View>
+
+      <DocumentFooter phone={invoice.company.phone} email={invoice.company.email} website={invoice.company.website} />
+    </DocumentPaperShell>
   );
 }
 

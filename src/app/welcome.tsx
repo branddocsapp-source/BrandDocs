@@ -1,10 +1,12 @@
 import { router } from "expo-router";
 import { useMemo } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Typography } from "@/theme/typography";
+
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function WelcomeScreen() {
   const { theme } = useAppTheme();
@@ -12,11 +14,7 @@ export default function WelcomeScreen() {
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
-      <Image
-        source={require("../../assets/images/branddocs-logo-full.png")}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+      <BrandLogo size="large" variant="mark" stacked showTagline disableNavigation />
 
       <Text style={styles.title}>Welcome to BrandDocs</Text>
 
@@ -50,12 +48,6 @@ const createStyles = (theme: ThemePalette) => StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 30,
-  },
-
-  logo: {
-    width: 210,
-    height: 60,
-    marginBottom: 40,
   },
 
   title: {

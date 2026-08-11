@@ -36,6 +36,13 @@ import {
 import { useAppTheme, ThemePalette } from "@/theme/theme-context";
 import { Colors } from "@/theme/colors";
 import { BrandColors, BrandRadius, BrandSpacing, BrandTypography } from "@/theme/tokens";
+import {
+  DocumentBrandHeader,
+  DocumentColors,
+  DocumentFooter,
+  DocumentSectionTitle,
+  DocumentTaxBar,
+} from "@/components/document-template";
 
 const quotationOptions: { type: QuotationDocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
@@ -426,9 +433,10 @@ export default function QuotationScreen() {
                     }
                   ]}>
                   <QuotationHeader quotation={draftQuotation} updateCompanyField={updateCompanyField} updateQuotationField={updateQuotationField} />
+                  <DocumentTaxBar gstin={(draftQuotation.businessProfileSnapshot as any)?.taxRegistrationNumber} />
                   <View style={styles.clientGrid}>
                     <View style={styles.clientBox}>
-                      <Text style={styles.sectionLabel}>Client Details</Text>
+                      <DocumentSectionTitle icon="person-outline" title={isTableQuotation ? "QUOTED TO" : "TO"} />
                       <InlineInput value={draftQuotation.client.name} onChangeText={(value) => updateClientField("name", value)} textStyle={styles.clientName} placeholder="Client Name" />
                       <InlineInput value={draftQuotation.client.companyName} onChangeText={(value) => updateClientField("companyName", value)} textStyle={styles.mutedInput} placeholder="Client Company" />
                       <InlineInput value={draftQuotation.client.address} onChangeText={(value) => updateClientField("address", value)} textStyle={styles.mutedInput} multiline placeholder="Client Address" />
@@ -444,7 +452,7 @@ export default function QuotationScreen() {
                   </View>
 
                   <View style={styles.subjectBox}>
-                    <Text style={styles.sectionLabel}>Subject / Reference</Text>
+                    <DocumentSectionTitle icon="document-text-outline" title="SUBJECT" />
                     <InlineInput value={draftQuotation.subject} onChangeText={(value) => updateQuotationField("subject", value)} textStyle={styles.subjectInput} />
                   </View>
 
@@ -460,15 +468,15 @@ export default function QuotationScreen() {
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.itemTable}>
                           <View style={[styles.itemRow, styles.itemHeaderRow]}>
-                            <Text style={[styles.tableCell, styles.serialCell]}>S.No.</Text>
-                            <Text style={[styles.tableCell, styles.descriptionCell]}>Description of Goods / Services</Text>
-                            <Text style={[styles.tableCell, styles.codeCell]}>Item Code</Text>
-                            <Text style={[styles.tableCell, styles.smallCell]}>Qty</Text>
-                            <Text style={[styles.tableCell, styles.smallCell]}>Unit</Text>
-                            <Text style={[styles.tableCell, styles.smallCell]}>Rate</Text>
-                            <Text style={[styles.tableCell, styles.smallCell]}>Discount</Text>
-                            <Text style={[styles.tableCell, styles.amountCell]}>Amount</Text>
-                            <Text style={[styles.tableCell, styles.actionCell]} />
+                            <Text style={[styles.tableCell, styles.headerCell, styles.serialCell]}>S.No.</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.descriptionCell]}>Description of Goods / Services</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.codeCell]}>HSN/SAC</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Qty</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Unit</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Rate</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Discount</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.amountCell]}>Amount</Text>
+                            <Text style={[styles.tableCell, styles.headerCell, styles.actionCell]} />
                           </View>
                           {draftQuotation.items.map((item, index) => (
                             <View key={item.id} style={styles.itemRow}>
@@ -532,6 +540,12 @@ export default function QuotationScreen() {
                       <Text style={styles.signLabel}>Authorized Signatory</Text>
                     </View>
                   </View>
+
+                  <DocumentFooter
+                    phone={draftQuotation.company.phone}
+                    email={draftQuotation.company.email}
+                    website={draftQuotation.company.website}
+                  />
                 </View>
               </View>
               </ScrollView>
@@ -648,24 +662,32 @@ function QuotationHeader({
   updateCompanyField: (field: keyof QuotationRecord["company"], value: string) => void;
   updateQuotationField: (field: keyof QuotationRecord, value: string | number) => void;
 }) {
-  const { styles } = useQuotationStyles();
   return (
-    <View style={styles.quotationHeader}>
-      <View style={styles.logoBox}>
-        {quotation.company.logoUrl ? <Image source={{ uri: quotation.company.logoUrl }} style={styles.logoImage} contentFit="contain" /> : <Text style={styles.logoInitials}>{getCompanyInitials(quotation.company.name)}</Text>}
-      </View>
-      <View style={styles.companyBlock}>
-        <InlineInput value={quotation.company.name} onChangeText={(value) => updateCompanyField("name", value)} textStyle={styles.companyName} />
-        <InlineInput value={quotation.company.address} onChangeText={(value) => updateCompanyField("address", value)} textStyle={styles.companyAddress} multiline />
-        <InlineInput value={quotation.company.email} onChangeText={(value) => updateCompanyField("email", value)} textStyle={styles.companyMeta} />
-        <InlineInput value={quotation.company.phone} onChangeText={(value) => updateCompanyField("phone", value)} textStyle={styles.companyMeta} />
-        <InlineInput value={quotation.company.website} onChangeText={(value) => updateCompanyField("website", value)} textStyle={styles.companyMeta} />
-      </View>
-      <View style={styles.titleBlock}>
-        <Text style={styles.documentTitle}>{getQuotationTitle(quotation.documentType)}</Text>
-        <TextInput style={styles.validityMiniInput} value={quotation.validUntil} onChangeText={(value) => updateQuotationField("validUntil", value)} />
-      </View>
-    </View>
+    <DocumentBrandHeader
+      company={{
+        name: quotation.company.name,
+        address: quotation.company.address,
+        phone: quotation.company.phone,
+        email: quotation.company.email,
+        website: quotation.company.website,
+        logoUrl: quotation.company.logoUrl,
+      }}
+      documentTitle={getQuotationTitle(quotation.documentType).toUpperCase()}
+      metaRows={[
+        { label: "Quotation No.", value: quotation.quotationNumber, onChange: (v) => updateQuotationField("quotationNumber", v) },
+        { label: "Date", value: quotation.quotationDate, onChange: (v) => updateQuotationField("quotationDate", v) },
+        { label: "Valid Till", value: quotation.validUntil, onChange: (v) => updateQuotationField("validUntil", v) },
+        { label: "Currency", value: quotation.currency, onChange: (v) => updateQuotationField("currency", v.toUpperCase()) },
+      ]}
+      editable
+      onCompanyChange={(field, value) => {
+        if (field === "name") updateCompanyField("name", value);
+        if (field === "address") updateCompanyField("address", value);
+        if (field === "phone") updateCompanyField("phone", value);
+        if (field === "email") updateCompanyField("email", value);
+        if (field === "website") updateCompanyField("website", value);
+      }}
+    />
   );
 }
 
@@ -785,42 +807,31 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
   webEditorContent: { maxWidth: 1120, paddingHorizontal: 40, paddingTop: 24 },
   errorBox: { alignSelf: "center", backgroundColor: "#FFF2F0", borderColor: "#FFD2CC", borderRadius: 12, borderWidth: 1, marginBottom: 12, maxWidth: 794, padding: 12, width: "100%" },
   errorText: { color: theme.orangeDark, fontSize: 12, fontWeight: "700", lineHeight: 18 },
-  a4Paper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: "#FFFFFF", borderColor: "#D9D9D9", borderRadius: 2, borderWidth: 1, maxWidth: 794, minHeight: 1123, padding: 22, width: 794, ...shadow },
+  a4Paper: { alignSelf: "center", aspectRatio: 210 / 297, backgroundColor: DocumentColors.paper, borderColor: DocumentColors.line, borderRadius: 2, borderWidth: 1, maxWidth: 794, minHeight: 1123, padding: 32, width: 794, ...shadow },
   webA4Paper: { width: 794 },
-  quotationHeader: { borderBottomColor: "#222222", borderBottomWidth: 1, flexDirection: "row", gap: 14, paddingBottom: 16 },
-  logoBox: { alignItems: "center", borderColor: "#DADADA", borderRadius: 4, borderWidth: 1, height: 70, justifyContent: "center", overflow: "hidden", width: 82 },
-  logoImage: { height: "100%", width: "100%" },
-  logoInitials: { color: theme.orangeDark, fontSize: 20, fontWeight: "900" },
-  companyBlock: { flex: 1 },
-  inlineInput: { color: "#111111", padding: 0 },
-  companyName: { color: "#111111", fontSize: 24, fontWeight: "900", marginBottom: 3 },
-  companyAddress: { color: "#333333", fontSize: 11, lineHeight: 16 },
-  companyMeta: { color: "#555555", fontSize: 11, lineHeight: 16 },
-  titleBlock: { alignItems: "flex-end", justifyContent: "space-between", width: 178 },
-  documentTitle: { color: "#111111", fontSize: 22, fontWeight: "900", textAlign: "right" },
-  validityMiniInput: { borderBottomColor: "#BBBBBB", borderBottomWidth: 1, color: "#555555", fontSize: 11, fontWeight: "700", padding: 0, textAlign: "right", width: "100%" },
-  clientGrid: { borderBottomColor: "#222222", borderBottomWidth: 1, flexDirection: "row", gap: 14, paddingVertical: 14 },
+  clientGrid: { borderBottomColor: DocumentColors.line, borderBottomWidth: 1, flexDirection: "row", gap: 14, marginVertical: 12, paddingBottom: 12 },
   clientBox: { flex: 1 },
   metaBox: { gap: 8, width: 260 },
-  sectionLabel: { color: "#111111", fontSize: 12, fontWeight: "900", marginBottom: 7, textTransform: "uppercase" },
-  clientName: { color: "#111111", fontSize: 16, fontWeight: "900", marginBottom: 4 },
-  mutedInput: { color: "#333333", fontSize: 11, lineHeight: 16 },
+  sectionLabel: { color: DocumentColors.accent, fontSize: 11, fontWeight: "800", marginBottom: 7 },
+  clientName: { color: DocumentColors.ink, fontSize: 14, fontWeight: "800", marginBottom: 4 },
+  mutedInput: { color: DocumentColors.muted, fontSize: 11, lineHeight: 16 },
   metaField: { minWidth: 92 },
-  metaLabel: { color: "#555555", fontSize: 9, fontWeight: "800", marginBottom: 3, textTransform: "uppercase" },
-  metaInput: { borderColor: "#DDDDDD", borderRadius: 4, borderWidth: 1, color: "#111111", fontSize: 11, fontWeight: "700", minHeight: 28, paddingHorizontal: 6, paddingVertical: 4 },
-  subjectBox: { borderBottomColor: "#E2E2E2", borderBottomWidth: 1, paddingVertical: 12 },
-  subjectInput: { color: "#111111", fontSize: 15, fontWeight: "800" },
+  metaLabel: { color: DocumentColors.muted, fontSize: 9, fontWeight: "800", marginBottom: 3, textTransform: "uppercase" },
+  metaInput: { borderColor: DocumentColors.line, borderRadius: 4, borderWidth: 1, color: DocumentColors.ink, fontSize: 11, fontWeight: "700", minHeight: 28, paddingHorizontal: 6, paddingVertical: 4 },
+  subjectBox: { borderBottomColor: DocumentColors.line, borderBottomWidth: 1, paddingVertical: 12 },
+  subjectInput: { color: DocumentColors.ink, fontSize: 13, fontWeight: "700" },
   letterBody: { gap: 10, minHeight: 360, paddingVertical: 14 },
-  bodyLine: { color: "#111111", fontSize: 14, fontWeight: "800" },
-  bodyParagraph: { color: "#333333", fontSize: 13, lineHeight: 20 },
-  richTextArea: { borderColor: "#E2E2E2", borderRadius: 4, borderWidth: 1, color: "#333333", fontSize: 13, lineHeight: 19, minHeight: 86, padding: 10, textAlignVertical: "top" },
+  bodyLine: { color: DocumentColors.ink, fontSize: 14, fontWeight: "800" },
+  bodyParagraph: { color: DocumentColors.muted, fontSize: 13, lineHeight: 20 },
+  richTextArea: { borderColor: DocumentColors.line, borderRadius: 8, borderWidth: 1, color: DocumentColors.muted, fontSize: 13, lineHeight: 19, minHeight: 86, padding: 10, textAlignVertical: "top" },
   tableToolbar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingVertical: 10 },
-  addRowButton: { alignItems: "center", backgroundColor: theme.orange, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
+  addRowButton: { alignItems: "center", backgroundColor: DocumentColors.accent, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
   addRowText: { color: "#FFFFFF", fontSize: 11, fontWeight: "800" },
-  itemTable: { borderColor: "#222222", borderLeftWidth: 0, borderRightWidth: 0, borderTopWidth: 0, minWidth: 750 },
+  itemTable: { borderColor: DocumentColors.accent, borderRadius: 8, borderWidth: 1, minWidth: 728, overflow: "hidden" },
   itemRow: { flexDirection: "row" },
-  itemHeaderRow: { backgroundColor: "#F6F6F6" },
-  tableCell: { borderRightColor: "#222222", borderRightWidth: 1.2, borderTopColor: "#222222", borderTopWidth: 1.2, color: "#333333", fontSize: 13, fontWeight: "700", minHeight: 28, padding: 5 },
+  itemHeaderRow: { backgroundColor: DocumentColors.accent },
+  headerCell: { color: DocumentColors.tableHeaderText },
+  tableCell: { borderRightColor: DocumentColors.line, borderRightWidth: 1, borderTopColor: DocumentColors.line, borderTopWidth: 1, color: DocumentColors.muted, fontSize: 10, fontWeight: "800", minHeight: 28, padding: 5 },
   serialCell: { textAlign: "center", width: 44 },
   descriptionCell: { width: 236 },
   codeCell: { width: 94 },

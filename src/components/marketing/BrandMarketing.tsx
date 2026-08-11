@@ -23,6 +23,7 @@ import {
 } from "@/config/pricing";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { BrandLogo } from "@/components/brand-logo";
+import { getMarketingLayout, MARKETING_BREAKPOINTS } from "@/components/marketing/marketing-layout";
 import { useAppTheme } from "@/theme/theme-context";
 
 type SectionKey = "documents" | "features" | "pricing" | "faq" | "about";
@@ -223,7 +224,8 @@ function Header({
   const { width } = useWindowDimensions();
   const [open, setOpen] = useState(false);
   const { isDark, theme, toggleTheme } = useAppTheme();
-  const isMobile = width < 980;
+  const layout = getMarketingLayout(width);
+  const isMobile = layout.isMobile;
 
   function handleItem(item: { section?: SectionKey; href?: Href }) {
     setOpen(false);
@@ -240,18 +242,18 @@ function Header({
 
   return (
     <View style={[styles.headerShell, { backgroundColor: isDark ? "rgba(22,24,28,0.95)" : "rgba(255,255,255,0.95)", borderBottomColor: theme.line }]}>
-      <View style={styles.header}>
+      <View style={[layout.container, styles.headerContainer, { paddingHorizontal: layout.tokens.headerPaddingHorizontal, minHeight: layout.tokens.headerMinHeight }]}>
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="BrandDocs home"
           onPress={() => goToRoute("/")}
           style={styles.logoButton}
         >
-          <BrandLogo size="medium" disableNavigation />
+          <BrandLogo size={isMobile ? "small" : "medium"} variant="mark" disableNavigation />
         </Pressable>
 
         {isMobile ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View style={styles.headerMobileActions}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={isDark ? "Switch to Light Mode" : "Switch to Night Mode"}
@@ -276,7 +278,7 @@ function Header({
           </View>
         ) : (
           <>
-            <View style={styles.headerCenterNav}>
+            <View style={[styles.headerCenterNav, { gap: layout.tokens.navGap }]}>
               {navItems.map((item) => (
                 <Pressable
                   accessibilityRole="link"
@@ -313,7 +315,7 @@ function Header({
       </View>
 
       {isMobile && open ? (
-        <View style={styles.mobileMenu}>
+        <View style={[layout.container, styles.mobileMenu, { paddingHorizontal: layout.tokens.headerPaddingHorizontal }]}>
           {[...navItems, { label: "Sign In", href: "/signin" as Href }, { label: "Get Started Free", href: "/signup" as Href }].map(
             (item) => (
               <Pressable
@@ -729,8 +731,9 @@ export function LandingPage() {
   const sectionPositions = useRef<Partial<Record<SectionKey, number>>>({});
   const { width } = useWindowDimensions();
   const { isDark, theme } = useAppTheme();
-  const isNarrow = width < 940;
-  const isMobile = width < 680;
+  const layout = getMarketingLayout(width);
+  const isMobile = layout.isMobile;
+  const isNarrow = width < MARKETING_BREAKPOINTS.tablet;
 
   function setSectionPosition(section: SectionKey, y: number) {
     sectionPositions.current[section] = y;
@@ -746,14 +749,21 @@ export function LandingPage() {
       <Header onNavigateSection={scrollToSection} />
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* HERO SECTION */}
-        <View style={[styles.hero, isNarrow && styles.heroNarrow]}>
+        <View style={[layout.container, styles.hero, isNarrow && styles.heroNarrow, {
+          paddingVertical: layout.tokens.heroPaddingVertical,
+          gap: layout.tokens.heroGap,
+        }]}>
           <View style={styles.heroCopy}>
             <View style={[styles.badgeShell, { backgroundColor: theme.orangeSoft, borderColor: theme.line }]}>
               <Ionicons name="sparkles" size={14} color={theme.orangeDark} />
               <Text style={[styles.badgeText, { color: theme.orangeDark }]}>#1 ALL-IN-ONE BUSINESS DOCUMENT PLATFORM</Text>
             </View>
 
-            <Text accessibilityRole="header" style={[styles.heroTitle, { color: theme.ink }, isMobile && styles.heroTitleMobile]}>
+            <Text accessibilityRole="header" style={[styles.heroTitle, {
+              color: theme.ink,
+              fontSize: layout.tokens.heroTitleSize,
+              lineHeight: layout.tokens.heroTitleLineHeight,
+            }]}>
               Professional Business Documents,{"\n"}
               <Text style={{ color: theme.orange }}>Made Effortless</Text>
             </Text>
@@ -784,7 +794,7 @@ export function LandingPage() {
         </View>
 
         {/* TRUST METRICS BAR */}
-        <View style={[styles.metricsBar, { backgroundColor: theme.white, borderColor: theme.line }]}>
+        <View style={[layout.container, styles.metricsBar, { backgroundColor: theme.white, borderColor: theme.line }]}>
           <View style={styles.metricItem}>
             <Text style={[styles.metricNumber, { color: theme.ink }]}>10,000+</Text>
             <Text style={[styles.metricLabel, { color: theme.muted }]}>Documents Generated</Text>
@@ -804,7 +814,7 @@ export function LandingPage() {
         {/* DOCUMENT SHOWCASE */}
         <View
           onLayout={(event) => setSectionPosition("documents", event.nativeEvent.layout.y)}
-          style={styles.section}
+          style={[layout.container, styles.section, { paddingVertical: layout.tokens.sectionPaddingVertical }]}
         >
           <SectionHeading
             eyebrow="COMPLETE DOCUMENT ECOSYSTEM"
@@ -825,28 +835,30 @@ export function LandingPage() {
         {/* FEATURES GRID */}
         <View
           onLayout={(event) => setSectionPosition("features", event.nativeEvent.layout.y)}
-          style={[styles.section, { backgroundColor: theme.wash }]}
+          style={[styles.sectionBand, { backgroundColor: theme.wash }]}
         >
-          <SectionHeading
-            eyebrow="BUILT FOR EFFICIENCY"
-            title="Powerful Features for Modern Businesses"
-            body="Automate your document workflow with cloud backup, multi-company profiles, and tax calculation engines."
-          />
-          <View style={styles.featureGrid}>
-            {featureCards.map((feature) => (
-              <View key={feature.title} style={[styles.featureCard, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
-                <OutlineIcon name={feature.icon} />
-                <Text style={[styles.cardTitle, { color: theme.ink }]}>{feature.title}</Text>
-                <Text style={[styles.cardText, { color: theme.muted }]}>{feature.description}</Text>
-              </View>
-            ))}
+          <View style={[layout.container, styles.section, { paddingVertical: layout.tokens.sectionPaddingVertical }]}>
+            <SectionHeading
+              eyebrow="BUILT FOR EFFICIENCY"
+              title="Powerful Features for Modern Businesses"
+              body="Automate your document workflow with cloud backup, multi-company profiles, and tax calculation engines."
+            />
+            <View style={styles.featureGrid}>
+              {featureCards.map((feature) => (
+                <View key={feature.title} style={[styles.featureCard, isMobile && { width: "100%" }, { backgroundColor: theme.white, borderColor: theme.line }]}>
+                  <OutlineIcon name={feature.icon} />
+                  <Text style={[styles.cardTitle, { color: theme.ink }]}>{feature.title}</Text>
+                  <Text style={[styles.cardText, { color: theme.muted }]}>{feature.description}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
 
         {/* PRICING SECTION */}
         <View
           onLayout={(event) => setSectionPosition("pricing", event.nativeEvent.layout.y)}
-          style={styles.section}
+          style={[layout.container, styles.section, { paddingVertical: layout.tokens.sectionPaddingVertical }]}
         >
           <SectionHeading
             eyebrow="TRANSPARENT TIERING"
@@ -859,20 +871,22 @@ export function LandingPage() {
         {/* FAQ SECTION */}
         <View
           onLayout={(event) => setSectionPosition("faq", event.nativeEvent.layout.y)}
-          style={[styles.section, { backgroundColor: theme.wash }]}
+          style={[styles.sectionBand, { backgroundColor: theme.wash }]}
         >
-          <SectionHeading
-            eyebrow="FREQUENTLY ASKED QUESTIONS"
-            title="Got Questions? We Have Answers."
-            body="Everything you need to know about BrandDocs."
-          />
-          <FaqSection />
+          <View style={[layout.container, styles.section, { paddingVertical: layout.tokens.sectionPaddingVertical }]}>
+            <SectionHeading
+              eyebrow="FREQUENTLY ASKED QUESTIONS"
+              title="Got Questions? We Have Answers."
+              body="Everything you need to know about BrandDocs."
+            />
+            <FaqSection />
+          </View>
         </View>
 
         {/* ABOUT & CONTACT SECTION */}
         <View
           onLayout={(event) => setSectionPosition("about", event.nativeEvent.layout.y)}
-          style={[styles.section, styles.aboutSection]}
+          style={[layout.container, styles.section, styles.aboutSection, { paddingVertical: layout.tokens.sectionPaddingVertical }]}
         >
           <View style={styles.aboutGrid}>
             <View style={[styles.aboutCopy, { backgroundColor: theme.orangeSoft, borderColor: theme.line }]}>
@@ -914,12 +928,13 @@ export function MarketingInfoPage({
 }) {
   const { theme } = useAppTheme();
   const { width } = useWindowDimensions();
-  const isMobile = width < 680;
+  const layout = getMarketingLayout(width);
+  const isMobile = layout.isMobile;
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={[styles.page, { backgroundColor: theme.background }]}>
       <Header />
-      <ScrollView contentContainerStyle={[styles.section, { paddingVertical: 80 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[layout.container, styles.section, { paddingVertical: layout.tokens.sectionPaddingVertical }]} showsVerticalScrollIndicator={false}>
         <SectionHeading eyebrow={eyebrow} title={title} body={body} />
 
         {items.length > 0 ? (
@@ -947,6 +962,8 @@ export function MarketingInfoPage({
 
 function Footer({ onNavigateSection }: { onNavigateSection?: (section: SectionKey) => void }) {
   const { isDark, theme } = useAppTheme();
+  const { width } = useWindowDimensions();
+  const layout = getMarketingLayout(width);
 
   function handleFooterLink(link: { section?: SectionKey; href?: Href }) {
     if (link.section && onNavigateSection) {
@@ -991,12 +1008,12 @@ function Footer({ onNavigateSection }: { onNavigateSection?: (section: SectionKe
 
   return (
     <View style={[styles.footerContainer, { backgroundColor: theme.white, borderTopColor: theme.line }]}>
-      <View style={styles.footerInner}>
+      <View style={[layout.container, styles.footerInner]}>
         {/* TOP ROW: MULTI-COLUMN LAYOUT */}
         <View style={styles.footerColumns}>
           {/* COLUMN 1: BRAND & MISSION */}
           <View style={styles.footerBrandCol}>
-            <BrandLogo size="medium" />
+            <BrandLogo size="medium" variant="mark" />
             <Text style={[styles.footerTagline, { color: theme.muted }]}>
               The all-in-one business document & digital branding workspace. Designed for speed, precision, and compliance.
             </Text>
@@ -1103,7 +1120,20 @@ const styles = StyleSheet.create({
   headerShell: {
     position: "sticky" as never,
     top: 0,
+    width: "100%",
     zIndex: 20,
+  },
+  headerContainer: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  headerMobileActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexShrink: 0,
+    gap: 10,
   },
   headerShellDark: {
     backgroundColor: "rgba(22,24,28,0.95)",
@@ -1149,21 +1179,25 @@ const styles = StyleSheet.create({
   },
   logoButton: {
     alignItems: "flex-start",
-    height: 70,
+    backgroundColor: "transparent",
+    flexShrink: 0,
     justifyContent: "center",
+    marginRight: 12,
   },
   headerCenterNav: {
     alignItems: "center",
     flex: 1,
     flexDirection: "row",
-    gap: 24,
+    flexWrap: "wrap",
     justifyContent: "center",
-    paddingHorizontal: 16,
+    minWidth: 0,
+    paddingHorizontal: 8,
   },
   headerRightActions: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 14,
+    flexShrink: 0,
+    gap: 12,
   },
   navLink: {
     borderRadius: 10,
@@ -1199,7 +1233,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     gap: 8,
     paddingBottom: 18,
-    paddingHorizontal: 24,
     width: "100%",
   },
   mobileMenuItem: {
@@ -1250,30 +1283,24 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: "center",
-    alignSelf: "center",
     flexDirection: "row",
-    gap: 40,
-    maxWidth: 1280,
-    minHeight: 620,
-    paddingHorizontal: 28,
-    paddingVertical: 50,
+    justifyContent: "space-between",
+    minHeight: 560,
     width: "100%",
   },
   heroNarrow: {
-    alignItems: "flex-start",
+    alignItems: "stretch",
     flexDirection: "column",
-    gap: 36,
     minHeight: 0,
   },
   heroCopy: {
     flex: 1,
-    maxWidth: 540,
+    maxWidth: 620,
+    minWidth: 0,
   },
   heroTitle: {
-    fontSize: 54,
     fontWeight: "950" as never,
     letterSpacing: -0.5,
-    lineHeight: 62,
   },
   heroTitleMobile: {
     fontSize: 38,
@@ -1289,7 +1316,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginTop: 22,
+    marginTop: 24,
   },
   heroHighlight: {
     alignItems: "center",
@@ -1321,9 +1348,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     flex: 1,
-    maxWidth: 620,
+    maxWidth: 680,
     minHeight: 480,
-    minWidth: 360,
+    minWidth: 320,
     overflow: "hidden",
     padding: 20,
     ...webShadow,
@@ -1537,14 +1564,13 @@ const styles = StyleSheet.create({
   /* Metrics Bar */
   metricsBar: {
     alignItems: "center",
-    alignSelf: "center",
     borderRadius: 20,
     borderWidth: 1,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-around",
-    marginVertical: 24,
-    maxWidth: 1140,
+    marginBottom: 8,
+    marginTop: 8,
     paddingVertical: 22,
     width: "100%",
     ...webShadow,
@@ -1567,11 +1593,11 @@ const styles = StyleSheet.create({
     width: 1,
   },
 
+  sectionBand: {
+    width: "100%",
+  },
   section: {
-    alignSelf: "center",
-    maxWidth: 1280,
-    paddingHorizontal: 28,
-    paddingVertical: 70,
+    paddingVertical: 56,
     width: "100%",
   },
   sectionHeading: {
@@ -1864,9 +1890,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   footerInner: {
-    alignSelf: "center",
-    maxWidth: 1280,
-    paddingHorizontal: 28,
     paddingTop: 54,
     paddingBottom: 36,
     width: "100%",
