@@ -1011,7 +1011,6 @@ function SaveStep({
         <SecondaryButton label="Download PNG" icon="image-outline" onPress={onPng} />
         <SecondaryButton label="Share" icon="share-outline" onPress={onShare} />
       </View>
-      <WarningText message="Native PDF, PNG capture and system share require export/share dependencies that are not installed. Web print can save as PDF from the browser." />
     </AppCard>
   );
 }

@@ -192,7 +192,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
               </Pressable>
             ) : null}
             <Pressable onPress={onClose} style={[styles.closeBadge, { backgroundColor: theme.line }]}>
-              <Text style={[styles.closeBadgeText, { color: isDark ? "#CBD5E1" : "#475569" }]}>ESC</Text>
+              <Ionicons name="close" size={16} color={isDark ? "#CBD5E1" : "#475569"} />
             </Pressable>
           </View>
 
@@ -240,7 +240,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
           {/* Footer Shortcuts */}
           <View style={[styles.footer, { borderTopColor: theme.line, backgroundColor: theme.wash }]}>
             <Text style={[styles.footerText, { color: theme.muted }]}>
-              💡 Tip: Tap any tool to navigate instantly or press <Text style={{ fontWeight: "700", color: BrandColors.primary }}>ESC</Text> to close
+              💡 Tip: Tap any tool to navigate instantly
             </Text>
           </View>
         </Pressable>
