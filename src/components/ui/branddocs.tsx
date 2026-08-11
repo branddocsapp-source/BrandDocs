@@ -610,7 +610,6 @@ export function AppShell({
               </View>
             )}
           </View>
-          {profileMenu ? <View style={styles.profileMenuSlot}>{profileMenu}</View> : null}
           {scroll ? (
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
               {content}
@@ -618,6 +617,27 @@ export function AppShell({
           ) : content}
           {!usesSidebar ? <MobileBottomNavigation /> : null}
           <CommandPalette visible={commandPaletteVisible} onClose={() => setCommandPaletteVisible(false)} />
+          {profileMenu ? (
+            <>
+              <Pressable
+                accessibilityLabel="Close profile menu"
+                onPress={onProfilePress}
+                style={styles.profileMenuBackdrop}
+              />
+              <View
+                pointerEvents="box-none"
+                style={[
+                  styles.profileMenuFloating,
+                  {
+                    paddingHorizontal: usesSidebar ? BrandSpacing["3xl"] : BrandSpacing.lg,
+                    top: usesSidebar ? 76 : 60,
+                  },
+                ]}
+              >
+                {profileMenu}
+              </View>
+            </>
+          ) : null}
         </View>
       </View>
     </SafeAreaView>
@@ -641,6 +661,7 @@ const styles = StyleSheet.create({
   workspace: {
     flex: 1,
     backgroundColor: BrandColors.surface,
+    position: "relative",
   },
   topBar: {
     alignItems: "center",
@@ -705,10 +726,15 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  profileMenuSlot: {
+  profileMenuBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 40,
+  },
+  profileMenuFloating: {
     alignItems: "flex-end",
-    paddingHorizontal: BrandSpacing["3xl"],
-    zIndex: 4,
+    position: "absolute",
+    right: 0,
+    zIndex: 50,
   },
   scrollContent: {
     paddingBottom: BrandSpacing["5xl"],

@@ -306,7 +306,6 @@ function Header({
 
       <Modal transparent visible={useCompactNav && open} animationType="fade" onRequestClose={() => setOpen(false)}>
         <View style={styles.drawerRoot}>
-          <Pressable style={styles.drawerScrim} onPress={() => setOpen(false)} accessibilityLabel="Close navigation menu" />
           <View style={[styles.drawerSheet, { width: drawerWidth, backgroundColor: theme.card, borderColor: theme.line }]}>
             <View style={styles.drawerHeader}>
               <BrandLogo size="small" variant="mark" disableNavigation />
@@ -351,6 +350,7 @@ function Header({
               ))}
             </ScrollView>
           </View>
+          <Pressable style={styles.drawerScrim} onPress={() => setOpen(false)} accessibilityLabel="Close navigation menu" />
         </View>
       </Modal>
 

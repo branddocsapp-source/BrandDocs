@@ -597,9 +597,9 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.md,
   },
   profileMenu: {
-    marginTop: -BrandSpacing.sm,
     minWidth: 230,
     paddingVertical: BrandSpacing.sm,
+    ...BrandShadows.raised,
   },
   profileMenuItem: {
     justifyContent: "center",
