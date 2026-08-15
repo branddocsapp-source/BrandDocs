@@ -958,7 +958,7 @@ const styles = StyleSheet.create({
   },
 
   profileMenuBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 40,
   },
   profileMenuFloating: {

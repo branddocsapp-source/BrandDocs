@@ -19,10 +19,10 @@ const logoAssets = {
 };
 
 const brandStackSizes = {
-  small: { width: 148, height: 78 },
-  medium: { width: 188, height: 98 },
-  large: { width: 228, height: 118 },
-  xlarge: { width: 280, height: 144 },
+  small: { width: 126, height: 66 },
+  medium: { width: 160, height: 83 },
+  large: { width: 194, height: 100 },
+  xlarge: { width: 238, height: 122 },
 } as const;
 
 export function BrandLogo({

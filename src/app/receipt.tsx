@@ -388,7 +388,6 @@ export default function ReceiptScreen() {
           <EmptyState
             title="No receipts created yet"
             message="Created receipts will appear here, sorted by the latest date first."
-            icon="receipt-outline"
           />
         )}
       </View>

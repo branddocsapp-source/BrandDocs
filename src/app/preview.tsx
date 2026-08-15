@@ -602,7 +602,7 @@ export default function PreviewScreen() {
                       ))}
                     </View>
                     <View style={styles.previewActions}>
-                      {selectedLetterheadStatus === "bold" || selectedLetterheadStatus === "draft" ? (
+                      {selectedLetterheadStatus === "draft" ? (
                         <Pressable style={styles.secondaryAction} onPress={() => router.replace(appRoute("/letterhead", { editLetterheadId: letterhead.id || "" }) as never)}>
                           <Ionicons name="create-outline" size={16} color={theme.ink} />
                           <Text style={styles.secondaryActionText}>Edit</Text>
@@ -1190,7 +1190,7 @@ function InvoicePreview({ invoice, isDesktop }: { invoice: InvoiceRecord; isDesk
           <DocumentSectionTitle icon="person-outline" title="BILL TO" />
           <PreviewLine label="Name" value={invoice.customer.name} />
           <PreviewLine label="Address" value={invoice.customer.address} />
-          {isTaxInvoice ? <PreviewLine label="GSTIN" value={invoice.customer.gstin} /> : null}
+          {isTaxInvoice ? <PreviewLine label="GSTIN" value={invoice.customer.gstin || ""} /> : null}
         </View>
         <View style={{ flex: 1 }}>
           <DocumentSectionTitle icon="car-outline" title="SHIP TO" />
@@ -1313,7 +1313,7 @@ function QuotationPreview({ quotation, isDesktop }: { quotation: QuotationRecord
 
       {/* Tax Bar */}
       <View style={{ flexDirection: "row", justifyContent: "space-around", backgroundColor: "#FFF7ED", paddingVertical: 6, marginVertical: 12, borderRadius: 8 }}>
-        <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>GSTIN : <Text style={{ color: "#0F172A" }}>{quotation.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>GSTIN : <Text style={{ color: "#0F172A" }}>{(quotation.company as any).taxRegistrationNumber || "27ABCDE1234F1Z5"}</Text></Text>
         <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text></Text>
         <Text style={{ fontSize: 11, fontWeight: "700", color: DocumentColors.accent }}>CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text></Text>
       </View>

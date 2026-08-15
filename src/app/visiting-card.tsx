@@ -502,7 +502,7 @@ export default function VisitingCardScreen() {
                 <SaveStep
                   draft={draft}
                   saving={saving}
-                  onSaveDraft={() => saveDraft("draft")}
+                  onSave={() => saveDraft("draft")}
                   onSaveFinal={() => saveDraft("final")}
                   onPreview={() => saveDraft("draft", true)}
                   onPrint={() => handlePrintOrPdf(draft)}
@@ -695,7 +695,7 @@ function StepIndicator({ step, setStep }: { step: Step; setStep: (step: Step) =>
         const complete = step > currentStep;
         return (
           <Pressable key={label} style={[styles.stepPill, active && styles.stepPillActive, complete && styles.stepPillComplete]} onPress={() => setStep(currentStep)}>
-            <Text style={[styles.stepNumber, active && { color: theme.orange }, complete && { color: theme.success || "#24A148" }]}>{index + 1}</Text>
+            <Text style={[styles.stepNumber, active && { color: theme.orange }, complete && { color: BrandColors.success }]}>{index + 1}</Text>
             <Text style={[styles.stepLabel, active && { color: theme.orange }]} numberOfLines={1}>{label}</Text>
           </Pressable>
         );
@@ -710,7 +710,7 @@ function BusinessStep({
   updateDraft,
   refreshFromProfile,
 }: {
-  profile: BusinessProfile;
+  profile: BusinessProfile | null;
   draft: Partial<VisitingCardRecord>;
   updateDraft: (updates: Partial<VisitingCardRecord>) => void;
   refreshFromProfile: () => void;
@@ -1191,7 +1191,7 @@ function ActionButton({ icon, label, destructive, onPress }: { icon: keyof typeo
   const { theme, styles } = useVisitingCardStyles();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
-      <Ionicons name={icon} size={16} color={destructive ? (theme.error || "#D92D20") : theme.muted} />
+      <Ionicons name={icon} size={16} color={destructive ? BrandColors.error : theme.muted} />
       <Text style={[styles.actionText, destructive && styles.destructiveActionText]}>{label}</Text>
     </Pressable>
   );
@@ -1324,7 +1324,7 @@ function createStyles(theme: ThemePalette, isDark: boolean) {
       borderColor: theme.orange,
     },
     stepPillComplete: {
-      borderColor: theme.success || "#24A148",
+      borderColor: BrandColors.success,
     },
     stepNumber: {
       color: theme.muted,
@@ -1751,7 +1751,7 @@ function createStyles(theme: ThemePalette, isDark: boolean) {
       fontWeight: "800",
     },
     destructiveActionText: {
-      color: theme.error || "#D92D20",
+      color: BrandColors.error,
     },
     loadMoreButton: {
       alignSelf: "center",

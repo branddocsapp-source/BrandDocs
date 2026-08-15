@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <View style={styles.toastContainer} pointerEvents="box-none">
         {toasts.map((toast) => {
           let iconName: keyof typeof Ionicons.glyphMap = "checkmark-circle";
-          let badgeColor = BrandColors.success;
+          let badgeColor: string = BrandColors.success;
           let bgSoft = isDark ? "rgba(36, 161, 72, 0.2)" : BrandColors.successSoft;
 
           if (toast.type === "error") {

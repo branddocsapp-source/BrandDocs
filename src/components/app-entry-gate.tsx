@@ -1,7 +1,8 @@
 import { Href, router } from "expo-router";
 import { onAuthStateChanged } from "firebase/auth";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { BrandLogo } from "@/components/brand-logo";
@@ -19,7 +20,7 @@ type AppEntryGateProps = {
   destinations?: AppEntryDestinations;
 };
 
-const SPLASH_DISPLAY_MS = 5000; // 5 Seconds Splash Screen as requested by user
+const SPLASH_DISPLAY_MS = Platform.OS === "web" ? 2500 : 1200;
 
 const DEFAULT_DESTINATIONS: AppEntryDestinations = {
   signedOut: "/signin",
@@ -34,16 +35,13 @@ function waitForSplashDisplay() {
 }
 
 export function BrandDocsSplashScreen() {
-  const { isDark, theme } = useAppTheme();
+  const { theme } = useAppTheme();
 
   return (
     <Animated.View
       entering={FadeIn.duration(400)}
       exiting={FadeOut.duration(500)}
-      style={[
-        styles.container,
-        { backgroundColor: theme.background },
-      ]}
+      style={[styles.container, { backgroundColor: theme.background }]}
     >
       <View style={styles.contentCenter}>
         <BrandLogo size="xlarge" disableNavigation />
@@ -56,24 +54,35 @@ export function AppEntryGate({ destinations = DEFAULT_DESTINATIONS }: AppEntryGa
   useEffect(() => {
     let isMounted = true;
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      const [, profile] = await Promise.all([
-        waitForSplashDisplay(),
-        user ? loadBusinessProfile(user) : Promise.resolve(null),
-      ]);
+    const navigate = (href: Href) => {
+      if (!isMounted) return;
+      SplashScreen.hideAsync().catch(() => {});
+      router.replace(href);
+    };
 
+    const authTimeout = setTimeout(() => {
+      navigate(destinations.signedOut);
+    }, SPLASH_DISPLAY_MS + 4000);
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      clearTimeout(authTimeout);
+
+      await waitForSplashDisplay();
       if (!isMounted) return;
 
       if (!user) {
-        router.replace(destinations.signedOut);
+        navigate(destinations.signedOut);
         return;
       }
 
-      router.replace(profile ? destinations.ready : destinations.needsProfile);
+      const profile = await loadBusinessProfile(user);
+      if (!isMounted) return;
+      navigate(profile ? destinations.ready : destinations.needsProfile);
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(authTimeout);
       unsubscribe();
     };
   }, [destinations]);
@@ -92,17 +101,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
-  },
-  titleText: {
-    fontSize: 34,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-    marginTop: 8,
-  },
-  subtitleText: {
-    fontSize: 18,
-    fontWeight: "500",
-    textAlign: "center",
-    lineHeight: 26,
   },
 });

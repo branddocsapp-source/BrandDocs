@@ -516,7 +516,7 @@ export default function QuotationScreen() {
                               <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
                                 <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}><Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : theme.muted} /></Pressable>
                                 <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftQuotation.items.length - 1}><Ionicons name="chevron-down" size={15} color={index === draftQuotation.items.length - 1 ? "#CFCFCF" : theme.muted} /></Pressable>
-                                <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={theme.error} /></Pressable>
+                                <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={BrandColors.error} /></Pressable>
                               </View>
                             </View>
                           ))}
@@ -848,6 +848,8 @@ const createStyles = (theme: ThemePalette, isDark: boolean) => StyleSheet.create
   letterBody: { gap: 10, minHeight: 360, paddingVertical: 14 },
   bodyLine: { color: DocumentColors.ink, fontSize: 14, fontWeight: "800" },
   bodyParagraph: { color: DocumentColors.muted, fontSize: 13, lineHeight: 20 },
+  inlineInput: { color: DocumentColors.ink, fontSize: 13, fontWeight: "700" },
+  textArea: { borderColor: DocumentColors.line, borderRadius: 8, borderWidth: 1, color: DocumentColors.muted, fontSize: 13, lineHeight: 19, minHeight: 60, padding: 8, textAlignVertical: "top" },
   richTextArea: { borderColor: DocumentColors.line, borderRadius: 8, borderWidth: 1, color: DocumentColors.muted, fontSize: 13, lineHeight: 19, minHeight: 86, padding: 10, textAlignVertical: "top" },
   tableToolbar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingVertical: 10 },
   addRowButton: { alignItems: "center", backgroundColor: DocumentColors.accent, borderRadius: 999, flexDirection: "row", gap: 5, paddingHorizontal: 10, paddingVertical: 7 },
