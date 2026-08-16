@@ -1420,7 +1420,7 @@ export function LandingPage() {
           <InteractiveDocumentPlayground compact={isMobile} />
         </View>
 
-        {/* TRUST METRICS BAR */}
+        {/* TRUST METRICS BAR commentd for now if needed we can uncomit it
         <View
           style={[
             layout.container,
@@ -1462,7 +1462,7 @@ export function LandingPage() {
               User Satisfaction
             </Text>
           </View>
-        </View>
+        </View> */}
 
         {/* DOCUMENT SHOWCASE */}
         <View

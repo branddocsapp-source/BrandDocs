@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -15,12 +15,21 @@ import {
   TextInputProps,
   View,
   ViewStyle,
+  useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { BrandLogo } from "@/components/brand-logo";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { auth } from "@/firebase";
+import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
+import {
+  BusinessProfile,
+  getCachedBusinessProfile,
+  getCompanyInitials,
+  loadBusinessProfile,
+} from "@/services/business-profile";
 import { useAppTheme } from "@/theme/theme-context";
 import {
   BrandColors,
@@ -30,12 +39,11 @@ import {
   BrandSpacing,
   BrandTypography,
 } from "@/theme/tokens";
-import { auth } from "@/firebase";
-import { loadBusinessProfile, BusinessProfile, getCompanyInitials, getCachedBusinessProfile } from "@/services/business-profile";
-import { CommandPalette } from "@/components/ui/command-palette";
 
 type IconName = keyof typeof Ionicons.glyphMap;
-type RouteValue = string | { pathname: string; params?: Record<string, string> };
+type RouteValue =
+  | string
+  | { pathname: string; params?: Record<string, string> };
 
 type ButtonProps = {
   label: string;
@@ -53,23 +61,46 @@ function buttonStateStyle(pressed: boolean, disabled?: boolean) {
   return null;
 }
 
-export function PrimaryButton({ label, onPress, icon, disabled, loading, accessibilityLabel, style }: ButtonProps) {
+export function PrimaryButton({
+  label,
+  onPress,
+  icon,
+  disabled,
+  loading,
+  accessibilityLabel,
+  style,
+}: ButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}
       disabled={disabled || loading}
       onPress={onPress}
-      style={({ pressed }) => [styles.buttonBase, styles.primaryButton, buttonStateStyle(pressed, disabled || loading), style]}
+      style={({ pressed }) => [
+        styles.buttonBase,
+        styles.primaryButton,
+        buttonStateStyle(pressed, disabled || loading),
+        style,
+      ]}
     >
       {loading ? <ActivityIndicator color={BrandColors.background} /> : null}
-      {!loading && icon ? <Ionicons name={icon} size={18} color={BrandColors.background} /> : null}
+      {!loading && icon ? (
+        <Ionicons name={icon} size={18} color={BrandColors.background} />
+      ) : null}
       {!loading ? <Text style={styles.primaryButtonText}>{label}</Text> : null}
     </Pressable>
   );
 }
 
-export function SecondaryButton({ label, onPress, icon, disabled, loading, accessibilityLabel, style }: ButtonProps) {
+export function SecondaryButton({
+  label,
+  onPress,
+  icon,
+  disabled,
+  loading,
+  accessibilityLabel,
+  style,
+}: ButtonProps) {
   const { theme } = useAppTheme();
   return (
     <Pressable
@@ -86,22 +117,41 @@ export function SecondaryButton({ label, onPress, icon, disabled, loading, acces
       ]}
     >
       {loading ? <ActivityIndicator color={theme.ink} /> : null}
-      {!loading && icon ? <Ionicons name={icon} size={18} color={theme.ink} /> : null}
-      {!loading ? <Text style={[styles.secondaryButtonText, { color: theme.ink }]}>{label}</Text> : null}
+      {!loading && icon ? (
+        <Ionicons name={icon} size={18} color={theme.ink} />
+      ) : null}
+      {!loading ? (
+        <Text style={[styles.secondaryButtonText, { color: theme.ink }]}>
+          {label}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
 
-export function TextButton({ label, onPress, icon, disabled, accessibilityLabel, style }: ButtonProps) {
+export function TextButton({
+  label,
+  onPress,
+  icon,
+  disabled,
+  accessibilityLabel,
+  style,
+}: ButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.textButton, buttonStateStyle(pressed, disabled), style]}
+      style={({ pressed }) => [
+        styles.textButton,
+        buttonStateStyle(pressed, disabled),
+        style,
+      ]}
     >
-      {icon ? <Ionicons name={icon} size={17} color={BrandColors.primary} /> : null}
+      {icon ? (
+        <Ionicons name={icon} size={17} color={BrandColors.primary} />
+      ) : null}
       <Text style={styles.textButtonText}>{label}</Text>
     </Pressable>
   );
@@ -126,9 +176,19 @@ export function IconButton({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
-      style={({ pressed }) => [styles.iconButton, { backgroundColor: theme.card, borderColor: theme.line }, active && styles.iconButtonActive, pressed && styles.pressed, style]}
+      style={({ pressed }) => [
+        styles.iconButton,
+        { backgroundColor: theme.card, borderColor: theme.line },
+        active && styles.iconButtonActive,
+        pressed && styles.pressed,
+        style,
+      ]}
     >
-      <Ionicons name={icon} size={20} color={active ? BrandColors.primary : theme.ink} />
+      <Ionicons
+        name={icon}
+        size={20}
+        color={active ? BrandColors.primary : theme.ink}
+      />
     </Pressable>
   );
 }
@@ -141,21 +201,50 @@ type InputFieldProps = TextInputProps & {
   rightAccessory?: ReactNode;
 };
 
-export function InputField({ label, helperText, errorText, leftIcon, rightAccessory, style, ...props }: InputFieldProps) {
+export function InputField({
+  label,
+  helperText,
+  errorText,
+  leftIcon,
+  rightAccessory,
+  style,
+  ...props
+}: InputFieldProps) {
   const { theme } = useAppTheme();
   return (
     <View style={styles.inputGroup}>
-      {label ? <Text style={[styles.formLabel, { color: theme.ink }]}>{label}</Text> : null}
-      <View style={[styles.inputShell, { backgroundColor: theme.card, borderColor: theme.line }, errorText && styles.inputShellError]}>
-        {leftIcon ? <Ionicons name={leftIcon} size={18} color={theme.muted} /> : null}
+      {label ? (
+        <Text style={[styles.formLabel, { color: theme.ink }]}>{label}</Text>
+      ) : null}
+      <View
+        style={[
+          styles.inputShell,
+          { backgroundColor: theme.card, borderColor: theme.line },
+          errorText && styles.inputShellError,
+        ]}
+      >
+        {leftIcon ? (
+          <Ionicons name={leftIcon} size={18} color={theme.muted} />
+        ) : null}
         <TextInput
           placeholderTextColor={theme.muted}
           {...props}
-          style={[styles.input, { color: theme.ink }, Platform.OS === "web" && ({ outlineStyle: "none" } as any), style]}
+          style={[
+            styles.input,
+            { color: theme.ink },
+            Platform.OS === "web" && ({ outlineStyle: "none" } as any),
+            style,
+          ]}
         />
         {rightAccessory}
       </View>
-      {errorText ? <Text style={styles.errorText}>{errorText}</Text> : helperText ? <Text style={[styles.helperText, { color: theme.muted }]}>{helperText}</Text> : null}
+      {errorText ? (
+        <Text style={styles.errorText}>{errorText}</Text>
+      ) : helperText ? (
+        <Text style={[styles.helperText, { color: theme.muted }]}>
+          {helperText}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -194,14 +283,29 @@ export function SelectField({
   const { theme } = useAppTheme();
   return (
     <View style={styles.inputGroup}>
-      {label ? <Text style={[styles.formLabel, { color: theme.ink }]}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.formLabel, { color: theme.ink }]}>{label}</Text>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label || placeholder}
         onPress={onPress}
-        style={({ pressed }) => [styles.inputShell, { backgroundColor: theme.card, borderColor: theme.line }, errorText && styles.inputShellError, pressed && styles.pressed]}
+        style={({ pressed }) => [
+          styles.inputShell,
+          { backgroundColor: theme.card, borderColor: theme.line },
+          errorText && styles.inputShellError,
+          pressed && styles.pressed,
+        ]}
       >
-        <Text style={[styles.selectText, { color: theme.ink }, !value && { color: theme.muted }]}>{value || placeholder}</Text>
+        <Text
+          style={[
+            styles.selectText,
+            { color: theme.ink },
+            !value && { color: theme.muted },
+          ]}
+        >
+          {value || placeholder}
+        </Text>
         <Ionicons name="chevron-down" size={18} color={theme.muted} />
       </Pressable>
       {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
@@ -210,12 +314,35 @@ export function SelectField({
 }
 
 export function SearchField(props: TextInputProps) {
-  return <InputField leftIcon="search-outline" accessibilityLabel="Search" placeholder="Search..." {...props} />;
+  return (
+    <InputField
+      leftIcon="search-outline"
+      accessibilityLabel="Search"
+      placeholder="Search..."
+      {...props}
+    />
+  );
 }
 
-export function AppCard({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function AppCard({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
   const { theme } = useAppTheme();
-  return <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }, style]}>{children}</View>;
+  return (
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme.card, borderColor: theme.line },
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
 }
 
 export function StatusBadge({ status }: { status: string }) {
@@ -223,16 +350,35 @@ export function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase();
   const tone =
     normalized.includes("paid") || normalized.includes("accepted")
-      ? [styles.badgeSuccess, isDark && { backgroundColor: "rgba(36, 161, 72, 0.18)" }]
+      ? [
+          styles.badgeSuccess,
+          isDark && { backgroundColor: "rgba(36, 161, 72, 0.18)" },
+        ]
       : normalized.includes("pending") || normalized.includes("sent")
-        ? [styles.badgeWarning, isDark && { backgroundColor: "rgba(245, 158, 11, 0.18)" }]
+        ? [
+            styles.badgeWarning,
+            isDark && { backgroundColor: "rgba(245, 158, 11, 0.18)" },
+          ]
         : normalized.includes("reject") || normalized.includes("error")
-          ? [styles.badgeError, isDark && { backgroundColor: "rgba(217, 45, 32, 0.18)" }]
-          : [styles.badgeInfo, isDark && { backgroundColor: "rgba(37, 99, 235, 0.18)" }];
+          ? [
+              styles.badgeError,
+              isDark && { backgroundColor: "rgba(217, 45, 32, 0.18)" },
+            ]
+          : [
+              styles.badgeInfo,
+              isDark && { backgroundColor: "rgba(37, 99, 235, 0.18)" },
+            ];
 
   return (
     <View style={[styles.badge, tone]}>
-      <Text style={[styles.badgeText, { color: isDark ? theme.ink : BrandColors.text }]}>{status}</Text>
+      <Text
+        style={[
+          styles.badgeText,
+          { color: isDark ? theme.ink : BrandColors.text },
+        ]}
+      >
+        {status}
+      </Text>
     </View>
   );
 }
@@ -254,35 +400,85 @@ export function DocumentCard({
   icon?: IconName;
   onOpen?: () => void;
 }) {
-  const { isDark, theme } = useAppTheme();
+  const { theme } = useAppTheme();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 480;
+
   return (
-    <AppCard style={styles.documentCard}>
-      <View style={[styles.documentIcon, { backgroundColor: theme.orangeSoft }]}>
+    <AppCard
+      style={[styles.documentCard, isCompact && styles.documentCardCompact]}
+    >
+      <View
+        style={[styles.documentIcon, { backgroundColor: theme.orangeSoft }]}
+      >
         <Ionicons name={icon} size={20} color={BrandColors.primary} />
       </View>
-      <View style={styles.documentCopy}>
-        <Text style={[styles.documentTitle, { color: theme.ink }]} numberOfLines={1}>{title}</Text>
-        <Text style={[styles.documentSubtitle, { color: theme.muted }]} numberOfLines={1}>{subtitle}</Text>
-        {meta ? <Text style={[styles.documentMeta, { color: theme.muted }]}>{meta}</Text> : null}
+      <View
+        style={[styles.documentCopy, isCompact && styles.documentCopyCompact]}
+      >
+        <Text
+          style={[styles.documentTitle, { color: theme.ink }]}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+        <Text
+          style={[styles.documentSubtitle, { color: theme.muted }]}
+          numberOfLines={1}
+        >
+          {subtitle}
+        </Text>
+        {meta ? (
+          <Text style={[styles.documentMeta, { color: theme.muted }]}>
+            {meta}
+          </Text>
+        ) : null}
       </View>
-      <View style={styles.documentAside}>
-        {amount ? <Text style={[styles.documentAmount, { color: theme.ink }]}>{amount}</Text> : null}
+      <View
+        style={[styles.documentAside, isCompact && styles.documentAsideCompact]}
+      >
+        {amount ? (
+          <Text style={[styles.documentAmount, { color: theme.ink }]}>
+            {amount}
+          </Text>
+        ) : null}
         {status ? <StatusBadge status={status} /> : null}
       </View>
-      {onOpen ? <IconButton icon="chevron-forward" accessibilityLabel={`Open ${title}`} onPress={onOpen} style={styles.documentOpenButton} /> : null}
+      {onOpen ? (
+        <IconButton
+          icon="chevron-forward"
+          accessibilityLabel={`Open ${title}`}
+          onPress={onOpen}
+          style={styles.documentOpenButton}
+        />
+      ) : null}
     </AppCard>
   );
 }
 
-export function EmptyState({ title, message, action }: { title: string; message: string; action?: ReactNode }) {
-  const { isDark, theme } = useAppTheme();
+export function EmptyState({
+  title,
+  message,
+  action,
+}: {
+  title: string;
+  message: string;
+  action?: ReactNode;
+}) {
+  const { theme } = useAppTheme();
   return (
     <View style={[styles.stateBox, { borderColor: theme.line }]}>
       <View style={[styles.stateIcon, { backgroundColor: theme.orangeSoft }]}>
-        <Ionicons name="file-tray-outline" size={24} color={BrandColors.primary} />
+        <Ionicons
+          name="file-tray-outline"
+          size={24}
+          color={BrandColors.primary}
+        />
       </View>
       <Text style={[styles.stateTitle, { color: theme.ink }]}>{title}</Text>
-      <Text style={[styles.stateMessage, { color: theme.muted }]}>{message}</Text>
+      <Text style={[styles.stateMessage, { color: theme.muted }]}>
+        {message}
+      </Text>
       {action ? <View style={styles.stateAction}>{action}</View> : null}
     </View>
   );
@@ -293,20 +489,40 @@ export function LoadingState({ message = "Loading..." }: { message?: string }) {
   return (
     <View style={[styles.stateBox, { borderColor: theme.line }]}>
       <ActivityIndicator color={BrandColors.primary} />
-      <Text style={[styles.stateMessage, { color: theme.muted }]}>{message}</Text>
+      <Text style={[styles.stateMessage, { color: theme.muted }]}>
+        {message}
+      </Text>
     </View>
   );
 }
 
-export function ErrorState({ title = "Something went wrong", message }: { title?: string; message: string }) {
+export function ErrorState({
+  title = "Something went wrong",
+  message,
+}: {
+  title?: string;
+  message: string;
+}) {
   const { isDark, theme } = useAppTheme();
   return (
     <View style={[styles.stateBox, { borderColor: theme.line }]}>
-      <View style={[styles.stateIcon, styles.stateIconError, isDark && { backgroundColor: "rgba(217, 45, 32, 0.18)" }]}>
-        <Ionicons name="alert-circle-outline" size={24} color={BrandColors.error} />
+      <View
+        style={[
+          styles.stateIcon,
+          styles.stateIconError,
+          isDark && { backgroundColor: "rgba(217, 45, 32, 0.18)" },
+        ]}
+      >
+        <Ionicons
+          name="alert-circle-outline"
+          size={24}
+          color={BrandColors.error}
+        />
       </View>
       <Text style={[styles.stateTitle, { color: theme.ink }]}>{title}</Text>
-      <Text style={[styles.stateMessage, { color: theme.muted }]}>{message}</Text>
+      <Text style={[styles.stateMessage, { color: theme.muted }]}>
+        {message}
+      </Text>
     </View>
   );
 }
@@ -335,14 +551,27 @@ export function ConfirmationModal({
   onCancel: () => void;
 }) {
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
       <View style={styles.modalOverlay}>
         <AppCard style={styles.confirmationModal}>
-          <Text style={[styles.modalTitle, destructive && styles.modalTitleDanger]}>{title}</Text>
+          <Text
+            style={[styles.modalTitle, destructive && styles.modalTitleDanger]}
+          >
+            {title}
+          </Text>
           <Text style={styles.modalMessage}>{message}</Text>
           {children}
           <View style={styles.modalActions}>
-            <SecondaryButton label={cancelLabel} onPress={onCancel} disabled={loading} />
+            <SecondaryButton
+              label={cancelLabel}
+              onPress={onCancel}
+              disabled={loading}
+            />
             <PrimaryButton
               label={confirmLabel}
               onPress={onConfirm}
@@ -356,9 +585,22 @@ export function ConfirmationModal({
   );
 }
 
-export function BottomSheet({ visible, children, onClose }: { visible: boolean; children: ReactNode; onClose: () => void }) {
+export function BottomSheet({
+  visible,
+  children,
+  onClose,
+}: {
+  visible: boolean;
+  children: ReactNode;
+  onClose: () => void;
+}) {
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal
+      transparent
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <Pressable style={styles.sheetOverlay} onPress={onClose}>
         <Pressable style={styles.sheet}>
           <View style={styles.sheetHandle} />
@@ -384,12 +626,19 @@ export function PageHeader({
 }) {
   const { theme } = useAppTheme();
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 480;
   const handleBack = onBackPress || (() => router.back());
 
   return (
-    <View style={styles.pageHeader}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-        {(showBack || onBackPress || router.canGoBack()) ? (
+    <View style={[styles.pageHeader, isCompact && styles.pageHeaderCompact]}>
+      <View
+        style={[
+          { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
+          isCompact && styles.pageHeaderRowCompact,
+        ]}
+      >
+        {showBack || onBackPress || router.canGoBack() ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Go back"
@@ -405,7 +654,11 @@ export function PageHeader({
         ) : null}
         <View style={styles.pageHeaderCopy}>
           <Text style={[styles.pageTitle, { color: theme.ink }]}>{title}</Text>
-          {subtitle ? <Text style={[styles.pageSubtitle, { color: theme.muted }]}>{subtitle}</Text> : null}
+          {subtitle ? (
+            <Text style={[styles.pageSubtitle, { color: theme.muted }]}>
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
       </View>
       {action}
@@ -428,8 +681,21 @@ export function MobileHeaderLogo() {
 export function TipCard({ text }: { text: string }) {
   const { theme } = useAppTheme();
   return (
-    <View style={[styles.tipCard, { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder }]}>
-      <Ionicons name="bulb-outline" size={22} color={BrandColors.primary} style={{ marginTop: 1 }} />
+    <View
+      style={[
+        styles.tipCard,
+        {
+          backgroundColor: theme.accentSurface,
+          borderColor: theme.accentBorder,
+        },
+      ]}
+    >
+      <Ionicons
+        name="bulb-outline"
+        size={22}
+        color={BrandColors.primary}
+        style={{ marginTop: 1 }}
+      />
       <Text style={[styles.tipText, { color: theme.text }]}>
         <Text style={{ fontWeight: "700", color: theme.ink }}>Tip: </Text>
         {text}
@@ -438,9 +704,27 @@ export function TipCard({ text }: { text: string }) {
   );
 }
 
-const mainNavigation: { label: string; icon: IconName; route: string; aliases?: string[] }[] = [
+const mainNavigation: {
+  label: string;
+  icon: IconName;
+  route: string;
+  aliases?: string[];
+}[] = [
   { label: "Dashboard", icon: "grid-outline", route: "/dashboard" },
-  { label: "Documents", icon: "document-text-outline", route: "/documents", aliases: ["/invoice", "/quotation", "/table-quotation", "/letterhead", "/receipt", "/visiting-card", "/scan-receipt"] },
+  {
+    label: "Documents",
+    icon: "document-text-outline",
+    route: "/documents",
+    aliases: [
+      "/invoice",
+      "/quotation",
+      "/table-quotation",
+      "/letterhead",
+      "/receipt",
+      "/visiting-card",
+      "/scan-receipt",
+    ],
+  },
   { label: "Reports", icon: "copy-outline", route: "/reports" },
   { label: "Settings", icon: "settings-outline", route: "/settings" },
 ];
@@ -455,20 +739,48 @@ function usePreviewRoute() {
   };
 }
 
-function isActiveRoute(pathname: string, item: { route: string; aliases?: string[] }) {
+function isActiveRoute(
+  pathname: string,
+  item: { route: string; aliases?: string[] },
+) {
   if (pathname === item.route) return true;
   return Boolean(item.aliases?.some((alias) => pathname === alias));
 }
 
-export function DesktopSidebar() {
+export function DesktopSidebar({
+  onToggleDrawer,
+}: {
+  onToggleDrawer?: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const appRoute = usePreviewRoute();
-  const { isDark, theme } = useAppTheme();
+  const { theme } = useAppTheme();
 
   return (
-    <View style={[styles.sidebar, { backgroundColor: theme.background, borderRightColor: theme.line }]}>
-      <AppLogo />
+    <View
+      style={[
+        styles.sidebar,
+        { backgroundColor: theme.background, borderRightColor: theme.line },
+      ]}
+    >
+      {/* Top Hamburger & Logo Section */}
+      <View style={styles.sidebarTopRow}>
+        {onToggleDrawer ? (
+          <Pressable
+            accessibilityLabel="Open Quick Access Menu"
+            onPress={onToggleDrawer}
+            style={({ pressed }) => [
+              styles.mobileHeaderIconBtn,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons name="menu-outline" size={24} color={theme.ink} />
+          </Pressable>
+        ) : null}
+        <AppLogo />
+      </View>
+
       <View style={styles.sidebarNav}>
         {mainNavigation.map((item) => {
           const active = isActiveRoute(pathname, item);
@@ -484,8 +796,19 @@ export function DesktopSidebar() {
                 pressed && styles.pressed,
               ]}
             >
-              <Ionicons name={item.icon} size={19} color={active ? "#FFFFFF" : theme.muted} />
-              <Text style={[styles.sidebarText, { color: active ? "#FFFFFF" : theme.text }]}>{item.label}</Text>
+              <Ionicons
+                name={item.icon}
+                size={19}
+                color={active ? "#FFFFFF" : theme.muted}
+              />
+              <Text
+                style={[
+                  styles.sidebarText,
+                  { color: active ? "#FFFFFF" : theme.text },
+                ]}
+              >
+                {item.label}
+              </Text>
             </Pressable>
           );
         })}
@@ -498,11 +821,16 @@ export function MobileBottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const appRoute = usePreviewRoute();
-  const { theme, isDark } = useAppTheme();
+  const { theme } = useAppTheme();
 
   return (
     <View style={styles.floatingNavWrapper} pointerEvents="box-none">
-      <View style={[styles.floatingBottomNav, { backgroundColor: theme.card, borderColor: theme.line }]}>
+      <View
+        style={[
+          styles.floatingBottomNav,
+          { backgroundColor: theme.card, borderColor: theme.line },
+        ]}
+      >
         {mainNavigation.map((item) => {
           const active = isActiveRoute(pathname, item);
           return (
@@ -518,7 +846,11 @@ export function MobileBottomNavigation() {
               ]}
             >
               <Ionicons
-                name={active ? (item.icon.replace("-outline", "") as IconName) : item.icon}
+                name={
+                  active
+                    ? (item.icon.replace("-outline", "") as IconName)
+                    : item.icon
+                }
                 size={22}
                 color={active ? BrandColors.primary : theme.muted}
               />
@@ -550,50 +882,156 @@ export function QuickAccessDrawer({
     router.push(appRoute(route) as never);
   };
 
-  const featureItems: { id: string; title: string; subtitle: string; icon: IconName; route: string }[] = [
-    { id: "invoice", title: "Tax Invoice", subtitle: "Itemized billing & GST/VAT tax compliance", icon: "receipt-outline", route: "/invoice" },
-    { id: "quotation", title: "Quotation", subtitle: "Sales proposal & cost estimate", icon: "reader-outline", route: "/quotation" },
-    { id: "visiting-card", title: "Visiting Card", subtitle: "Digital business card with vCard QR", icon: "id-card-outline", route: "/visiting-card" },
-    { id: "letterhead", title: "Letterhead", subtitle: "Official executive company letterhead", icon: "newspaper-outline", route: "/letterhead" },
-    { id: "receipt", title: "Payment Receipt", subtitle: "Instant payment & deposit proof", icon: "receipt-outline", route: "/receipt" },
-    { id: "scanner", title: "OCR Bill Scanner", subtitle: "Scan paper receipts with camera", icon: "scan-circle-outline", route: "/scan-receipt" },
-    { id: "documents", title: "All Documents Hub", subtitle: "Browse, filter & export stored files", icon: "folder-open-outline", route: "/documents" },
-    { id: "reports", title: "Financial Reports", subtitle: "Tax summaries & business analytics", icon: "bar-chart-outline", route: "/reports" },
-    { id: "business-setup", title: "Business Setup Profile", subtitle: "Edit logo, company name & tax IDs", icon: "briefcase-outline", route: "/business-setup" },
-    { id: "settings", title: "App Settings", subtitle: "System preferences, currency & security", icon: "settings-outline", route: "/settings" },
+  const featureItems: {
+    id: string;
+    title: string;
+    subtitle: string;
+    icon: IconName;
+    route: string;
+  }[] = [
+    {
+      id: "invoice",
+      title: "Tax Invoice",
+      subtitle: "Itemized billing & GST/VAT tax compliance",
+      icon: "receipt-outline",
+      route: "/invoice",
+    },
+    {
+      id: "quotation",
+      title: "Quotation",
+      subtitle: "Sales proposal & cost estimate",
+      icon: "reader-outline",
+      route: "/quotation",
+    },
+    {
+      id: "visiting-card",
+      title: "Visiting Card",
+      subtitle: "Digital business card with vCard QR",
+      icon: "id-card-outline",
+      route: "/visiting-card",
+    },
+    {
+      id: "letterhead",
+      title: "Letterhead",
+      subtitle: "Official executive company letterhead",
+      icon: "newspaper-outline",
+      route: "/letterhead",
+    },
+    {
+      id: "receipt",
+      title: "Payment Receipt",
+      subtitle: "Instant payment & deposit proof",
+      icon: "receipt-outline",
+      route: "/receipt",
+    },
+    {
+      id: "scanner",
+      title: "OCR Bill Scanner",
+      subtitle: "Scan paper receipts with camera",
+      icon: "scan-circle-outline",
+      route: "/scan-receipt",
+    },
+    {
+      id: "documents",
+      title: "All Documents Hub",
+      subtitle: "Browse, filter & export stored files",
+      icon: "folder-open-outline",
+      route: "/documents",
+    },
+    {
+      id: "reports",
+      title: "Financial Reports",
+      subtitle: "Tax summaries & business analytics",
+      icon: "bar-chart-outline",
+      route: "/reports",
+    },
+    {
+      id: "business-setup",
+      title: "Business Setup Profile",
+      subtitle: "Edit logo, company name & tax IDs",
+      icon: "briefcase-outline",
+      route: "/business-setup",
+    },
+    {
+      id: "settings",
+      title: "App Settings",
+      subtitle: "System preferences, currency & security",
+      icon: "settings-outline",
+      route: "/settings",
+    },
   ];
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.drawerOverlay}>
-        <Animated.View entering={FadeIn.duration(200)} style={[styles.drawerContent, { backgroundColor: theme.card, borderColor: theme.line }]}>
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          style={[
+            styles.drawerContent,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
+        >
           {/* Drawer Header */}
-          <View style={[styles.drawerHeader, { borderBottomColor: theme.line }]}>
+          <View
+            style={[styles.drawerHeader, { borderBottomColor: theme.line }]}
+          >
             <View style={styles.drawerUserRow}>
-              <View style={[styles.avatarButton, { width: 42, height: 42, borderRadius: 21 }]}>
+              <View
+                style={[
+                  styles.avatarButton,
+                  { width: 42, height: 42, borderRadius: 21 },
+                ]}
+              >
                 {profile?.branding?.logoUrl ? (
-                  <Image source={{ uri: profile.branding.logoUrl }} style={styles.avatarImage} contentFit="cover" />
+                  <Image
+                    source={{ uri: profile.branding.logoUrl }}
+                    style={styles.avatarImage}
+                    contentFit="cover"
+                  />
                 ) : (
-                  <Text style={[styles.avatarText, { fontSize: 13 }]}>{getCompanyInitials(profile?.name)}</Text>
+                  <Text style={[styles.avatarText, { fontSize: 13 }]}>
+                    {getCompanyInitials(profile?.name)}
+                  </Text>
                 )}
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.drawerTitle, { color: theme.ink }]} numberOfLines={1}>
+                <Text
+                  style={[styles.drawerTitle, { color: theme.ink }]}
+                  numberOfLines={1}
+                >
                   {profile?.name || "BrandDocs Workspace"}
                 </Text>
-                <Text style={[styles.drawerSubtitle, { color: theme.muted }]} numberOfLines={1}>
-                  {profile?.email || auth.currentUser?.email || "Quick Access Menu"}
+                <Text
+                  style={[styles.drawerSubtitle, { color: theme.muted }]}
+                  numberOfLines={1}
+                >
+                  {profile?.email ||
+                    auth.currentUser?.email ||
+                    "Quick Access Menu"}
                 </Text>
               </View>
             </View>
-            <Pressable onPress={onClose} style={[styles.drawerCloseBtn, { backgroundColor: theme.line }]}>
+            <Pressable
+              onPress={onClose}
+              style={[styles.drawerCloseBtn, { backgroundColor: theme.line }]}
+            >
               <Ionicons name="close" size={18} color={theme.ink} />
             </Pressable>
           </View>
 
           {/* Quick Access Action Items */}
-          <ScrollView style={styles.drawerScroll} showsVerticalScrollIndicator={false}>
-            <Text style={[styles.drawerSectionLabel, { color: theme.muted }]}>QUICK ACCESS FEATURES</Text>
+          <ScrollView
+            style={styles.drawerScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={[styles.drawerSectionLabel, { color: theme.muted }]}>
+              QUICK ACCESS FEATURES
+            </Text>
             {featureItems.map((item) => (
               <Pressable
                 key={item.id}
@@ -604,31 +1042,72 @@ export function QuickAccessDrawer({
                   pressed && { backgroundColor: theme.orangeSoft },
                 ]}
               >
-                <View style={[styles.drawerIconWrapper, { backgroundColor: theme.orangeSoft }]}>
-                  <Ionicons name={item.icon} size={18} color={BrandColors.primary} />
+                <View
+                  style={[
+                    styles.drawerIconWrapper,
+                    { backgroundColor: theme.orangeSoft },
+                  ]}
+                >
+                  <Ionicons
+                    name={item.icon}
+                    size={18}
+                    color={BrandColors.primary}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>{item.title}</Text>
-                  <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>{item.subtitle}</Text>
+                  <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={[styles.drawerRowSubtitle, { color: theme.muted }]}
+                  >
+                    {item.subtitle}
+                  </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={15} color={theme.muted} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={15}
+                  color={theme.muted}
+                />
               </Pressable>
             ))}
 
             {/* Preferences */}
-            <Text style={[styles.drawerSectionLabel, { color: theme.muted, marginTop: 16 }]}>PREFERENCES & ACCOUNT</Text>
+            <Text
+              style={[
+                styles.drawerSectionLabel,
+                { color: theme.muted, marginTop: 16 },
+              ]}
+            >
+              PREFERENCES & ACCOUNT
+            </Text>
             <Pressable
               onPress={() => toggleTheme()}
-              style={({ pressed }) => [styles.drawerRow, { borderBottomColor: theme.line }, pressed && { backgroundColor: theme.orangeSoft }]}
+              style={({ pressed }) => [
+                styles.drawerRow,
+                { borderBottomColor: theme.line },
+                pressed && { backgroundColor: theme.orangeSoft },
+              ]}
             >
-              <View style={[styles.drawerIconWrapper, { backgroundColor: theme.orangeSoft }]}>
-                <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={18} color={BrandColors.primary} />
+              <View
+                style={[
+                  styles.drawerIconWrapper,
+                  { backgroundColor: theme.orangeSoft },
+                ]}
+              >
+                <Ionicons
+                  name={isDark ? "sunny-outline" : "moon-outline"}
+                  size={18}
+                  color={BrandColors.primary}
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>
                   {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 </Text>
-                <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>
+                <Text
+                  style={[styles.drawerRowSubtitle, { color: theme.muted }]}
+                >
                   {themeMode === "system"
                     ? `Following device · ${isDark ? "Dark" : "Light"}`
                     : `Currently using ${isDark ? "Dark" : "Light"} theme`}
@@ -638,20 +1117,43 @@ export function QuickAccessDrawer({
 
             <Pressable
               onPress={() => handleNavigate("/profile")}
-              style={({ pressed }) => [styles.drawerRow, { borderBottomColor: theme.line }, pressed && { backgroundColor: theme.orangeSoft }]}
+              style={({ pressed }) => [
+                styles.drawerRow,
+                { borderBottomColor: theme.line },
+                pressed && { backgroundColor: theme.orangeSoft },
+              ]}
             >
-              <View style={[styles.drawerIconWrapper, { backgroundColor: theme.orangeSoft }]}>
-                <Ionicons name="person-outline" size={18} color={BrandColors.primary} />
+              <View
+                style={[
+                  styles.drawerIconWrapper,
+                  { backgroundColor: theme.orangeSoft },
+                ]}
+              >
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color={BrandColors.primary}
+                />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>My Profile & Account</Text>
-                <Text style={[styles.drawerRowSubtitle, { color: theme.muted }]}>Manage user credentials and subscription</Text>
+                <Text style={[styles.drawerRowTitle, { color: theme.ink }]}>
+                  My Profile & Account
+                </Text>
+                <Text
+                  style={[styles.drawerRowSubtitle, { color: theme.muted }]}
+                >
+                  Manage user credentials and subscription
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={15} color={theme.muted} />
             </Pressable>
           </ScrollView>
         </Animated.View>
-        <Pressable style={styles.drawerBackdrop} onPress={onClose} accessibilityLabel="Close quick access menu" />
+        <Pressable
+          style={styles.drawerBackdrop}
+          onPress={onClose}
+          accessibilityLabel="Close quick access menu"
+        />
       </View>
     </Modal>
   );
@@ -663,7 +1165,6 @@ export function AppShell({
   profileLogoUrl,
   onProfilePress,
   profileMenu,
-  showSearch,
   scroll = true,
   contentStyle,
 }: {
@@ -678,9 +1179,12 @@ export function AppShell({
 }) {
   const router = useRouter();
   const appRoute = usePreviewRoute();
-  const { isWebsite, usesSidebar } = useResponsiveLayout();
-  const { isDark, theme } = useAppTheme();
-  const [profile, setProfile] = useState<BusinessProfile | null>(() => getCachedBusinessProfile(auth.currentUser?.uid));
+  const { isWebsite, usesSidebar, width } = useResponsiveLayout();
+  const { theme } = useAppTheme();
+  const isCompactViewport = width < 390;
+  const [profile, setProfile] = useState<BusinessProfile | null>(() =>
+    getCachedBusinessProfile(auth.currentUser?.uid),
+  );
   const [commandPaletteVisible, setCommandPaletteVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
@@ -701,6 +1205,7 @@ export function AppShell({
       isMounted = false;
     };
   }, []);
+
   const pathname = usePathname();
   const isDashboard = pathname === "/dashboard";
 
@@ -712,8 +1217,16 @@ export function AppShell({
     }
   };
 
-  const resolvedLogoUrl = profileLogoUrl !== undefined ? profileLogoUrl : (profile?.branding?.logoUrl || profile?.branding?.photoUrl);
-  const resolvedInitials = profileInitials !== "BD" ? profileInitials : (profile ? getCompanyInitials(profile.name) : "BD");
+  const resolvedLogoUrl =
+    profileLogoUrl !== undefined
+      ? profileLogoUrl
+      : profile?.branding?.logoUrl || profile?.branding?.photoUrl;
+  const resolvedInitials =
+    profileInitials !== "BD"
+      ? profileInitials
+      : profile
+        ? getCompanyInitials(profile.name)
+        : "BD";
 
   const content = (
     <Animated.View
@@ -731,28 +1244,64 @@ export function AppShell({
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }, isWebsite && { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { backgroundColor: theme.background },
+        isWebsite && { backgroundColor: theme.background },
+      ]}
+    >
       <View style={[styles.shell, { backgroundColor: theme.background }]}>
-        {usesSidebar ? <DesktopSidebar /> : null}
+        {usesSidebar ? (
+          <DesktopSidebar onToggleDrawer={() => setDrawerVisible(true)} />
+        ) : null}
         <View style={[styles.workspace, { backgroundColor: theme.wash }]}>
-          <View style={[styles.topBar, { backgroundColor: theme.card, borderBottomColor: theme.line }, usesSidebar && styles.desktopTopBar, usesSidebar && { backgroundColor: theme.background, borderBottomWidth: 0 }, !usesSidebar && { paddingHorizontal: BrandSpacing.lg, height: 60 }]}>
+          <View
+            style={[
+              styles.topBar,
+              { backgroundColor: theme.card, borderBottomColor: theme.line },
+              usesSidebar && styles.desktopTopBar,
+              usesSidebar && {
+                backgroundColor: theme.background,
+                borderBottomWidth: 0,
+              },
+              !usesSidebar && {
+                paddingHorizontal: isCompactViewport
+                  ? BrandSpacing.md
+                  : BrandSpacing.lg,
+                height: 60,
+              },
+            ]}
+          >
             {!usesSidebar ? (
               <View style={styles.mobileTopBarRow}>
-                {/* Left: Top Back Arrow (returns to Main Control Panel) + Hamburger Icon */}
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+                {/* Left: Top Back Arrow + Hamburger Icon */}
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+                >
                   {!isDashboard ? (
                     <Pressable
                       accessibilityLabel="Back to Main Control Panel"
                       onPress={handleBackToControlPanel}
-                      style={({ pressed }) => [styles.mobileHeaderIconBtn, pressed && styles.pressed]}
+                      style={({ pressed }) => [
+                        styles.mobileHeaderIconBtn,
+                        pressed && styles.pressed,
+                      ]}
                     >
-                      <Ionicons name="chevron-back" size={24} color={theme.ink} />
+                      <Ionicons
+                        name="chevron-back"
+                        size={24}
+                        color={theme.ink}
+                      />
                     </Pressable>
                   ) : null}
                   <Pressable
                     accessibilityLabel="Open Quick Access Menu"
                     onPress={() => setDrawerVisible(true)}
-                    style={({ pressed }) => [styles.mobileHeaderIconBtn, pressed && styles.pressed]}
+                    style={({ pressed }) => [
+                      styles.mobileHeaderIconBtn,
+                      pressed && styles.pressed,
+                    ]}
                   >
                     <Ionicons name="menu-outline" size={24} color={theme.ink} />
                   </Pressable>
@@ -765,13 +1314,30 @@ export function AppShell({
                   style={({ pressed }) => [
                     styles.searchPill,
                     styles.mobileSearchPill,
-                    { backgroundColor: theme.searchSurface, borderColor: theme.line },
+                    {
+                      backgroundColor: theme.searchSurface,
+                      borderColor: theme.line,
+                    },
+                    isCompactViewport && { paddingHorizontal: 8 },
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Ionicons name="search-outline" size={16} color={BrandColors.primary} />
-                  <Text style={[styles.searchPillText, { color: theme.muted }]} numberOfLines={1}>
-                    Type a command or jump to tool...
+                  <Ionicons
+                    name="search-outline"
+                    size={16}
+                    color={BrandColors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.searchPillText,
+                      { color: theme.muted },
+                      isCompactViewport && { fontSize: 11 },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {isCompactViewport
+                      ? "Search..."
+                      : "Type a command or jump to tool..."}
                   </Text>
                 </Pressable>
 
@@ -779,11 +1345,22 @@ export function AppShell({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Open Profile"
-                  onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
-                  style={({ pressed }) => [styles.avatarButton, styles.mobileAvatarButton, pressed && styles.pressed]}
+                  onPress={
+                    onProfilePress ||
+                    (() => router.push(appRoute("/profile") as never))
+                  }
+                  style={({ pressed }) => [
+                    styles.avatarButton,
+                    styles.mobileAvatarButton,
+                    pressed && styles.pressed,
+                  ]}
                 >
                   {resolvedLogoUrl ? (
-                    <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
+                    <Image
+                      source={{ uri: resolvedLogoUrl }}
+                      style={styles.avatarImage}
+                      contentFit="cover"
+                    />
                   ) : (
                     <Text style={styles.avatarText}>{resolvedInitials}</Text>
                   )}
@@ -795,31 +1372,39 @@ export function AppShell({
                   <Pressable
                     accessibilityLabel="Back to Main Control Panel"
                     onPress={handleBackToControlPanel}
-                    style={({ pressed }) => [styles.mobileHeaderIconBtn, { marginRight: 6 }, pressed && styles.pressed]}
+                    style={({ pressed }) => [
+                      styles.mobileHeaderIconBtn,
+                      { marginRight: 6 },
+                      pressed && styles.pressed,
+                    ]}
                   >
                     <Ionicons name="chevron-back" size={22} color={theme.ink} />
                   </Pressable>
                 ) : null}
-                <Pressable
-                  accessibilityLabel="Open Quick Access Menu"
-                  onPress={() => setDrawerVisible(true)}
-                  style={({ pressed }) => [styles.mobileHeaderIconBtn, { marginRight: 12 }, pressed && styles.pressed]}
-                >
-                  <Ionicons name="menu-outline" size={24} color={theme.ink} />
-                </Pressable>
                 <View style={styles.topBarSearchCenter}>
                   <Pressable
                     onPress={() => setCommandPaletteVisible(true)}
                     style={({ pressed }) => [
                       styles.searchPill,
                       styles.searchPillDesktop,
-                      { backgroundColor: theme.searchSurface, borderColor: theme.line },
+                      {
+                        backgroundColor: theme.searchSurface,
+                        borderColor: theme.line,
+                      },
                       pressed && styles.pressed,
                     ]}
                     accessibilityLabel="Open Quick Search & Command Palette"
                   >
-                    <Ionicons name="search-outline" size={16} color={BrandColors.primary} />
-                    <Text style={[styles.searchPillText, { color: theme.muted }]}>Type a command or jump to tool...</Text>
+                    <Ionicons
+                      name="search-outline"
+                      size={16}
+                      color={BrandColors.primary}
+                    />
+                    <Text
+                      style={[styles.searchPillText, { color: theme.muted }]}
+                    >
+                      Type a command or jump to tool...
+                    </Text>
                   </Pressable>
                 </View>
 
@@ -827,11 +1412,21 @@ export function AppShell({
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Open profile menu"
-                    onPress={onProfilePress || (() => router.push(appRoute("/profile") as never))}
-                    style={({ pressed }) => [styles.avatarButton, pressed && styles.pressed]}
+                    onPress={
+                      onProfilePress ||
+                      (() => router.push(appRoute("/profile") as never))
+                    }
+                    style={({ pressed }) => [
+                      styles.avatarButton,
+                      pressed && styles.pressed,
+                    ]}
                   >
                     {resolvedLogoUrl ? (
-                      <Image source={{ uri: resolvedLogoUrl }} style={styles.avatarImage} contentFit="cover" />
+                      <Image
+                        source={{ uri: resolvedLogoUrl }}
+                        style={styles.avatarImage}
+                        contentFit="cover"
+                      />
                     ) : (
                       <Text style={styles.avatarText}>{resolvedInitials}</Text>
                     )}
@@ -841,13 +1436,25 @@ export function AppShell({
             )}
           </View>
           {scroll ? (
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               {content}
             </ScrollView>
-          ) : content}
+          ) : (
+            content
+          )}
           {!usesSidebar ? <MobileBottomNavigation /> : null}
-          <CommandPalette visible={commandPaletteVisible} onClose={() => setCommandPaletteVisible(false)} />
-          <QuickAccessDrawer visible={drawerVisible} onClose={() => setDrawerVisible(false)} profile={profile} />
+          <CommandPalette
+            visible={commandPaletteVisible}
+            onClose={() => setCommandPaletteVisible(false)}
+          />
+          <QuickAccessDrawer
+            visible={drawerVisible}
+            onClose={() => setDrawerVisible(false)}
+            profile={profile}
+          />
           {profileMenu ? (
             <>
               <Pressable
@@ -860,7 +1467,9 @@ export function AppShell({
                 style={[
                   styles.profileMenuFloating,
                   {
-                    paddingHorizontal: usesSidebar ? BrandSpacing["3xl"] : BrandSpacing.lg,
+                    paddingHorizontal: usesSidebar
+                      ? BrandSpacing["3xl"]
+                      : BrandSpacing.lg,
                     top: usesSidebar ? 76 : 60,
                   },
                 ]}
@@ -875,14 +1484,10 @@ export function AppShell({
   );
 }
 
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: BrandColors.background,
-  },
-  webSafeArea: {
-    backgroundColor: BrandColors.surface,
   },
   shell: {
     flex: 1,
@@ -921,9 +1526,11 @@ const styles = StyleSheet.create({
     right: 0,
   },
   searchPillDesktop: {
-    maxWidth: 420,
-    minWidth: 240,
-    width: "42%",
+    maxWidth: 950,
+    minWidth: 280,
+    width: "100%",
+    height: 50,
+    paddingVertical: 10,
   },
   topBarRightActions: {
     alignItems: "center",
@@ -938,11 +1545,6 @@ const styles = StyleSheet.create({
     minHeight: 76,
     paddingHorizontal: BrandSpacing["3xl"],
   },
-  topActions: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-  },
   searchPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -956,9 +1558,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
   },
-
   profileMenuBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 40,
   },
   profileMenuFloating: {
@@ -998,10 +1599,17 @@ const styles = StyleSheet.create({
     paddingBottom: BrandSpacing["2xl"],
     width: BrandLayout.sidebarWidth,
   },
+  sidebarTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: BrandSpacing.sm,
+    minHeight: 52,
+  },
   sidebarLogoWrap: {
-    alignItems: "flex-start",
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
     paddingHorizontal: BrandSpacing.xs,
-    width: "100%",
   },
   sidebarNav: {
     gap: BrandSpacing.sm,
@@ -1021,56 +1629,6 @@ const styles = StyleSheet.create({
   sidebarText: {
     ...BrandTypography.buttonLabel,
     color: BrandColors.textSecondary,
-  },
-  sidebarTextActive: {
-    color: BrandColors.primary,
-  },
-  bottomNav: {
-    alignItems: "center",
-    backgroundColor: BrandColors.background,
-    borderColor: BrandColors.border,
-    borderRadius: BrandRadius.large,
-    borderWidth: 1,
-    bottom: BrandSpacing.lg,
-    flexDirection: "row",
-    height: BrandLayout.bottomNavHeight,
-    justifyContent: "space-around",
-    left: 16,
-    right: 16,
-    paddingHorizontal: BrandSpacing.xs,
-    position: "absolute",
-    ...BrandShadows.raised,
-  },
-  bottomNavItem: {
-    alignItems: "center",
-    flex: 1,
-    gap: BrandSpacing.xs,
-    justifyContent: "center",
-    minHeight: 54,
-  },
-  bottomNavLabel: {
-    color: BrandColors.textSecondary,
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0,
-  },
-  bottomNavLabelActive: {
-    color: BrandColors.primary,
-  },
-  logoRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: BrandSpacing.sm,
-  },
-  logoIcon: {
-    height: 32,
-    width: 32,
-  },
-  logoText: {
-    color: BrandColors.text,
-    fontSize: 22,
-    fontWeight: "900",
-    letterSpacing: 0,
   },
   avatarButton: {
     alignItems: "center",
@@ -1187,9 +1745,6 @@ const styles = StyleSheet.create({
     color: BrandColors.text,
     flex: 1,
   },
-  placeholderText: {
-    color: BrandColors.textMuted,
-  },
   helperText: {
     ...BrandTypography.helperText,
     color: BrandColors.textSecondary,
@@ -1211,6 +1766,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: BrandSpacing.md,
   },
+  documentCardCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+    gap: BrandSpacing.sm,
+  },
   documentIcon: {
     alignItems: "center",
     backgroundColor: BrandColors.primarySoft,
@@ -1222,6 +1782,9 @@ const styles = StyleSheet.create({
   documentCopy: {
     flex: 1,
     minWidth: 0,
+  },
+  documentCopyCompact: {
+    width: "100%",
   },
   documentTitle: {
     ...BrandTypography.cardTitle,
@@ -1240,6 +1803,10 @@ const styles = StyleSheet.create({
   documentAside: {
     alignItems: "flex-end",
     gap: BrandSpacing.xs,
+  },
+  documentAsideCompact: {
+    alignItems: "flex-start",
+    width: "100%",
   },
   documentAmount: {
     ...BrandTypography.buttonLabel,
@@ -1309,6 +1876,15 @@ const styles = StyleSheet.create({
     gap: BrandSpacing.lg,
     justifyContent: "space-between",
     marginBottom: BrandSpacing["2xl"],
+  },
+  pageHeaderCompact: {
+    alignItems: "stretch",
+    flexDirection: "column",
+    gap: BrandSpacing.md,
+  },
+  pageHeaderRowCompact: {
+    flex: 0,
+    width: "100%",
   },
   pageHeaderBackBtn: {
     width: 38,
@@ -1407,8 +1983,9 @@ const styles = StyleSheet.create({
   floatingNavItem: {
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     borderRadius: 24,
   },
   mobileTopBarRow: {
@@ -1433,15 +2010,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-  },
-  notificationDot: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: BrandColors.primary,
   },
   tipCard: {
     flexDirection: "row",

@@ -1,35 +1,90 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import {
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  signOut,
+} from "firebase/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { deleteUser, EmailAuthProvider, reauthenticateWithCredential, signOut } from "firebase/auth";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import {
   AppCard,
   AppShell,
-  ConfirmationModal,
-  DocumentCard,
-  EmptyState,
-  PageHeader,
-  PrimaryButton,
-  SecondaryButton,
-  StatusBadge,
+  ConfirmationModal
 } from "@/components/ui/branddocs";
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
-import { BusinessProfile, getCompanyInitials, loadBusinessProfile } from "@/services/business-profile";
-import { getDocumentLabel, InvoiceRecord, loadInvoices } from "@/services/invoices";
-import { getQuotationLabel, QuotationRecord, loadQuotations } from "@/services/quotations";
-import { useAppTheme, ThemePalette } from "@/theme/theme-context";
-import { BrandColors, BrandRadius, BrandShadows, BrandSpacing, BrandTypography } from "@/theme/tokens";
+import {
+  BusinessProfile,
+  getCompanyInitials,
+  loadBusinessProfile,
+} from "@/services/business-profile";
+import {
+  getDocumentLabel,
+  InvoiceRecord,
+  loadInvoices,
+} from "@/services/invoices";
+import {
+  getQuotationLabel,
+  loadQuotations,
+  QuotationRecord,
+} from "@/services/quotations";
+import { ThemePalette, useAppTheme } from "@/theme/theme-context";
+import {
+  BrandColors,
+  BrandRadius,
+  BrandShadows,
+  BrandSpacing,
+  BrandTypography,
+} from "@/theme/tokens";
 
 const quickActions = [
-  { title: "Tax Invoice", subtitle: "Create a compliant client invoice.", icon: "receipt-outline", route: "/invoice" },
-  { title: "Quotation", subtitle: "Prepare a polished standard quotation.", icon: "reader-outline", route: "/quotation" },
-  { title: "Receipt", subtitle: "Record a paid transaction.", icon: "receipt-outline", route: "/receipt" },
-  { title: "Letterhead", subtitle: "Draft a branded business letter.", icon: "newspaper-outline", route: "/letterhead" },
-  { title: "Visiting Card", subtitle: "Create a professional contact card.", icon: "id-card-outline", route: "/visiting-card" },
-  { title: "Receipt Scanner", subtitle: "Capture a receipt for your records.", icon: "scan-circle-outline", route: "/scan-receipt" },
+  {
+    title: "Tax Invoice",
+    subtitle: "Create a compliant client invoice.",
+    icon: "receipt-outline",
+    route: "/invoice",
+  },
+  {
+    title: "Quotation",
+    subtitle: "Prepare a polished standard quotation.",
+    icon: "reader-outline",
+    route: "/quotation",
+  },
+  {
+    title: "Receipt",
+    subtitle: "Record a paid transaction.",
+    icon: "receipt-outline",
+    route: "/receipt",
+  },
+  {
+    title: "Letterhead",
+    subtitle: "Draft a branded business letter.",
+    icon: "newspaper-outline",
+    route: "/letterhead",
+  },
+  {
+    title: "Visiting Card",
+    subtitle: "Create a professional contact card.",
+    icon: "id-card-outline",
+    route: "/visiting-card",
+  },
+  {
+    title: "Receipt Scanner",
+    subtitle: "Capture a receipt for your records.",
+    icon: "scan-circle-outline",
+    route: "/scan-receipt",
+  },
 ];
 
 function formatDashboardMoney(amount: number, currency: string) {
@@ -40,7 +95,11 @@ function formatDate(value?: string) {
   if (!value) return "No date";
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return parsed.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function invoiceStatusLabel(status: InvoiceRecord["status"]) {
@@ -57,17 +116,38 @@ function quotationStatusLabel(status: QuotationRecord["status"]) {
 }
 
 function statToneStyle(tone: string, isDark: boolean, theme: ThemePalette) {
-  if (tone === "success") return { backgroundColor: isDark ? "rgba(36, 161, 72, 0.18)" : BrandColors.successSoft };
-  if (tone === "warning") return { backgroundColor: isDark ? "rgba(245, 158, 11, 0.18)" : BrandColors.warningSoft };
-  if (tone === "info") return { backgroundColor: isDark ? "rgba(37, 99, 235, 0.18)" : BrandColors.infoSoft };
-  return { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft };
+  if (tone === "success")
+    return {
+      backgroundColor: isDark
+        ? "rgba(36, 161, 72, 0.18)"
+        : BrandColors.successSoft,
+    };
+  if (tone === "warning")
+    return {
+      backgroundColor: isDark
+        ? "rgba(245, 158, 11, 0.18)"
+        : BrandColors.warningSoft,
+    };
+  if (tone === "info")
+    return {
+      backgroundColor: isDark
+        ? "rgba(37, 99, 235, 0.18)"
+        : BrandColors.infoSoft,
+    };
+  return {
+    backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft,
+  };
 }
 
 export default function DashboardScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
-  const [dashboardDocuments, setDashboardDocuments] = useState<InvoiceRecord[]>([]);
-  const [dashboardQuotations, setDashboardQuotations] = useState<QuotationRecord[]>([]);
+  const [dashboardDocuments, setDashboardDocuments] = useState<InvoiceRecord[]>(
+    [],
+  );
+  const [dashboardQuotations, setDashboardQuotations] = useState<
+    QuotationRecord[]
+  >([]);
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -75,12 +155,14 @@ export default function DashboardScreen() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
-  const { isAppPreview, isWideDesktop, usesSidebar, isPhone } = useResponsiveLayout();
+  const { isAppPreview, isWideDesktop, usesSidebar, isPhone, width } =
+    useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
   const companyName = profile?.name || "Your company";
   const companyInitials = getCompanyInitials(profile?.name);
   const logoUrl = profile?.branding?.logoUrl;
-  const dashboardCurrency = profile?.defaultCurrency || profile?.currencyCode || "INR";
+  const dashboardCurrency =
+    profile?.defaultCurrency || profile?.currencyCode || "INR";
 
   const paidAmount = dashboardDocuments
     .filter((document) => document.status === "paid")
@@ -89,48 +171,113 @@ export default function DashboardScreen() {
     .filter((document) => document.status === "pending")
     .reduce((total, document) => total + document.grandTotal, 0);
   const draftCount =
-    dashboardDocuments.filter((document) => document.status === "draft").length +
-    dashboardQuotations.filter((quotation) => quotation.status === "draft").length;
+    dashboardDocuments.filter((document) => document.status === "draft")
+      .length +
+    dashboardQuotations.filter((quotation) => quotation.status === "draft")
+      .length;
   const totalDocuments = dashboardDocuments.length + dashboardQuotations.length;
 
   const stats = [
-    { label: "Total Documents", value: String(totalDocuments), icon: "documents-outline", tone: "neutral" },
-    { label: "Paid / Received", value: formatDashboardMoney(paidAmount, dashboardCurrency), icon: "checkmark-circle-outline", tone: "success" },
-    { label: "Pending Amount", value: formatDashboardMoney(pendingAmount, dashboardCurrency), icon: "time-outline", tone: "warning" },
-    { label: "Draft Documents", value: String(draftCount), icon: "create-outline", tone: "info" },
+    {
+      label: "Total Documents",
+      value: String(totalDocuments),
+      icon: "documents-outline",
+      tone: "neutral",
+    },
+    {
+      label: "Paid / Received",
+      value: formatDashboardMoney(paidAmount, dashboardCurrency),
+      icon: "checkmark-circle-outline",
+      tone: "success",
+    },
+    {
+      label: "Pending Amount",
+      value: formatDashboardMoney(pendingAmount, dashboardCurrency),
+      icon: "time-outline",
+      tone: "warning",
+    },
+    {
+      label: "Draft Documents",
+      value: String(draftCount),
+      icon: "create-outline",
+      tone: "info",
+    },
   ];
 
-  const appRoute = useCallback((pathname: string, params?: Record<string, string>) => {
-    if (!isAppPreview) return params ? { pathname, params } : pathname;
-    return { pathname, params: { ...params, appPreview: "1" } };
-  }, [isAppPreview]);
+  const appRoute = useCallback(
+    (pathname: string, params?: Record<string, string>) => {
+      if (!isAppPreview) return params ? { pathname, params } : pathname;
+      return { pathname, params: { ...params, appPreview: "1" } };
+    },
+    [isAppPreview],
+  );
 
   const recentDocuments = useMemo(() => {
     const invoices = dashboardDocuments.map((document) => ({
       key: `invoice-${document.id || document.documentNumber}`,
       title: document.documentNumber || document.invoiceNumber,
-      subtitle: document.customer?.name || document.company?.name || getDocumentLabel(document.documentType),
+      subtitle:
+        document.customer?.name ||
+        document.company?.name ||
+        getDocumentLabel(document.documentType),
       date: document.invoiceDate || document.createdAt,
-      amount: formatDashboardMoney(document.grandTotal || 0, document.company?.currency || dashboardCurrency),
+      amount: formatDashboardMoney(
+        document.grandTotal || 0,
+        document.company?.currency || dashboardCurrency,
+      ),
       status: invoiceStatusLabel(document.status),
-      icon: document.documentType === "bill_of_supply" ? "document-text-outline" : "receipt-outline",
-      onOpen: () => router.push(appRoute("/invoice", document.id ? { editInvoiceId: document.id } : undefined) as never),
+      icon:
+        document.documentType === "bill_of_supply"
+          ? "document-text-outline"
+          : "receipt-outline",
+      onOpen: () =>
+        router.push(
+          appRoute(
+            "/invoice",
+            document.id ? { editInvoiceId: document.id } : undefined,
+          ) as never,
+        ),
     }));
     const quotations = dashboardQuotations.map((quotation) => ({
       key: `quotation-${quotation.id || quotation.quotationNumber}`,
       title: quotation.quotationNumber,
-      subtitle: quotation.client?.companyName || quotation.client?.name || getQuotationLabel(quotation.documentType),
+      subtitle:
+        quotation.client?.companyName ||
+        quotation.client?.name ||
+        getQuotationLabel(quotation.documentType),
       date: quotation.quotationDate || quotation.createdAt,
-      amount: formatDashboardMoney(quotation.grandTotal || 0, quotation.currency || dashboardCurrency),
+      amount: formatDashboardMoney(
+        quotation.grandTotal || 0,
+        quotation.currency || dashboardCurrency,
+      ),
       status: quotationStatusLabel(quotation.status),
-      icon: quotation.documentType === "table_quotation" ? "grid-outline" : "reader-outline",
-      onOpen: () => router.push(appRoute("/quotation", quotation.id ? { editQuotationId: quotation.id } : undefined) as never),
+      icon:
+        quotation.documentType === "table_quotation"
+          ? "grid-outline"
+          : "reader-outline",
+      onOpen: () =>
+        router.push(
+          appRoute(
+            "/quotation",
+            quotation.id ? { editQuotationId: quotation.id } : undefined,
+          ) as never,
+        ),
     }));
 
     return [...invoices, ...quotations]
-      .sort((left, right) => new Date(right.date || 0).getTime() - new Date(left.date || 0).getTime())
+      .sort(
+        (left, right) =>
+          new Date(right.date || 0).getTime() -
+          new Date(left.date || 0).getTime(),
+      )
       .slice(0, 6);
-  }, [appRoute, dashboardDocuments, dashboardQuotations, dashboardCurrency, router]);
+  }, [
+    appRoute,
+    dashboardDocuments,
+    dashboardQuotations,
+    dashboardCurrency,
+    router,
+  ]);
 
   function closeDeleteModal() {
     setDeleteModalVisible(false);
@@ -149,7 +296,10 @@ export default function DashboardScreen() {
       setProfile(null);
       router.replace(appRoute("/signin") as never);
     } catch (error: any) {
-      Alert.alert("Log Out Failed", error?.message || "We could not log you out. Please try again.");
+      Alert.alert(
+        "Log Out Failed",
+        error?.message || "We could not log you out. Please try again.",
+      );
     } finally {
       setLoggingOut(false);
     }
@@ -170,10 +320,14 @@ export default function DashboardScreen() {
       return;
     }
 
-    const usesPassword = user.providerData.some((provider) => provider.providerId === "password");
+    const usesPassword = user.providerData.some(
+      (provider) => provider.providerId === "password",
+    );
 
     if (usesPassword && !deletePassword) {
-      setDeleteError("Enter your password to re-authenticate before deleting your account.");
+      setDeleteError(
+        "Enter your password to re-authenticate before deleting your account.",
+      );
       return;
     }
 
@@ -181,7 +335,10 @@ export default function DashboardScreen() {
       setDeletingAccount(true);
 
       if (usesPassword) {
-        const credential = EmailAuthProvider.credential(user.email || "", deletePassword);
+        const credential = EmailAuthProvider.credential(
+          user.email || "",
+          deletePassword,
+        );
         await reauthenticateWithCredential(user, credential);
       }
 
@@ -191,14 +348,24 @@ export default function DashboardScreen() {
       Alert.alert(
         "Account Deleted",
         "Your Firebase Authentication account was deleted. BrandDocs Firestore and Storage data deletion is not implemented yet, so associated business data may still require manual cleanup.",
-        [{ text: "Continue", onPress: () => router.replace(appRoute("/signin") as never) }]
+        [
+          {
+            text: "Continue",
+            onPress: () => router.replace(appRoute("/signin") as never),
+          },
+        ],
       );
     } catch (error: any) {
-      let message = error?.message || "We could not delete this account. Please try again.";
+      let message =
+        error?.message || "We could not delete this account. Please try again.";
 
       if (error?.code === "auth/requires-recent-login") {
-        message = "Firebase requires recent authentication before deleting this account. Please log out, sign in again, and retry Delete Account.";
-      } else if (error?.code === "auth/wrong-password" || error?.code === "auth/invalid-credential") {
+        message =
+          "Firebase requires recent authentication before deleting this account. Please log out, sign in again, and retry Delete Account.";
+      } else if (
+        error?.code === "auth/wrong-password" ||
+        error?.code === "auth/invalid-credential"
+      ) {
         message = "The password entered for re-authentication is incorrect.";
       }
 
@@ -240,7 +407,9 @@ export default function DashboardScreen() {
           router.push(appRoute("/profile") as never);
         }}
       >
-        <Text style={[styles.profileMenuText, { color: theme.ink }]}>View Profile</Text>
+        <Text style={[styles.profileMenuText, { color: theme.ink }]}>
+          View Profile
+        </Text>
       </Pressable>
       <Pressable
         style={styles.profileMenuItem}
@@ -249,10 +418,22 @@ export default function DashboardScreen() {
           router.push(appRoute("/business-setup", { mode: "edit" }) as never);
         }}
       >
-        <Text style={[styles.profileMenuText, { color: theme.ink }]}>Edit Business Profile</Text>
+        <Text style={[styles.profileMenuText, { color: theme.ink }]}>
+          Edit Business Profile
+        </Text>
       </Pressable>
-      <Pressable style={styles.profileMenuItem} onPress={handleLogout} disabled={loggingOut}>
-        {loggingOut ? <ActivityIndicator color={theme.muted} /> : <Text style={[styles.profileMenuText, { color: theme.ink }]}>Log Out</Text>}
+      <Pressable
+        style={styles.profileMenuItem}
+        onPress={handleLogout}
+        disabled={loggingOut}
+      >
+        {loggingOut ? (
+          <ActivityIndicator color={theme.muted} />
+        ) : (
+          <Text style={[styles.profileMenuText, { color: theme.ink }]}>
+            Log Out
+          </Text>
+        )}
       </Pressable>
       <Pressable
         style={styles.profileMenuItem}
@@ -286,69 +467,191 @@ export default function DashboardScreen() {
           pressed && { opacity: 0.8 },
         ]}
       >
-        <View style={[styles.businessProfileIconBox, { backgroundColor: isDark ? "rgba(255, 122, 0, 0.18)" : BrandColors.primarySoft }]}>
+        <View
+          style={[
+            styles.businessProfileIconBox,
+            {
+              backgroundColor: isDark
+                ? "rgba(255, 122, 0, 0.18)"
+                : BrandColors.primarySoft,
+            },
+          ]}
+        >
           <Ionicons name="business" size={22} color={BrandColors.primary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.businessProfileTitle, { color: theme.ink }]}>
             {companyName}
           </Text>
-          <Text style={[styles.businessProfileSubtitle, { color: BrandColors.primary }]}>View Profile</Text>
+          <Text
+            style={[
+              styles.businessProfileSubtitle,
+              { color: BrandColors.primary },
+            ]}
+          >
+            View Profile
+          </Text>
         </View>
         <Ionicons name="chevron-down" size={18} color={BrandColors.primary} />
       </Pressable>
 
       {/* 2x2 Metrics Cards */}
-      <View style={[styles.metricsGrid, usesSidebar && styles.metricsGridWide]}>
-        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(2, 132, 199, 0.16)" : "#E0F2FE" }]}>
+      <View
+        style={[
+          styles.metricsGrid,
+          usesSidebar && styles.metricsGridWide,
+          width < 480 && styles.metricsGridCompact,
+        ]}
+      >
+        <View
+          style={[
+            styles.metricCard,
+            usesSidebar && styles.metricCardWide,
+            width < 480 && styles.metricCardCompact,
+            width < 480 && styles.metricCardCompact,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
+        >
+          <View
+            style={[
+              styles.metricIconBox,
+              {
+                backgroundColor: isDark ? "rgba(2, 132, 199, 0.16)" : "#E0F2FE",
+              },
+            ]}
+          >
             <Ionicons name="document-text" size={20} color="#0284C7" />
           </View>
-          <Text style={[styles.metricLabel, { color: theme.muted }]}>Invoices</Text>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>
+            Invoices
+          </Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>24</Text>
-          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>
+            This Month
+          </Text>
         </View>
 
-        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(22, 163, 74, 0.16)" : "#DCFCE7" }]}>
+        <View
+          style={[
+            styles.metricCard,
+            usesSidebar && styles.metricCardWide,
+            width < 480 && styles.metricCardCompact,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
+        >
+          <View
+            style={[
+              styles.metricIconBox,
+              {
+                backgroundColor: isDark ? "rgba(22, 163, 74, 0.16)" : "#DCFCE7",
+              },
+            ]}
+          >
             <Ionicons name="document-text" size={20} color="#16A34A" />
           </View>
-          <Text style={[styles.metricLabel, { color: theme.muted }]}>Quotations</Text>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>
+            Quotations
+          </Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>18</Text>
-          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>
+            This Month
+          </Text>
         </View>
 
-        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(13, 148, 136, 0.16)" : "#CCFBF1" }]}>
+        <View
+          style={[
+            styles.metricCard,
+            usesSidebar && styles.metricCardWide,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
+        >
+          <View
+            style={[
+              styles.metricIconBox,
+              {
+                backgroundColor: isDark
+                  ? "rgba(13, 148, 136, 0.16)"
+                  : "#CCFBF1",
+              },
+            ]}
+          >
             <Ionicons name="document-text-outline" size={20} color="#0D9488" />
           </View>
-          <Text style={[styles.metricLabel, { color: theme.muted }]}>Receipts</Text>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>
+            Receipts
+          </Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>12</Text>
-          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>
+            This Month
+          </Text>
         </View>
 
-        <View style={[styles.metricCard, usesSidebar && styles.metricCardWide, { backgroundColor: theme.card, borderColor: theme.line }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: isDark ? "rgba(255, 122, 0, 0.16)" : BrandColors.primarySoft }]}>
-            <Ionicons name="scan-outline" size={20} color={BrandColors.primary} />
+        <View
+          style={[
+            styles.metricCard,
+            usesSidebar && styles.metricCardWide,
+            width < 480 && styles.metricCardCompact,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
+        >
+          <View
+            style={[
+              styles.metricIconBox,
+              {
+                backgroundColor: isDark
+                  ? "rgba(255, 122, 0, 0.16)"
+                  : BrandColors.primarySoft,
+              },
+            ]}
+          >
+            <Ionicons
+              name="scan-outline"
+              size={20}
+              color={BrandColors.primary}
+            />
           </View>
-          <Text style={[styles.metricLabel, { color: theme.muted }]}>Scan Receipts</Text>
+          <Text style={[styles.metricLabel, { color: theme.muted }]}>
+            Scan Receipts
+          </Text>
           <Text style={[styles.metricValue, { color: theme.ink }]}>32</Text>
-          <Text style={[styles.metricSubtext, { color: theme.muted }]}>This Month</Text>
+          <Text style={[styles.metricSubtext, { color: theme.muted }]}>
+            This Month
+          </Text>
         </View>
       </View>
 
       {/* Quick Actions Grid */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Quick Actions</Text>
+        <Text style={[styles.sectionTitleText, { color: theme.ink }]}>
+          Quick Actions
+        </Text>
       </View>
 
-      <View style={[styles.quickActions3x2, usesSidebar && styles.quickActionsWide]}>
+      <View
+        style={[
+          styles.quickActions3x2,
+          usesSidebar && styles.quickActionsWide,
+          width < 480 && styles.quickActionsCompact,
+        ]}
+      >
         {[
           { title: "Create Invoice", icon: "document-text", route: "/invoice" },
-          { title: "Create Quotation", icon: "document-text", route: "/quotation" },
+          {
+            title: "Create Quotation",
+            icon: "document-text",
+            route: "/quotation",
+          },
           { title: "Create Receipt", icon: "document-text", route: "/receipt" },
-          { title: "Create Letterhead", icon: "newspaper", route: "/letterhead" },
-          { title: "Create Visiting Card", icon: "id-card", route: "/visiting-card" },
+          {
+            title: "Create Letterhead",
+            icon: "newspaper",
+            route: "/letterhead",
+          },
+          {
+            title: "Create Visiting Card",
+            icon: "id-card",
+            route: "/visiting-card",
+          },
           { title: "Scan Receipt", icon: "scan", route: "/scan-receipt" },
         ].map((action) => (
           <Pressable
@@ -357,51 +660,100 @@ export default function DashboardScreen() {
             style={({ pressed }) => [
               styles.quickActionPill,
               usesSidebar && styles.quickActionPillWide,
-              { backgroundColor: theme.accentSurface, borderColor: theme.accentBorder, borderWidth: 1 },
+              width < 480 && styles.quickActionPillCompact,
+              {
+                backgroundColor: theme.accentSurface,
+                borderColor: theme.accentBorder,
+                borderWidth: 1,
+              },
               pressed && { opacity: 0.75 },
             ]}
           >
-            <Ionicons name={action.icon as never} size={22} color={BrandColors.primary} />
-            <Text style={[styles.quickActionLabel, { color: theme.ink }]}>{action.title}</Text>
+            <Ionicons
+              name={action.icon as never}
+              size={22}
+              color={BrandColors.primary}
+            />
+            <Text style={[styles.quickActionLabel, { color: theme.ink }]}>
+              {action.title}
+            </Text>
           </Pressable>
         ))}
       </View>
 
       {/* Recent Documents */}
       <View style={styles.recentHeaderRow}>
-        <Text style={[styles.sectionTitleText, { color: theme.ink }]}>Recent Documents</Text>
+        <Text style={[styles.sectionTitleText, { color: theme.ink }]}>
+          Recent Documents
+        </Text>
         <Pressable onPress={() => router.push(appRoute("/documents") as never)}>
-          <Text style={[styles.viewAllLink, { color: BrandColors.primary }]}>View All</Text>
+          <Text style={[styles.viewAllLink, { color: BrandColors.primary }]}>
+            View All
+          </Text>
         </Pressable>
       </View>
 
       <View style={styles.recentItemsList}>
         <Pressable
           onPress={() => router.push(appRoute("/invoice") as never)}
-          style={[styles.recentRowItem, { backgroundColor: theme.card, borderColor: theme.line }]}
+          style={[
+            styles.recentRowItem,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
         >
-          <View style={[styles.recentIconBox, { backgroundColor: isDark ? "rgba(13, 148, 136, 0.16)" : "#CCFBF1" }]}>
+          <View
+            style={[
+              styles.recentIconBox,
+              {
+                backgroundColor: isDark
+                  ? "rgba(13, 148, 136, 0.16)"
+                  : "#CCFBF1",
+              },
+            ]}
+          >
             <Ionicons name="document-text-outline" size={20} color="#0D9488" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.recentItemTitle, { color: theme.ink }]}>INV-042</Text>
-            <Text style={[styles.recentItemSubtitle, { color: theme.muted }]}>Today</Text>
+            <Text style={[styles.recentItemTitle, { color: theme.ink }]}>
+              INV-042
+            </Text>
+            <Text style={[styles.recentItemSubtitle, { color: theme.muted }]}>
+              Today
+            </Text>
           </View>
-          <Text style={[styles.recentItemAmount, { color: "#0D9488" }]}>Rs. 1,440.00</Text>
+          <Text style={[styles.recentItemAmount, { color: "#0D9488" }]}>
+            Rs. 1,440.00
+          </Text>
         </Pressable>
 
         <Pressable
           onPress={() => router.push(appRoute("/scan-receipt") as never)}
-          style={[styles.recentRowItem, { backgroundColor: theme.card, borderColor: theme.line }]}
+          style={[
+            styles.recentRowItem,
+            { backgroundColor: theme.card, borderColor: theme.line },
+          ]}
         >
-          <View style={[styles.recentIconBox, { backgroundColor: isDark ? "rgba(220, 38, 38, 0.16)" : "#FEE2E2" }]}>
+          <View
+            style={[
+              styles.recentIconBox,
+              {
+                backgroundColor: isDark ? "rgba(220, 38, 38, 0.16)" : "#FEE2E2",
+              },
+            ]}
+          >
             <Ionicons name="scan-outline" size={20} color="#DC2626" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.recentItemTitle, { color: theme.ink }]}>SCN-142</Text>
-            <Text style={[styles.recentItemSubtitle, { color: theme.muted }]}>Yesterday</Text>
+            <Text style={[styles.recentItemTitle, { color: theme.ink }]}>
+              SCN-142
+            </Text>
+            <Text style={[styles.recentItemSubtitle, { color: theme.muted }]}>
+              Yesterday
+            </Text>
           </View>
-          <Text style={[styles.recentItemAmount, { color: "#DC2626" }]}>Rs. 140.00</Text>
+          <Text style={[styles.recentItemAmount, { color: "#DC2626" }]}>
+            Rs. 140.00
+          </Text>
         </Pressable>
       </View>
 
@@ -415,20 +767,40 @@ export default function DashboardScreen() {
         onCancel={closeDeleteModal}
         onConfirm={handleDeleteAccount}
       >
-        <Text style={[styles.deleteInstruction, { color: theme.ink }]}>Type DELETE to confirm.</Text>
+        <Text style={[styles.deleteInstruction, { color: theme.ink }]}>
+          Type DELETE to confirm.
+        </Text>
         <TextInput
-          style={[styles.deleteInput, { color: theme.ink, borderColor: theme.line, backgroundColor: theme.card }]}
+          style={[
+            styles.deleteInput,
+            {
+              color: theme.ink,
+              borderColor: theme.line,
+              backgroundColor: theme.card,
+            },
+          ]}
           value={deleteConfirmation}
           onChangeText={setDeleteConfirmation}
           autoCapitalize="characters"
           placeholder="DELETE"
           placeholderTextColor={theme.muted}
         />
-        {auth.currentUser?.providerData.some((provider) => provider.providerId === "password") ? (
+        {auth.currentUser?.providerData.some(
+          (provider) => provider.providerId === "password",
+        ) ? (
           <>
-            <Text style={[styles.deleteInstruction, { color: theme.ink }]}>Enter your password to re-authenticate.</Text>
+            <Text style={[styles.deleteInstruction, { color: theme.ink }]}>
+              Enter your password to re-authenticate.
+            </Text>
             <TextInput
-              style={[styles.deleteInput, { color: theme.ink, borderColor: theme.line, backgroundColor: theme.card }]}
+              style={[
+                styles.deleteInput,
+                {
+                  color: theme.ink,
+                  borderColor: theme.line,
+                  backgroundColor: theme.card,
+                },
+              ]}
               value={deletePassword}
               onChangeText={setDeletePassword}
               secureTextEntry
@@ -437,7 +809,9 @@ export default function DashboardScreen() {
             />
           </>
         ) : null}
-        {deleteError ? <Text style={styles.deleteError}>{deleteError}</Text> : null}
+        {deleteError ? (
+          <Text style={styles.deleteError}>{deleteError}</Text>
+        ) : null}
       </ConfirmationModal>
     </AppShell>
   );
@@ -672,6 +1046,9 @@ const styles = StyleSheet.create({
   metricsGridWide: {
     flexWrap: "nowrap",
   },
+  metricsGridCompact: {
+    flexDirection: "column",
+  },
   metricCard: {
     width: "48%",
     padding: 14,
@@ -683,6 +1060,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     width: "auto",
+  },
+  metricCardCompact: {
+    width: "100%",
   },
   metricIconBox: {
     width: 36,
@@ -726,6 +1106,9 @@ const styles = StyleSheet.create({
   quickActionsWide: {
     flexWrap: "nowrap",
   },
+  quickActionsCompact: {
+    flexDirection: "column",
+  },
   quickActionPill: {
     width: "31.5%",
     paddingVertical: 14,
@@ -739,6 +1122,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     width: "auto",
+  },
+  quickActionPillCompact: {
+    width: "100%",
   },
   quickActionLabel: {
     fontSize: 11.5,
