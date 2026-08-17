@@ -30,13 +30,25 @@ import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { loadBusinessProfile } from "@/services/business-profile";
 import {
+  CancelConfirmModal,
+  CancelledWatermark,
+  DocStatusBadge,
+  ThreeDotMenu,
+  getCancelledMenuItems,
+  getDraftMenuItems,
+  getFinalMenuItems,
+} from "@/components/doc-status-actions";
+import {
   calculateDocumentTotals,
+  cancelInvoice,
+  duplicateInvoiceAsDraft,
   getDocumentLabel,
   getDocumentTitle,
   getLineAmount,
   InvoiceRecord,
   InvoiceStatus,
   loadInvoiceById,
+  loadInvoices,
   saveInvoice,
 } from "@/services/invoices";
 import {
@@ -47,16 +59,22 @@ import {
 } from "@/services/letterheads";
 import {
   calculateQuotationTotals,
+  cancelQuotation,
+  duplicateQuotationAsDraft,
   getQuotationItemAmount,
   getQuotationLabel,
   loadQuotationById,
+  loadQuotations,
   QuotationRecord,
   QuotationStatus,
-  saveQuotation
+  saveQuotation,
 } from "@/services/quotations";
 import {
+  cancelReceipt,
+  duplicateReceiptAsDraft,
   getPaymentMethodLabel,
   loadReceiptById,
+  loadReceipts,
   ReceiptRecord,
   ReceiptStatus,
   saveReceipt,
@@ -76,8 +94,8 @@ const statusOptions: {
   description: string;
 }[] = [
   { value: "draft", label: "Draft", description: "Still editable" },
-  { value: "pending", label: "Pending", description: "Payment outstanding" },
-  { value: "paid", label: "Paid", description: "Payment received" },
+  { value: "final", label: "Final", description: "Locked permanent document" },
+  { value: "cancelled", label: "Cancelled", description: "Cancelled permanent record" },
 ];
 
 const quotationStatusOptions: {
@@ -86,9 +104,8 @@ const quotationStatusOptions: {
   description: string;
 }[] = [
   { value: "draft", label: "Draft", description: "Still editable" },
-  { value: "sent", label: "Sent", description: "Awaiting response" },
-  { value: "accepted", label: "Accepted", description: "Approved by client" },
-  { value: "rejected", label: "Rejected", description: "Declined by client" },
+  { value: "final", label: "Final", description: "Locked permanent document" },
+  { value: "cancelled", label: "Cancelled", description: "Cancelled permanent record" },
 ];
 
 const letterheadStatusOptions: {
@@ -128,15 +145,14 @@ function formatMoney(amount: number, currency: string) {
 }
 
 function getStatusLabel(status: InvoiceStatus) {
-  if (status === "paid") return "Paid";
-  if (status === "pending") return "Pending";
+  if (status === "final") return "Final";
+  if (status === "cancelled") return "Cancelled";
   return "Draft";
 }
 
 function getQuotationStatusLabel(status: QuotationStatus) {
-  if (status === "sent") return "Sent";
-  if (status === "accepted") return "Accepted";
-  if (status === "rejected") return "Rejected";
+  if (status === "final") return "Final";
+  if (status === "cancelled") return "Cancelled";
   return "Draft";
 }
 
@@ -510,30 +526,44 @@ export default function PreviewScreen() {
   }
 
   function handleShare() {
-    if (!visitingCard) return;
-    const text =
-      `${visitingCard.fullName} - ${visitingCard.businessName}\n${visitingCard.mobileNumber}\n${visitingCard.email}\n${visitingCard.website}`.trim();
+    let title = "Document";
+    let text = "Check out this document on BrandDocs";
+    if (invoice) {
+      title = `${getDocumentLabel(invoice.documentType)} - ${invoice.documentNumber}`;
+      text = `${title}\nCustomer: ${invoice.customer.name}\nAmount: ${invoice.company.currency} ${invoice.grandTotal}`;
+    } else if (quotation) {
+      title = `${getQuotationLabel(quotation.documentType)} - ${quotation.quotationNumber}`;
+      text = `${title}\nClient: ${quotation.client.name}\nAmount: ${quotation.currency} ${quotation.grandTotal}`;
+    } else if (receipt) {
+      title = `Payment Receipt - ${receipt.receiptNumber}`;
+      text = `${title}\nReceived From: ${receipt.receivedFrom.name}\nAmount: ${receipt.company.currency} ${receipt.amount}`;
+    } else if (visitingCard) {
+      title = `Visiting Card - ${visitingCard.fullName}`;
+      text = `${visitingCard.fullName} - ${visitingCard.businessName}\n${visitingCard.mobileNumber}\n${visitingCard.email}\n${visitingCard.website}`.trim();
+    }
+
     if (
       Platform.OS === "web" &&
       typeof navigator !== "undefined" &&
       "share" in navigator
     ) {
       void (navigator as any)
-        .share({ title: "Visiting Card", text })
+        .share({ title, text, url: typeof window !== "undefined" ? window.location.href : undefined })
         .catch((error: any) => {
-          console.error("BrandDocs visiting card web share failed.", error);
-          Alert.alert(
-            "Share Failed",
-            error?.message || "Share was cancelled or failed.",
-          );
+          if (error?.name !== "AbortError") {
+            Alert.alert("Share", "Share was cancelled or could not be completed.");
+          }
         });
       return;
     }
 
-    Alert.alert(
-      "Share",
-      "Native share needs expo-sharing, which is not installed in this project.",
-    );
+    if (Platform.OS === "web" && typeof navigator !== "undefined" && "clipboard" in navigator) {
+      void navigator.clipboard.writeText(text);
+      Alert.alert("Copied", "Document details copied to clipboard!");
+      return;
+    }
+
+    Alert.alert("Share", text);
   }
 
   if (type === "invoice") {
@@ -569,35 +599,12 @@ export default function PreviewScreen() {
               ) : invoice ? (
                 <>
                   <View style={styles.workflowBar}>
-                    <Text style={styles.workflowTitle}>Set Status</Text>
-                    <View style={styles.statusGrid}>
-                      {statusOptions.map((option) => (
-                        <Pressable
-                          key={option.value}
-                          style={[
-                            styles.statusBox,
-                            selectedStatus === option.value &&
-                              styles.statusBoxActive,
-                          ]}
-                          onPress={() => setSelectedStatus(option.value)}
-                        >
-                          <Text
-                            style={[
-                              styles.statusLabel,
-                              selectedStatus === option.value &&
-                                styles.statusLabelActive,
-                            ]}
-                          >
-                            {option.label}
-                          </Text>
-                          <Text style={styles.statusDescription}>
-                            {option.description}
-                          </Text>
-                        </Pressable>
-                      ))}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Text style={styles.workflowTitle}>Status:</Text>
+                      <DocStatusBadge status={invoice.status} />
                     </View>
                     <View style={styles.previewActions}>
-                      {selectedStatus === "draft" ? (
+                      {invoice.status === "draft" ? (
                         <Pressable
                           style={styles.secondaryAction}
                           onPress={() =>
@@ -616,6 +623,17 @@ export default function PreviewScreen() {
                           <Text style={styles.secondaryActionText}>Edit</Text>
                         </Pressable>
                       ) : null}
+                      <Pressable
+                        style={styles.secondaryAction}
+                        onPress={handleShare}
+                      >
+                        <Ionicons
+                          name="share-outline"
+                          size={16}
+                          color={theme.ink}
+                        />
+                        <Text style={styles.secondaryActionText}>Share</Text>
+                      </Pressable>
                       <Pressable
                         style={styles.secondaryAction}
                         onPress={handlePrint}
@@ -638,18 +656,56 @@ export default function PreviewScreen() {
                         />
                         <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
-                      <Pressable
-                        style={[
-                          styles.primaryAction,
-                          saving && styles.disabledButton,
-                        ]}
-                        onPress={handleFinalSave}
-                        disabled={saving}
-                      >
-                        <Text style={styles.primaryActionText}>
-                          {saving ? "Saving" : "Final Save"}
-                        </Text>
-                      </Pressable>
+                      {invoice.status !== "draft" ? (
+                        <ThreeDotMenu
+                          items={
+                            invoice.status === "final"
+                              ? [
+                                  {
+                                    label: "Create Copy",
+                                    icon: "copy-outline",
+                                    onPress: async () => {
+                                      const all = await loadInvoices(auth.currentUser, await loadBusinessProfile(auth.currentUser), undefined, 500);
+                                      const copy = duplicateInvoiceAsDraft(invoice, all);
+                                      const saved = await saveInvoice(auth.currentUser, await loadBusinessProfile(auth.currentUser), copy);
+                                      router.replace(appRoute("/invoice", { editInvoiceId: saved.invoice.id || "" }) as never);
+                                    },
+                                  },
+                                  {
+                                    label: "Cancel Document",
+                                    icon: "close-circle-outline",
+                                    color: "#DC2626",
+                                    onPress: () => {
+                                      Alert.prompt
+                                        ? Alert.prompt("Cancel Document", "Enter cancellation reason:", async (reason) => {
+                                            if (!reason?.trim()) return;
+                                            const prof = await loadBusinessProfile(auth.currentUser);
+                                            const res = await cancelInvoice(auth.currentUser, prof, invoice, reason.trim());
+                                            setInvoice(res.invoice);
+                                          })
+                                        : (async () => {
+                                            const prof = await loadBusinessProfile(auth.currentUser);
+                                            const res = await cancelInvoice(auth.currentUser, prof, invoice, "Cancelled by user");
+                                            setInvoice(res.invoice);
+                                          })();
+                                    },
+                                  },
+                                ]
+                              : [
+                                  {
+                                    label: "Create Copy",
+                                    icon: "copy-outline",
+                                    onPress: async () => {
+                                      const all = await loadInvoices(auth.currentUser, await loadBusinessProfile(auth.currentUser), undefined, 500);
+                                      const copy = duplicateInvoiceAsDraft(invoice, all);
+                                      const saved = await saveInvoice(auth.currentUser, await loadBusinessProfile(auth.currentUser), copy);
+                                      router.replace(appRoute("/invoice", { editInvoiceId: saved.invoice.id || "" }) as never);
+                                    },
+                                  },
+                                ]
+                          }
+                        />
+                      ) : null}
                     </View>
                   </View>
                   <View
@@ -676,10 +732,13 @@ export default function PreviewScreen() {
                           : undefined
                       }
                     >
-                      <InvoicePreview
-                        invoice={{ ...invoice, status: selectedStatus }}
-                        isDesktop={isDesktop}
-                      />
+                      <View style={{ position: "relative" }}>
+                        <InvoicePreview
+                          invoice={invoice}
+                          isDesktop={isDesktop}
+                        />
+                        {invoice.status === "cancelled" ? <CancelledWatermark /> : null}
+                      </View>
                     </View>
                   </View>
                 </>
@@ -731,37 +790,12 @@ export default function PreviewScreen() {
               ) : quotation ? (
                 <>
                   <View style={styles.workflowBar}>
-                    <Text style={styles.workflowTitle}>Set Status</Text>
-                    <View style={styles.statusGrid}>
-                      {quotationStatusOptions.map((option) => (
-                        <Pressable
-                          key={option.value}
-                          style={[
-                            styles.statusBox,
-                            selectedQuotationStatus === option.value &&
-                              styles.statusBoxActive,
-                          ]}
-                          onPress={() =>
-                            setSelectedQuotationStatus(option.value)
-                          }
-                        >
-                          <Text
-                            style={[
-                              styles.statusLabel,
-                              selectedQuotationStatus === option.value &&
-                                styles.statusLabelActive,
-                            ]}
-                          >
-                            {option.label}
-                          </Text>
-                          <Text style={styles.statusDescription}>
-                            {option.description}
-                          </Text>
-                        </Pressable>
-                      ))}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Text style={styles.workflowTitle}>Status:</Text>
+                      <DocStatusBadge status={quotation.status} />
                     </View>
                     <View style={styles.previewActions}>
-                      {selectedQuotationStatus === "draft" ? (
+                      {quotation.status === "draft" ? (
                         <Pressable
                           style={styles.secondaryAction}
                           onPress={() =>
@@ -780,24 +814,17 @@ export default function PreviewScreen() {
                           <Text style={styles.secondaryActionText}>Edit</Text>
                         </Pressable>
                       ) : null}
-                      {selectedQuotationStatus === "accepted" ? (
-                        <Pressable
-                          style={[
-                            styles.secondaryAction,
-                            styles.disabledButton,
-                          ]}
-                          disabled
-                        >
-                          <Ionicons
-                            name="swap-horizontal-outline"
-                            size={16}
-                            color={theme.muted}
-                          />
-                          <Text style={styles.secondaryActionText}>
-                            Convert to Tax Invoice
-                          </Text>
-                        </Pressable>
-                      ) : null}
+                      <Pressable
+                        style={styles.secondaryAction}
+                        onPress={handleShare}
+                      >
+                        <Ionicons
+                          name="share-outline"
+                          size={16}
+                          color={theme.ink}
+                        />
+                        <Text style={styles.secondaryActionText}>Share</Text>
+                      </Pressable>
                       <Pressable
                         style={styles.secondaryAction}
                         onPress={handlePrint}
@@ -820,18 +847,56 @@ export default function PreviewScreen() {
                         />
                         <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
-                      <Pressable
-                        style={[
-                          styles.primaryAction,
-                          saving && styles.disabledButton,
-                        ]}
-                        onPress={handleQuotationFinalSave}
-                        disabled={saving}
-                      >
-                        <Text style={styles.primaryActionText}>
-                          {saving ? "Saving" : "Final Save"}
-                        </Text>
-                      </Pressable>
+                      {quotation.status !== "draft" ? (
+                        <ThreeDotMenu
+                          items={
+                            quotation.status === "final"
+                              ? [
+                                  {
+                                    label: "Create Copy",
+                                    icon: "copy-outline",
+                                    onPress: async () => {
+                                      const all = await loadQuotations(auth.currentUser, await loadBusinessProfile(auth.currentUser), undefined, 500);
+                                      const copy = duplicateQuotationAsDraft(quotation, all, (await loadBusinessProfile(auth.currentUser))?.name);
+                                      const saved = await saveQuotation(auth.currentUser, await loadBusinessProfile(auth.currentUser), copy);
+                                      router.replace(appRoute("/quotation", { editQuotationId: saved.quotation.id || "" }) as never);
+                                    },
+                                  },
+                                  {
+                                    label: "Cancel Document",
+                                    icon: "close-circle-outline",
+                                    color: "#DC2626",
+                                    onPress: () => {
+                                      Alert.prompt
+                                        ? Alert.prompt("Cancel Document", "Enter cancellation reason:", async (reason) => {
+                                            if (!reason?.trim()) return;
+                                            const prof = await loadBusinessProfile(auth.currentUser);
+                                            const res = await cancelQuotation(auth.currentUser, prof, quotation, reason.trim());
+                                            setQuotation(res.quotation);
+                                          })
+                                        : (async () => {
+                                            const prof = await loadBusinessProfile(auth.currentUser);
+                                            const res = await cancelQuotation(auth.currentUser, prof, quotation, "Cancelled by user");
+                                            setQuotation(res.quotation);
+                                          })();
+                                    },
+                                  },
+                                ]
+                              : [
+                                  {
+                                    label: "Create Copy",
+                                    icon: "copy-outline",
+                                    onPress: async () => {
+                                      const all = await loadQuotations(auth.currentUser, await loadBusinessProfile(auth.currentUser), undefined, 500);
+                                      const copy = duplicateQuotationAsDraft(quotation, all, (await loadBusinessProfile(auth.currentUser))?.name);
+                                      const saved = await saveQuotation(auth.currentUser, await loadBusinessProfile(auth.currentUser), copy);
+                                      router.replace(appRoute("/quotation", { editQuotationId: saved.quotation.id || "" }) as never);
+                                    },
+                                  },
+                                ]
+                          }
+                        />
+                      ) : null}
                     </View>
                   </View>
                   <View
@@ -858,13 +923,13 @@ export default function PreviewScreen() {
                           : undefined
                       }
                     >
-                      <QuotationPreview
-                        quotation={{
-                          ...quotation,
-                          status: selectedQuotationStatus,
-                        }}
-                        isDesktop={isDesktop}
-                      />
+                      <View style={{ position: "relative" }}>
+                        <QuotationPreview
+                          quotation={quotation}
+                          isDesktop={isDesktop}
+                        />
+                        {quotation.status === "cancelled" ? <CancelledWatermark /> : null}
+                      </View>
                     </View>
                   </View>
                 </>
@@ -1266,35 +1331,12 @@ export default function PreviewScreen() {
               ) : receipt ? (
                 <>
                   <View style={styles.workflowBar}>
-                    <Text style={styles.workflowTitle}>Set Status</Text>
-                    <View style={styles.statusGrid}>
-                      {receiptStatusOptions.map((option) => (
-                        <Pressable
-                          key={option.value}
-                          style={[
-                            styles.statusBox,
-                            selectedReceiptStatus === option.value &&
-                              styles.statusBoxActive,
-                          ]}
-                          onPress={() => setSelectedReceiptStatus(option.value)}
-                        >
-                          <Text
-                            style={[
-                              styles.statusLabel,
-                              selectedReceiptStatus === option.value &&
-                                styles.statusLabelActive,
-                            ]}
-                          >
-                            {option.label}
-                          </Text>
-                          <Text style={styles.statusDescription}>
-                            {option.description}
-                          </Text>
-                        </Pressable>
-                      ))}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Text style={styles.workflowTitle}>Status:</Text>
+                      <DocStatusBadge status={receipt.status} />
                     </View>
                     <View style={styles.previewActions}>
-                      {selectedReceiptStatus === "draft" ? (
+                      {receipt.status === "draft" ? (
                         <Pressable
                           style={styles.secondaryAction}
                           onPress={() =>
@@ -1313,6 +1355,17 @@ export default function PreviewScreen() {
                           <Text style={styles.secondaryActionText}>Edit</Text>
                         </Pressable>
                       ) : null}
+                      <Pressable
+                        style={styles.secondaryAction}
+                        onPress={handleShare}
+                      >
+                        <Ionicons
+                          name="share-outline"
+                          size={16}
+                          color={theme.ink}
+                        />
+                        <Text style={styles.secondaryActionText}>Share</Text>
+                      </Pressable>
                       <Pressable
                         style={styles.secondaryAction}
                         onPress={handlePrint}
@@ -1335,18 +1388,56 @@ export default function PreviewScreen() {
                         />
                         <Text style={styles.secondaryActionText}>PDF</Text>
                       </Pressable>
-                      <Pressable
-                        style={[
-                          styles.primaryAction,
-                          saving && styles.disabledButton,
-                        ]}
-                        onPress={handleReceiptFinalSave}
-                        disabled={saving}
-                      >
-                        <Text style={styles.primaryActionText}>
-                          {saving ? "Saving" : "Final Save"}
-                        </Text>
-                      </Pressable>
+                      {receipt.status !== "draft" ? (
+                        <ThreeDotMenu
+                          items={
+                            receipt.status === "final"
+                              ? [
+                                  {
+                                    label: "Create Copy",
+                                    icon: "copy-outline",
+                                    onPress: async () => {
+                                      const all = await loadReceipts(auth.currentUser, await loadBusinessProfile(auth.currentUser), 500);
+                                      const copy = duplicateReceiptAsDraft(receipt, all);
+                                      const saved = await saveReceipt(auth.currentUser, await loadBusinessProfile(auth.currentUser), copy);
+                                      router.replace(appRoute("/receipt", { editReceiptId: saved.receipt.id || "" }) as never);
+                                    },
+                                  },
+                                  {
+                                    label: "Cancel Document",
+                                    icon: "close-circle-outline",
+                                    color: "#DC2626",
+                                    onPress: () => {
+                                      Alert.prompt
+                                        ? Alert.prompt("Cancel Document", "Enter cancellation reason:", async (reason) => {
+                                            if (!reason?.trim()) return;
+                                            const prof = await loadBusinessProfile(auth.currentUser);
+                                            const res = await cancelReceipt(auth.currentUser, prof, receipt, reason.trim());
+                                            setReceipt(res.receipt);
+                                          })
+                                        : (async () => {
+                                            const prof = await loadBusinessProfile(auth.currentUser);
+                                            const res = await cancelReceipt(auth.currentUser, prof, receipt, "Cancelled by user");
+                                            setReceipt(res.receipt);
+                                          })();
+                                    },
+                                  },
+                                ]
+                              : [
+                                  {
+                                    label: "Create Copy",
+                                    icon: "copy-outline",
+                                    onPress: async () => {
+                                      const all = await loadReceipts(auth.currentUser, await loadBusinessProfile(auth.currentUser), 500);
+                                      const copy = duplicateReceiptAsDraft(receipt, all);
+                                      const saved = await saveReceipt(auth.currentUser, await loadBusinessProfile(auth.currentUser), copy);
+                                      router.replace(appRoute("/receipt", { editReceiptId: saved.receipt.id || "" }) as never);
+                                    },
+                                  },
+                                ]
+                          }
+                        />
+                      ) : null}
                     </View>
                   </View>
                   <View
@@ -1373,10 +1464,13 @@ export default function PreviewScreen() {
                           : undefined
                       }
                     >
-                      <ReceiptPaper
-                        receipt={{ ...receipt, status: selectedReceiptStatus }}
-                        isDesktop={isDesktop}
-                      />
+                      <View style={{ position: "relative" }}>
+                        <ReceiptPaper
+                          receipt={receipt}
+                          isDesktop={isDesktop}
+                        />
+                        {receipt.status === "cancelled" ? <CancelledWatermark /> : null}
+                      </View>
                     </View>
                   </View>
                 </>

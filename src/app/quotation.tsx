@@ -22,10 +22,15 @@ import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { BusinessProfile, getCompanyInitials, loadBusinessProfile } from "@/services/business-profile";
 import {
   calculateQuotationTotals,
+  cancelQuotation,
+  deleteQuotation,
+  duplicateQuotationAsDraft,
+  finalizeQuotation,
   generateNextQuotationNumber,
   getQuotationItemAmount,
   getQuotationLabel,
   getQuotationTitle,
+  isQuotationLocked,
   loadQuotationById,
   loadQuotations,
   QuotationDocumentType,
@@ -45,6 +50,17 @@ import {
 } from "@/components/document-template";
 import { CustomerInlineField } from "@/components/customer-suggest-field";
 import { SavedCustomerProfile } from "@/services/customer-directory";
+import {
+  CancelConfirmModal,
+  DeleteConfirmModal,
+  DocStatusBadge,
+  DraftActionBar,
+  FinalizeConfirmModal,
+  ThreeDotMenu,
+  getCancelledMenuItems,
+  getDraftMenuItems,
+  getFinalMenuItems,
+} from "@/components/doc-status-actions";
 
 const quotationOptions: { type: QuotationDocumentType; title: string; description: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
@@ -96,9 +112,8 @@ function getCompanyAddress(profile: BusinessProfile | null) {
 }
 
 function getStatusLabel(status: QuotationRecord["status"]) {
-  if (status === "sent") return "Sent";
-  if (status === "accepted") return "Accepted";
-  if (status === "rejected") return "Rejected";
+  if (status === "final") return "Final";
+  if (status === "cancelled") return "Cancelled";
   return "Draft";
 }
 
@@ -185,6 +200,9 @@ export default function QuotationScreen() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<string[]>([]);
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState<QuotationRecord | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<QuotationRecord | null>(null);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
   const baseWidth = 794;
@@ -253,15 +271,15 @@ export default function QuotationScreen() {
     setDraftQuotation(buildDraftQuotation(documentType, profile, allQuotations));
   }
 
-  function updateQuotationField(field: keyof QuotationRecord, value: string | number) {
+  function updateQuotationField<K extends keyof QuotationRecord>(field: K, value: QuotationRecord[K]) {
     setDraftQuotation((current) => (current ? { ...current, [field]: value } : current));
   }
 
-  function updateCompanyField(field: keyof QuotationRecord["company"], value: string) {
+  function updateCompanyField<K extends keyof QuotationRecord["company"]>(field: K, value: QuotationRecord["company"][K]) {
     setDraftQuotation((current) => (current ? { ...current, company: { ...current.company, [field]: value } } : current));
   }
 
-  function updateClientField(field: keyof QuotationRecord["client"], value: string) {
+  function updateClientField<K extends keyof QuotationRecord["client"]>(field: K, value: QuotationRecord["client"][K]) {
     setDraftQuotation((current) => (current ? { ...current, client: { ...current.client, [field]: value } } : current));
   }
 
@@ -275,24 +293,41 @@ export default function QuotationScreen() {
           name: customer.name || current.client.name,
           companyName: customer.companyName || current.client.companyName,
           address: customer.address || current.client.address,
-          email: customer.email || current.client.email,
           phone: customer.phone || current.client.phone,
+          email: customer.email || current.client.email,
         },
       };
-    });
-  }
-
-  function updateItem(itemId: string, field: keyof QuotationItem, value: string) {
-    setDraftQuotation((current) => {
-      if (!current) return current;
-      return { ...current, items: current.items.map((item) => (item.id === itemId ? { ...item, [field]: value } : item)) };
     });
   }
 
   function addRow() {
     setDraftQuotation((current) => {
       if (!current) return current;
-      return { ...current, items: [...current.items, { ...createInitialItems()[0], id: `${Date.now()}-${current.items.length}` }] };
+      return {
+        ...current,
+        items: [
+          ...current.items,
+          {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            description: "",
+            itemCode: "",
+            quantity: "1",
+            unit: "Nos",
+            rate: "0",
+            discount: "0",
+          },
+        ],
+      };
+    });
+  }
+
+  function updateRow(itemId: string, field: keyof QuotationItem, value: string) {
+    setDraftQuotation((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        items: current.items.map((item) => (item.id === itemId ? { ...item, [field]: value } : item)),
+      };
     });
   }
 
@@ -313,22 +348,6 @@ export default function QuotationScreen() {
       const [item] = nextItems.splice(index, 1);
       nextItems.splice(nextIndex, 0, item);
       return { ...current, items: nextItems };
-    });
-  }
-
-  function duplicateQuotation(quotation: QuotationRecord) {
-    const { quotationNumber, numberingSequence } = generateNextQuotationNumber(quotation.documentType, profile?.name, allQuotations);
-    setFieldErrors([]);
-    setDraftQuotation({
-      ...quotation,
-      id: undefined,
-      quotationNumber,
-      numberingSequence,
-      status: "draft",
-      quotationDate: todayISO(),
-      validUntil: validUntilISO(),
-      createdAt: undefined,
-      updatedAt: undefined,
     });
   }
 
@@ -395,6 +414,81 @@ export default function QuotationScreen() {
     }
   }
 
+  async function handleFinalize() {
+    const quotationToSave = buildSavableQuotation("draft");
+    if (!quotationToSave) return;
+    const errors = validateQuotation(quotationToSave);
+    setFieldErrors(errors);
+    if (errors.length) {
+      setShowFinalizeModal(false);
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const draftResult = await saveQuotation(auth.currentUser, profile, quotationToSave);
+      const result = await finalizeQuotation(auth.currentUser, profile, draftResult.quotation);
+
+      const [quotations, selectedQuotations] = await Promise.all([
+        loadQuotations(auth.currentUser, profile, undefined, 500),
+        loadQuotations(auth.currentUser, profile, previousFilter, 50),
+      ]);
+      setAllQuotations(quotations.length ? quotations : [result.quotation, ...allQuotations]);
+      setPreviousQuotations(selectedQuotations.length ? selectedQuotations : [result.quotation, ...previousQuotations]);
+      setDraftQuotation(null);
+      setShowFinalizeModal(false);
+      Alert.alert("Quotation Finalized", `${getQuotationLabel(result.quotation.documentType)} is now final.`);
+    } catch (error: any) {
+      Alert.alert("Finalize Failed", error?.message || "Could not finalize quotation.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCancelQuotation(quotation: QuotationRecord, reason: string) {
+    try {
+      setSaving(true);
+      const result = await cancelQuotation(auth.currentUser, profile, quotation, reason);
+      const [quotations, selectedQuotations] = await Promise.all([
+        loadQuotations(auth.currentUser, profile, undefined, 500),
+        loadQuotations(auth.currentUser, profile, previousFilter, 50),
+      ]);
+      setAllQuotations(quotations.length ? quotations : allQuotations.map((q) => (q.id === result.quotation.id ? result.quotation : q)));
+      setPreviousQuotations(selectedQuotations.length ? selectedQuotations : previousQuotations.map((q) => (q.id === result.quotation.id ? result.quotation : q)));
+      setShowCancelModal(null);
+      Alert.alert("Quotation Cancelled", "This quotation has been marked as cancelled.");
+    } catch (error: any) {
+      Alert.alert("Cancel Failed", error?.message || "Could not cancel quotation.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteDraft(quotation: QuotationRecord) {
+    try {
+      setSaving(true);
+      await deleteQuotation(auth.currentUser, profile, quotation);
+      const [quotations, selectedQuotations] = await Promise.all([
+        loadQuotations(auth.currentUser, profile, undefined, 500),
+        loadQuotations(auth.currentUser, profile, previousFilter, 50),
+      ]);
+      setAllQuotations(quotations);
+      setPreviousQuotations(selectedQuotations);
+      setShowDeleteModal(null);
+      if (draftQuotation?.id === quotation.id) setDraftQuotation(null);
+      Alert.alert("Draft Deleted", "Quotation draft was deleted.");
+    } catch (error: any) {
+      Alert.alert("Delete Failed", error?.message || "Could not delete this draft.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleDuplicate(quotation: QuotationRecord) {
+    const copy = duplicateQuotationAsDraft(quotation, allQuotations, profile?.name);
+    setDraftQuotation(copy);
+  }
+
   function printQuotation() {
     if (Platform.OS === "web" && typeof window !== "undefined") {
       window.print();
@@ -415,14 +509,13 @@ export default function QuotationScreen() {
                 <Ionicons name="chevron-back" size={22} color={theme.ink} />
               </Pressable>
               <Text style={styles.editorTitle}>{getQuotationLabel(draftQuotation.documentType)}</Text>
-              <View style={styles.editorActions}>
-                <Pressable style={[styles.secondaryButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: false })} disabled={saving}>
-                  <Text style={styles.secondaryButtonText}>Save Draft</Text>
-                </Pressable>
-                <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistDraft({ goToPreview: true })} disabled={saving}>
-                  <Text style={styles.saveButtonText}>Preview</Text>
-                </Pressable>
-              </View>
+              <ThreeDotMenu
+                items={getDraftMenuItems({
+                  onEdit: () => {},
+                  onPreview: () => persistDraft({ goToPreview: true }),
+                  onDelete: () => setShowDeleteModal(draftQuotation),
+                })}
+              />
             </View>
 
             <View style={{ flex: 1 }}>
@@ -448,133 +541,134 @@ export default function QuotationScreen() {
                     isDesktop && styles.webA4Paper,
                     width < 820 && {
                       transform: [{ scale: scale }],
-                      position: "absolute",
-                    }
+                      transformOrigin: "top left",
+                      width: baseWidth,
+                      minHeight: baseHeight,
+                    },
                   ]}>
-                  <QuotationHeader quotation={draftQuotation} updateCompanyField={updateCompanyField} updateQuotationField={updateQuotationField} />
-                  <DocumentTaxBar gstin={(draftQuotation.businessProfileSnapshot as any)?.taxRegistrationNumber} />
-                  <View style={styles.clientGrid}>
-                    <View style={styles.clientBox}>
-                      <DocumentSectionTitle icon="person-outline" title={isTableQuotation ? "QUOTED TO" : "TO"} />
+                    <QuotationHeader quotation={draftQuotation} updateCompanyField={updateCompanyField} updateQuotationField={updateQuotationField} />
+
+                    <View style={styles.recipientCard}>
+                      <Text style={styles.cardTitle}>Client Information</Text>
                       <CustomerInlineField
+                        label="Client Name"
                         value={draftQuotation.client.name}
-                        onChangeText={(value) => updateClientField("name", value)}
+                        onChangeText={(v) => updateClientField("name", v)}
                         onSelectCustomer={applySavedCustomer}
-                        textStyle={styles.clientName}
-                        placeholder="Client Name"
+                        placeholder="Search or enter client name"
                       />
-                      <InlineInput value={draftQuotation.client.companyName} onChangeText={(value) => updateClientField("companyName", value)} textStyle={styles.mutedInput} placeholder="Client Company" />
-                      <InlineInput value={draftQuotation.client.address} onChangeText={(value) => updateClientField("address", value)} textStyle={styles.mutedInput} multiline placeholder="Client Address" />
-                      <InlineInput value={draftQuotation.client.email} onChangeText={(value) => updateClientField("email", value)} textStyle={styles.mutedInput} placeholder="Client Email" />
-                      <InlineInput value={draftQuotation.client.phone} onChangeText={(value) => updateClientField("phone", value)} textStyle={styles.mutedInput} placeholder="Client Phone" />
+                      <InlineInput value={draftQuotation.client.companyName} onChangeText={(v) => updateClientField("companyName", v)} placeholder="Company Name (optional)" />
+                      <InlineInput value={draftQuotation.client.address} onChangeText={(v) => updateClientField("address", v)} placeholder="Client Address" multiline />
+                      <View style={styles.splitRow}>
+                        <InlineInput value={draftQuotation.client.email} onChangeText={(v) => updateClientField("email", v)} placeholder="Email Address" textStyle={{ flex: 1 }} />
+                        <InlineInput value={draftQuotation.client.phone} onChangeText={(v) => updateClientField("phone", v)} placeholder="Phone Number" textStyle={{ flex: 1 }} />
+                      </View>
                     </View>
-                    <View style={styles.metaBox}>
-                      <MetaField label={`${getQuotationLabel(draftQuotation.documentType)} Number`} value={draftQuotation.quotationNumber} onChangeText={(value) => updateQuotationField("quotationNumber", value)} />
-                      <MetaField label="Quotation Date" value={draftQuotation.quotationDate} onChangeText={(value) => updateQuotationField("quotationDate", value)} />
-                      <MetaField label="Valid Until" value={draftQuotation.validUntil} onChangeText={(value) => updateQuotationField("validUntil", value)} />
-                      <MetaField label="Currency" value={draftQuotation.currency} onChangeText={(value) => updateQuotationField("currency", value.toUpperCase())} />
+
+                    <View style={styles.sectionBlock}>
+                      <Text style={styles.fieldLabel}>Subject / Title</Text>
+                      <TextInput style={styles.subjectInput} value={draftQuotation.subject} onChangeText={(v) => updateQuotationField("subject", v)} placeholder="Quotation Subject" />
                     </View>
-                  </View>
 
-                  <View style={styles.subjectBox}>
-                    <DocumentSectionTitle icon="document-text-outline" title="SUBJECT" />
-                    <InlineInput value={draftQuotation.subject} onChangeText={(value) => updateQuotationField("subject", value)} textStyle={styles.subjectInput} />
-                  </View>
+                    {!isTableQuotation ? (
+                      <>
+                        <View style={styles.sectionBlock}>
+                          <Text style={styles.fieldLabel}>Greeting</Text>
+                          <TextInput style={styles.standardInput} value={draftQuotation.greeting} onChangeText={(v) => updateQuotationField("greeting", v)} />
+                        </View>
+                        <View style={styles.sectionBlock}>
+                          <Text style={styles.fieldLabel}>Introduction</Text>
+                          <TextInput style={[styles.standardInput, styles.multilineInput]} value={draftQuotation.intro} onChangeText={(v) => updateQuotationField("intro", v)} multiline />
+                        </View>
+                        <View style={styles.sectionBlock}>
+                          <Text style={styles.fieldLabel}>Scope of Work</Text>
+                          <TextInput style={[styles.standardInput, styles.multilineInput]} value={draftQuotation.scope} onChangeText={(v) => updateQuotationField("scope", v)} multiline />
+                        </View>
+                        <View style={styles.sectionBlock}>
+                          <Text style={styles.fieldLabel}>Milestones / Deliverables</Text>
+                          <TextInput style={[styles.standardInput, styles.multilineInput]} value={draftQuotation.milestones} onChangeText={(v) => updateQuotationField("milestones", v)} multiline />
+                        </View>
+                      </>
+                    ) : null}
 
-                  {isTableQuotation ? (
-                    <>
-                      <View style={styles.tableToolbar}>
-                        <Text style={styles.sectionLabel}>Itemized Quotation</Text>
-                        <Pressable style={styles.addRowButton} onPress={addRow}>
-                          <Ionicons name="add" size={16} color="#FFFFFF" />
-                          <Text style={styles.addRowText}>Add Row</Text>
+                    {isTableQuotation ? (
+                      <View style={styles.tableCard}>
+                        <View style={styles.tableHeader}>
+                          <Text style={[styles.tableCol, { flex: 3 }]}>Item & Description</Text>
+                          <Text style={[styles.tableCol, { width: 50, textAlign: "center" }]}>Qty</Text>
+                          <Text style={[styles.tableCol, { width: 50, textAlign: "center" }]}>Unit</Text>
+                          <Text style={[styles.tableCol, { width: 70, textAlign: "right" }]}>Rate</Text>
+                          <Text style={[styles.tableCol, { width: 60, textAlign: "right" }]}>Disc.</Text>
+                          <Text style={[styles.tableCol, { width: 80, textAlign: "right" }]}>Amount</Text>
+                          <Text style={[styles.tableCol, { width: 40 }]} />
+                        </View>
+                        {draftQuotation.items.map((item, index) => (
+                          <View key={item.id} style={styles.tableRow}>
+                            <View style={{ flex: 3 }}>
+                              <TextInput style={styles.rowInput} value={item.description} onChangeText={(v) => updateRow(item.id, "description", v)} placeholder="Description" />
+                            </View>
+                            <TextInput style={[styles.rowInput, { width: 50, textAlign: "center" }]} value={item.quantity} onChangeText={(v) => updateRow(item.id, "quantity", v)} keyboardType="decimal-pad" />
+                            <TextInput style={[styles.rowInput, { width: 50, textAlign: "center" }]} value={item.unit} onChangeText={(v) => updateRow(item.id, "unit", v)} />
+                            <TextInput style={[styles.rowInput, { width: 70, textAlign: "right" }]} value={item.rate} onChangeText={(v) => updateRow(item.id, "rate", v)} keyboardType="decimal-pad" />
+                            <TextInput style={[styles.rowInput, { width: 60, textAlign: "right" }]} value={item.discount} onChangeText={(v) => updateRow(item.id, "discount", v)} keyboardType="decimal-pad" />
+                            <Text style={[styles.rowAmount, { width: 80 }]}>{formatMoney(getQuotationItemAmount(item), currency)}</Text>
+                            <Pressable style={styles.deleteRowBtn} onPress={() => deleteRow(item.id)}>
+                              <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                            </Pressable>
+                          </View>
+                        ))}
+                        <Pressable style={styles.addRowBtn} onPress={addRow}>
+                          <Ionicons name="add" size={16} color={theme.orange} />
+                          <Text style={{ color: theme.orange, fontWeight: "700", fontSize: 13 }}>Add Item</Text>
                         </Pressable>
                       </View>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <View style={styles.itemTable}>
-                          <View style={[styles.itemRow, styles.itemHeaderRow]}>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.serialCell]}>S.No.</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.descriptionCell]}>Description of Goods / Services</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.codeCell]}>HSN/SAC</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Qty</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Unit</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Rate</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.smallCell]}>Discount</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.amountCell]}>Amount</Text>
-                            <Text style={[styles.tableCell, styles.headerCell, styles.actionCell]} />
-                          </View>
-                          {draftQuotation.items.map((item, index) => (
-                            <View key={item.id} style={styles.itemRow}>
-                              <Text style={[styles.tableCell, styles.serialCell]}>{index + 1}</Text>
-                              <CellInput value={item.description} onChangeText={(value) => updateItem(item.id, "description", value)} style={styles.descriptionCell} />
-                              <CellInput value={item.itemCode || ""} onChangeText={(value) => updateItem(item.id, "itemCode", value)} style={styles.codeCell} />
-                              <CellInput value={item.quantity} onChangeText={(value) => updateItem(item.id, "quantity", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                              <CellInput value={item.unit} onChangeText={(value) => updateItem(item.id, "unit", value)} style={styles.smallCell} />
-                              <CellInput value={item.rate} onChangeText={(value) => updateItem(item.id, "rate", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                              <CellInput value={item.discount} onChangeText={(value) => updateItem(item.id, "discount", value)} style={styles.smallCell} keyboardType="decimal-pad" />
-                              <Text style={[styles.tableCell, styles.amountCell, styles.amountText]}>{formatMoney(getQuotationItemAmount(item), currency)}</Text>
-                              <View style={[styles.tableCell, styles.actionCell, styles.rowActions]}>
-                                <Pressable onPress={() => moveRow(item.id, -1)} disabled={index === 0}><Ionicons name="chevron-up" size={15} color={index === 0 ? "#CFCFCF" : theme.muted} /></Pressable>
-                                <Pressable onPress={() => moveRow(item.id, 1)} disabled={index === draftQuotation.items.length - 1}><Ionicons name="chevron-down" size={15} color={index === draftQuotation.items.length - 1 ? "#CFCFCF" : theme.muted} /></Pressable>
-                                <Pressable onPress={() => deleteRow(item.id)}><Ionicons name="trash-outline" size={16} color={BrandColors.error} /></Pressable>
-                              </View>
-                            </View>
-                          ))}
-                        </View>
-                      </ScrollView>
-                    </>
-                  ) : (
-                    <View style={styles.letterBody}>
-                      <InlineInput value={draftQuotation.greeting} onChangeText={(value) => updateQuotationField("greeting", value)} textStyle={styles.bodyLine} />
-                      <InlineInput value={draftQuotation.intro} onChangeText={(value) => updateQuotationField("intro", value)} textStyle={styles.bodyParagraph} multiline />
-                      <Text style={styles.sectionLabel}>Scope of Work / Services</Text>
-                      <TextInput style={styles.richTextArea} value={draftQuotation.scope} onChangeText={(value) => updateQuotationField("scope", value)} multiline />
-                      <Text style={styles.sectionLabel}>Milestones / Deliverables</Text>
-                      <TextInput style={styles.richTextArea} value={draftQuotation.milestones} onChangeText={(value) => updateQuotationField("milestones", value)} multiline />
-                    </View>
-                  )}
+                    ) : null}
 
-                  <View style={styles.summaryArea}>
-                    <View style={styles.notesColumn}>
-                      <Text style={styles.sectionLabel}>Notes</Text>
-                      <TextInput style={styles.textArea} value={draftQuotation.notes} onChangeText={(value) => updateQuotationField("notes", value)} multiline />
-                      <Text style={styles.sectionLabel}>Terms & Conditions</Text>
-                      <TextInput style={styles.textArea} value={draftQuotation.terms} onChangeText={(value) => updateQuotationField("terms", value)} multiline />
-                    </View>
-                    <View style={styles.totalsBox}>
+                    <View style={styles.totalsCard}>
                       <TotalRow label="Subtotal" value={formatMoney(totals.subtotal, currency)} />
-                      <EditableAmountRow label="Discount" value={String(draftQuotation.discount)} onChangeText={(value) => updateQuotationField("discount", toNumber(value))} currency={currency} />
-                      <EditableAmountRow label="Other Charges" value={String(draftQuotation.otherCharges)} onChangeText={(value) => updateQuotationField("otherCharges", toNumber(value))} currency={currency} />
-                      <View style={styles.totalDivider} />
+                      <EditableAmountRow label="Discount" value={`${draftQuotation.discount || ""}`} onChangeText={(v) => updateQuotationField("discount", toNumber(v))} currency={currency} />
+                      <EditableAmountRow label="Other Charges" value={`${draftQuotation.otherCharges || ""}`} onChangeText={(v) => updateQuotationField("otherCharges", toNumber(v))} currency={currency} />
                       <TotalRow label="Grand Total" value={formatMoney(totals.grandTotal, currency)} strong />
-                      <Text style={styles.wordsLabel}>Amount in Words</Text>
-                      <TextInput style={styles.wordsInput} value={draftQuotation.amountInWords || getNumberWords(totals.grandTotal, currency)} onChangeText={(value) => updateQuotationField("amountInWords", value)} multiline />
                     </View>
-                  </View>
 
-                  <View style={styles.signatureArea}>
-                    <View style={styles.closingBox}>
-                      <TextInput style={styles.textArea} value={draftQuotation.closing} onChangeText={(value) => updateQuotationField("closing", value)} multiline />
+                    <View style={styles.termsCard}>
+                      <Text style={styles.cardTitle}>Terms & Conditions</Text>
+                      <TextInput style={[styles.standardInput, styles.multilineInput]} value={draftQuotation.terms} onChangeText={(v) => updateQuotationField("terms", v)} multiline />
                     </View>
-                    <View style={styles.signBox}>
-                      <Text style={styles.signFor}>For {draftQuotation.company.name}</Text>
-                      <View style={styles.assetRow}>
-                        <AssetPreview label="Stamp" uri={draftQuotation.company.stampUrl} />
-                        <AssetPreview label="Signature" uri={draftQuotation.company.signatureUrl} />
-                      </View>
-                      <Text style={styles.signLabel}>Authorized Signatory</Text>
-                    </View>
-                  </View>
 
-                  <DocumentFooter
-                    phone={draftQuotation.company.phone}
-                    email={draftQuotation.company.email}
-                    website={draftQuotation.company.website}
-                  />
+                    <DocumentFooter
+                      phone={draftQuotation.company.phone}
+                      email={draftQuotation.company.email}
+                      website={draftQuotation.company.website}
+                    />
+                  </View>
                 </View>
-              </View>
               </ScrollView>
             </View>
+
+            <DraftActionBar
+              saving={saving}
+              onSaveDraft={() => persistDraft({ goToPreview: false })}
+              onPreview={() => persistDraft({ goToPreview: true })}
+              onFinalize={() => setShowFinalizeModal(true)}
+            />
+
+            <FinalizeConfirmModal
+              visible={showFinalizeModal}
+              documentLabel={getQuotationLabel(draftQuotation.documentType)}
+              onGoBack={() => setShowFinalizeModal(false)}
+              onConfirm={handleFinalize}
+              loading={saving}
+            />
+
+            <DeleteConfirmModal
+              visible={!!showDeleteModal}
+              documentLabel={showDeleteModal ? getQuotationLabel(showDeleteModal.documentType) : ""}
+              documentNumber={showDeleteModal?.quotationNumber || ""}
+              onGoBack={() => setShowDeleteModal(null)}
+              onConfirm={() => showDeleteModal && handleDeleteDraft(showDeleteModal)}
+              loading={saving}
+            />
           </KeyboardAvoidingView>
         </Animated.View>
       </SafeAreaView>
@@ -626,17 +720,35 @@ export default function QuotationScreen() {
                   <Pressable style={styles.previousMain} onPress={() => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never)}>
                     <View style={styles.previousIcon}><Ionicons name={quotation.documentType === "table_quotation" ? "grid-outline" : "reader-outline"} size={18} color={theme.orange} /></View>
                     <View style={styles.previousCopy}>
-                      <Text style={styles.previousNumber}>{quotation.quotationNumber}</Text>
-                      <Text style={styles.previousMeta}>{quotation.quotationDate} • Valid {quotation.validUntil} • {quotation.client.name || "Client"} • {getStatusLabel(quotation.status)}</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Text style={styles.previousNumber}>{quotation.quotationNumber}</Text>
+                        <DocStatusBadge status={quotation.status} />
+                      </View>
+                      <Text style={styles.previousMeta}>{quotation.quotationDate} • Valid {quotation.validUntil} • {quotation.client.name || "Client"}</Text>
                     </View>
                     <Text style={styles.previousAmount}>{formatMoney(quotation.grandTotal, quotation.currency)}</Text>
                   </Pressable>
                   <View style={styles.previousActions}>
-                    <Pressable style={styles.rowIconButton} onPress={() => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never)}><Ionicons name="eye-outline" size={17} color={theme.muted} /></Pressable>
-                    {quotation.status === "draft" ? <Pressable style={styles.rowIconButton} onPress={() => setDraftQuotation(quotation)}><Ionicons name="create-outline" size={17} color={theme.muted} /></Pressable> : null}
-                    <Pressable style={styles.rowIconButton} onPress={() => duplicateQuotation(quotation)}><Ionicons name="copy-outline" size={17} color={theme.muted} /></Pressable>
-                    {quotation.status === "accepted" ? <Pressable style={[styles.rowIconButton, styles.disabledRowButton]} disabled><Ionicons name="swap-horizontal-outline" size={17} color="#B8B8B8" /></Pressable> : null}
-                    <Pressable style={styles.rowIconButton} onPress={printQuotation}><Ionicons name="print-outline" size={17} color={theme.muted} /></Pressable>
+                    <ThreeDotMenu
+                      items={
+                        quotation.status === "draft"
+                          ? getDraftMenuItems({
+                              onEdit: () => setDraftQuotation(quotation),
+                              onPreview: () => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never),
+                              onDelete: () => setShowDeleteModal(quotation),
+                            })
+                          : quotation.status === "final"
+                            ? getFinalMenuItems({
+                                onView: () => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never),
+                                onDuplicate: () => handleDuplicate(quotation),
+                                onCancel: () => setShowCancelModal(quotation),
+                              })
+                            : getCancelledMenuItems({
+                                onView: () => router.push(appRoute("/preview", { type: "quotation", quotationId: quotation.id || "" }) as never),
+                                onDuplicate: () => handleDuplicate(quotation),
+                              })
+                      }
+                    />
                   </View>
                 </View>
               ))
@@ -649,6 +761,23 @@ export default function QuotationScreen() {
             )}
           </View>
         </ScrollView>
+
+        <CancelConfirmModal
+          visible={!!showCancelModal}
+          documentLabel={showCancelModal ? getQuotationLabel(showCancelModal.documentType) : ""}
+          onGoBack={() => setShowCancelModal(null)}
+          onConfirm={(reason) => showCancelModal && handleCancelQuotation(showCancelModal, reason)}
+          loading={saving}
+        />
+
+        <DeleteConfirmModal
+          visible={!!showDeleteModal}
+          documentLabel={showDeleteModal ? getQuotationLabel(showDeleteModal.documentType) : ""}
+          documentNumber={showDeleteModal?.quotationNumber || ""}
+          onGoBack={() => setShowDeleteModal(null)}
+          onConfirm={() => showDeleteModal && handleDeleteDraft(showDeleteModal)}
+          loading={saving}
+        />
 
         <Modal transparent visible={selectorVisible} animationType={isPhone ? "slide" : "fade"} onRequestClose={() => setSelectorVisible(false)}>
           <View style={[styles.selectorOverlay, isPhone && styles.selectorOverlayPhone]}>

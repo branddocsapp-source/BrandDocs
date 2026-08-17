@@ -1386,6 +1386,30 @@ export default function InvoiceScreen() {
                 </View>
               </ScrollView>
             </View>
+
+            <DraftActionBar
+              saving={saving}
+              onSaveDraft={() => persistDraft({ goToPreview: false })}
+              onPreview={() => persistDraft({ goToPreview: true })}
+              onFinalize={() => setShowFinalizeModal(true)}
+            />
+
+            <FinalizeConfirmModal
+              visible={showFinalizeModal}
+              documentLabel={getDocumentLabel(draftDocument.documentType)}
+              onGoBack={() => setShowFinalizeModal(false)}
+              onConfirm={handleFinalize}
+              loading={saving}
+            />
+
+            <DeleteConfirmModal
+              visible={!!showDeleteModal}
+              documentLabel={showDeleteModal ? getDocumentLabel(showDeleteModal.documentType) : ""}
+              documentNumber={showDeleteModal?.documentNumber || ""}
+              onGoBack={() => setShowDeleteModal(null)}
+              onConfirm={() => showDeleteModal && handleDeleteDraft(showDeleteModal)}
+              loading={saving}
+            />
           </KeyboardAvoidingView>
         </Animated.View>
       </SafeAreaView>
@@ -1511,13 +1535,15 @@ export default function InvoiceScreen() {
                       />
                     </View>
                     <View style={styles.previousCopy}>
-                      <Text style={styles.previousNumber}>
-                        {document.documentNumber}
-                      </Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Text style={styles.previousNumber}>
+                          {document.documentNumber}
+                        </Text>
+                        <DocStatusBadge status={document.status} />
+                      </View>
                       <Text style={styles.previousMeta}>
                         {document.invoiceDate} •{" "}
-                        {document.customer.name || "Recipient"} •{" "}
-                        {getStatusLabel(document.status)}
+                        {document.customer.name || "Recipient"}
                       </Text>
                     </View>
                     <Text style={styles.previousAmount}>
@@ -1528,45 +1554,44 @@ export default function InvoiceScreen() {
                     </Text>
                   </Pressable>
                   <View style={styles.previousActions}>
-                    <Pressable
-                      style={styles.rowIconButton}
-                      onPress={() =>
-                        router.push(
-                          appRoute("/preview", {
-                            type: "invoice",
-                            invoiceId: document.id || "",
-                          }) as never,
-                        )
+                    <ThreeDotMenu
+                      items={
+                        document.status === "draft"
+                          ? getDraftMenuItems({
+                              onEdit: () => editDocument(document),
+                              onPreview: () =>
+                                router.push(
+                                  appRoute("/preview", {
+                                    type: "invoice",
+                                    invoiceId: document.id || "",
+                                  }) as never,
+                                ),
+                              onDelete: () => setShowDeleteModal(document),
+                            })
+                          : document.status === "final"
+                            ? getFinalMenuItems({
+                                onView: () =>
+                                  router.push(
+                                    appRoute("/preview", {
+                                      type: "invoice",
+                                      invoiceId: document.id || "",
+                                    }) as never,
+                                  ),
+                                onDuplicate: () => handleDuplicate(document),
+                                onCancel: () => setShowCancelModal(document),
+                              })
+                            : getCancelledMenuItems({
+                                onView: () =>
+                                  router.push(
+                                    appRoute("/preview", {
+                                      type: "invoice",
+                                      invoiceId: document.id || "",
+                                    }) as never,
+                                  ),
+                                onDuplicate: () => handleDuplicate(document),
+                              })
                       }
-                    >
-                      <Ionicons
-                        name="eye-outline"
-                        size={17}
-                        color={theme.muted}
-                      />
-                    </Pressable>
-                    {document.status === "draft" ? (
-                      <Pressable
-                        style={styles.rowIconButton}
-                        onPress={() => editDocument(document)}
-                      >
-                        <Ionicons
-                          name="create-outline"
-                          size={17}
-                          color={theme.muted}
-                        />
-                      </Pressable>
-                    ) : null}
-                    <Pressable
-                      style={styles.rowIconButton}
-                      onPress={() => printDocument(document)}
-                    >
-                      <Ionicons
-                        name="print-outline"
-                        size={17}
-                        color={theme.muted}
-                      />
-                    </Pressable>
+                    />
                   </View>
                 </View>
               ))
@@ -1650,6 +1675,23 @@ export default function InvoiceScreen() {
             </View>
           </View>
         </Modal>
+
+        <CancelConfirmModal
+          visible={!!showCancelModal}
+          documentLabel={showCancelModal ? getDocumentLabel(showCancelModal.documentType) : ""}
+          onGoBack={() => setShowCancelModal(null)}
+          onConfirm={(reason) => showCancelModal && handleCancelDocument(showCancelModal, reason)}
+          loading={saving}
+        />
+
+        <DeleteConfirmModal
+          visible={!!showDeleteModal}
+          documentLabel={showDeleteModal ? getDocumentLabel(showDeleteModal.documentType) : ""}
+          documentNumber={showDeleteModal?.documentNumber || ""}
+          onGoBack={() => setShowDeleteModal(null)}
+          onConfirm={() => showDeleteModal && handleDeleteDraft(showDeleteModal)}
+          loading={saving}
+        />
       </Animated.View>
     </SafeAreaView>
   );

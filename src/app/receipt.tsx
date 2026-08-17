@@ -18,21 +18,34 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import {
   AppCard,
   AppShell,
-  ConfirmationModal,
   EmptyState,
   InputField,
   PageHeader,
   PrimaryButton,
   SecondaryButton,
-  StatusBadge,
 } from "@/components/ui/branddocs";
+import {
+  CancelConfirmModal,
+  DeleteConfirmModal,
+  DocStatusBadge,
+  DraftActionBar,
+  FinalizeConfirmModal,
+  ThreeDotMenu,
+  getCancelledMenuItems,
+  getDraftMenuItems,
+  getFinalMenuItems,
+} from "@/components/doc-status-actions";
 import { auth } from "@/firebase";
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout";
 import { BusinessProfile, loadBusinessProfile } from "@/services/business-profile";
 import {
+  cancelReceipt,
   deleteReceipt,
+  duplicateReceiptAsDraft,
+  finalizeReceipt,
   generateNextReceiptNumber,
   getPaymentMethodLabel,
+  isReceiptLocked,
   loadReceiptById,
   loadReceipts,
   PaymentMethod,
@@ -96,7 +109,9 @@ export default function ReceiptScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [deleteTarget, setDeleteTarget] = useState<ReceiptRecord | null>(null);
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState<ReceiptRecord | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<ReceiptRecord | null>(null);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
   const baseWidth = 794;
@@ -173,11 +188,15 @@ export default function ReceiptScreen() {
 
   async function handleDelete(receipt: ReceiptRecord) {
     try {
+      setSaving(true);
       await deleteReceipt(auth.currentUser, profile, receipt);
       setReceipts((current) => current.filter((item) => item.id !== receipt.id && item.receiptNumber !== receipt.receiptNumber));
-      setDeleteTarget(null);
+      setShowDeleteModal(null);
+      if (draft?.id === receipt.id) setDraft(null);
     } catch (error: any) {
       Alert.alert("Delete Failed", error?.message || "We could not delete this receipt.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -201,13 +220,57 @@ export default function ReceiptScreen() {
         router.push(appRoute("/preview", { type: "receipt", receiptId: result.receipt.id || "" }) as never);
       } else {
         setDraft(null);
-        Alert.alert("Receipt Saved", result.warning || `Receipt saved as ${status.charAt(0).toUpperCase() + status.slice(1)}.`);
+        Alert.alert("Receipt Saved", result.warning || `Receipt saved as Draft.`);
       }
     } catch (error: any) {
       Alert.alert("Save Failed", error?.message || "We could not save this receipt.");
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleFinalize() {
+    if (!draft) return;
+    const errors = validateReceipt(draft);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setShowFinalizeModal(false);
+      Alert.alert("Validation Error", "Please correct the errors in the form before finalizing.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const draftResult = await saveReceipt(auth.currentUser, profile, { ...draft, status: "draft" });
+      const result = await finalizeReceipt(auth.currentUser, profile, draftResult.receipt);
+      refreshReceipts(result.receipt);
+      setDraft(null);
+      setShowFinalizeModal(false);
+      Alert.alert("Receipt Finalized", "Payment Receipt is now final.");
+    } catch (error: any) {
+      Alert.alert("Finalize Failed", error?.message || "Could not finalize receipt.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCancelReceipt(receipt: ReceiptRecord, reason: string) {
+    try {
+      setSaving(true);
+      const result = await cancelReceipt(auth.currentUser, profile, receipt, reason);
+      refreshReceipts(result.receipt);
+      setShowCancelModal(null);
+      Alert.alert("Receipt Cancelled", "This receipt has been marked as cancelled.");
+    } catch (error: any) {
+      Alert.alert("Cancel Failed", error?.message || "Could not cancel receipt.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleDuplicate(receipt: ReceiptRecord) {
+    const copy = duplicateReceiptAsDraft(receipt, receipts);
+    setDraft(copy);
   }
 
   if (loading) {
@@ -234,17 +297,13 @@ export default function ReceiptScreen() {
                 <Ionicons name="chevron-back" size={22} color={theme.ink} />
               </Pressable>
               <Text style={styles.editorTitle}>Payment Receipt</Text>
-              <View style={styles.editorActions}>
-                <Pressable style={styles.secondaryButton} onPress={() => persistReceipt("draft")} disabled={saving}>
-                  <Text style={styles.secondaryButtonText}>Save Draft</Text>
-                </Pressable>
-                <Pressable style={styles.secondaryButton} onPress={() => persistReceipt("final")} disabled={saving}>
-                  <Text style={styles.secondaryButtonText}>Finalize</Text>
-                </Pressable>
-                <Pressable style={[styles.saveButton, saving && styles.disabledButton]} onPress={() => persistReceipt("draft", true)} disabled={saving}>
-                  <Text style={styles.saveButtonText}>Preview</Text>
-                </Pressable>
-              </View>
+              <ThreeDotMenu
+                items={getDraftMenuItems({
+                  onEdit: () => {},
+                  onPreview: () => persistReceipt("draft", true),
+                  onDelete: () => setShowDeleteModal(draft),
+                })}
+              />
             </View>
 
             <View style={styles.typeToolbar}>
@@ -297,7 +356,9 @@ export default function ReceiptScreen() {
                 <View style={
                   width < 820 ? {
                     transform: [{ scale: scale }],
-                    position: "absolute",
+                    transformOrigin: "top left",
+                    width: baseWidth,
+                    minHeight: baseHeight,
                   } : undefined
                 }>
                   <ReceiptPaper
@@ -311,6 +372,30 @@ export default function ReceiptScreen() {
                 </View>
               </View>
             </ScrollView>
+
+            <DraftActionBar
+              saving={saving}
+              onSaveDraft={() => persistReceipt("draft")}
+              onPreview={() => persistReceipt("draft", true)}
+              onFinalize={() => setShowFinalizeModal(true)}
+            />
+
+            <FinalizeConfirmModal
+              visible={showFinalizeModal}
+              documentLabel="Payment Receipt"
+              onGoBack={() => setShowFinalizeModal(false)}
+              onConfirm={handleFinalize}
+              loading={saving}
+            />
+
+            <DeleteConfirmModal
+              visible={!!showDeleteModal}
+              documentLabel="Payment Receipt"
+              documentNumber={showDeleteModal?.receiptNumber || ""}
+              onGoBack={() => setShowDeleteModal(null)}
+              onConfirm={() => showDeleteModal && handleDelete(showDeleteModal)}
+              loading={saving}
+            />
           </KeyboardAvoidingView>
         </Animated.View>
       </SafeAreaView>
@@ -343,7 +428,7 @@ export default function ReceiptScreen() {
               <View style={styles.receiptDetails}>
                 <View style={styles.numberRow}>
                   <Text style={[styles.receiptNumberText, { color: theme.ink }]}>{receipt.receiptNumber}</Text>
-                  <StatusBadge status={receipt.status} />
+                  <DocStatusBadge status={receipt.status} />
                 </View>
                 <Text style={[styles.receiptMeta, { color: theme.muted }]}>
                   {receipt.receiptDate} • Received from {receipt.receivedFrom.name || "Unnamed Customer"}
@@ -354,32 +439,26 @@ export default function ReceiptScreen() {
                   {receipt.company.currency} {receipt.amount.toFixed(2)}
                 </Text>
                 <View style={styles.actionButtons}>
-                  <Pressable
-                    style={styles.actionBtn}
-                    onPress={() => router.push(appRoute("/preview", { type: "receipt", receiptId: receipt.id || "" }) as never)}
-                    accessibilityRole="button"
-                    accessibilityLabel="View Receipt Preview"
-                  >
-                    <Ionicons name="eye-outline" size={18} color={theme.ink} />
-                  </Pressable>
-                  {receipt.status === "draft" && (
-                    <Pressable
-                      style={styles.actionBtn}
-                      onPress={() => setDraft(receipt)}
-                      accessibilityRole="button"
-                      accessibilityLabel="Edit Receipt"
-                    >
-                      <Ionicons name="create-outline" size={18} color={theme.ink} />
-                    </Pressable>
-                  )}
-                  <Pressable
-                    style={styles.actionBtn}
-                    onPress={() => setDeleteTarget(receipt)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Delete Receipt"
-                  >
-                    <Ionicons name="trash-outline" size={18} color={BrandColors.error} />
-                  </Pressable>
+                  <ThreeDotMenu
+                    items={
+                      receipt.status === "draft"
+                        ? getDraftMenuItems({
+                            onEdit: () => setDraft(receipt),
+                            onPreview: () => router.push(appRoute("/preview", { type: "receipt", receiptId: receipt.id || "" }) as never),
+                            onDelete: () => setShowDeleteModal(receipt),
+                          })
+                        : receipt.status === "final"
+                          ? getFinalMenuItems({
+                              onView: () => router.push(appRoute("/preview", { type: "receipt", receiptId: receipt.id || "" }) as never),
+                              onDuplicate: () => handleDuplicate(receipt),
+                              onCancel: () => setShowCancelModal(receipt),
+                            })
+                          : getCancelledMenuItems({
+                              onView: () => router.push(appRoute("/preview", { type: "receipt", receiptId: receipt.id || "" }) as never),
+                              onDuplicate: () => handleDuplicate(receipt),
+                            })
+                    }
+                  />
                 </View>
               </View>
             </View>
@@ -392,14 +471,21 @@ export default function ReceiptScreen() {
         )}
       </View>
 
-      <ConfirmationModal
-        visible={!!deleteTarget}
-        title="Delete Receipt"
-        message={`Are you sure you want to permanently delete receipt ${deleteTarget?.receiptNumber}? This action cannot be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
-        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
-        onCancel={() => setDeleteTarget(null)}
+      <CancelConfirmModal
+        visible={!!showCancelModal}
+        documentLabel="Payment Receipt"
+        onGoBack={() => setShowCancelModal(null)}
+        onConfirm={(reason) => showCancelModal && handleCancelReceipt(showCancelModal, reason)}
+        loading={saving}
+      />
+
+      <DeleteConfirmModal
+        visible={!!showDeleteModal}
+        documentLabel="Payment Receipt"
+        documentNumber={showDeleteModal?.receiptNumber || ""}
+        onGoBack={() => setShowDeleteModal(null)}
+        onConfirm={() => showDeleteModal && handleDelete(showDeleteModal)}
+        loading={saving}
       />
     </AppShell>
   );
