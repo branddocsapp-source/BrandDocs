@@ -500,15 +500,12 @@ export default function DashboardScreen() {
         style={[
           styles.metricsGrid,
           usesSidebar && styles.metricsGridWide,
-          width < 480 && styles.metricsGridCompact,
         ]}
       >
         <View
           style={[
             styles.metricCard,
             usesSidebar && styles.metricCardWide,
-            width < 480 && styles.metricCardCompact,
-            width < 480 && styles.metricCardCompact,
             { backgroundColor: theme.card, borderColor: theme.line },
           ]}
         >
@@ -535,7 +532,6 @@ export default function DashboardScreen() {
           style={[
             styles.metricCard,
             usesSidebar && styles.metricCardWide,
-            width < 480 && styles.metricCardCompact,
             { backgroundColor: theme.card, borderColor: theme.line },
           ]}
         >
@@ -590,7 +586,6 @@ export default function DashboardScreen() {
           style={[
             styles.metricCard,
             usesSidebar && styles.metricCardWide,
-            width < 480 && styles.metricCardCompact,
             { backgroundColor: theme.card, borderColor: theme.line },
           ]}
         >
@@ -631,7 +626,6 @@ export default function DashboardScreen() {
         style={[
           styles.quickActions3x2,
           usesSidebar && styles.quickActionsWide,
-          width < 480 && styles.quickActionsCompact,
         ]}
       >
         {[
@@ -660,7 +654,6 @@ export default function DashboardScreen() {
             style={({ pressed }) => [
               styles.quickActionPill,
               usesSidebar && styles.quickActionPillWide,
-              width < 480 && styles.quickActionPillCompact,
               {
                 backgroundColor: theme.accentSurface,
                 borderColor: theme.accentBorder,
@@ -1046,12 +1039,11 @@ const styles = StyleSheet.create({
   metricsGridWide: {
     flexWrap: "nowrap",
   },
-  metricsGridCompact: {
-    flexDirection: "column",
-  },
   metricCard: {
-    width: "48%",
-    padding: 14,
+    flexBasis: "47%",
+    flexGrow: 1,
+    minWidth: 135,
+    padding: 16,
     borderRadius: 18,
     borderWidth: 1,
     gap: 4,
@@ -1059,15 +1051,11 @@ const styles = StyleSheet.create({
   metricCardWide: {
     flex: 1,
     minWidth: 0,
-    width: "auto",
-  },
-  metricCardCompact: {
-    width: "100%",
   },
   metricIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 6,
@@ -1077,7 +1065,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   metricValue: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "800",
     letterSpacing: -0.5,
   },
@@ -1106,11 +1094,10 @@ const styles = StyleSheet.create({
   quickActionsWide: {
     flexWrap: "nowrap",
   },
-  quickActionsCompact: {
-    flexDirection: "column",
-  },
   quickActionPill: {
-    width: "31.5%",
+    flexBasis: "30%",
+    flexGrow: 1,
+    minWidth: 95,
     paddingVertical: 14,
     paddingHorizontal: 8,
     borderRadius: 16,
@@ -1121,10 +1108,6 @@ const styles = StyleSheet.create({
   quickActionPillWide: {
     flex: 1,
     minWidth: 0,
-    width: "auto",
-  },
-  quickActionPillCompact: {
-    width: "100%",
   },
   quickActionLabel: {
     fontSize: 11.5,
