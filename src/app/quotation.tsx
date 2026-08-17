@@ -166,7 +166,7 @@ function buildDraftQuotation(documentType: QuotationDocumentType, profile: Busin
 
 function useQuotationStyles() {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   return { theme, styles, isDark };
 }
 

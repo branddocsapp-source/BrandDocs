@@ -1,4 +1,4 @@
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 
 import {
     createUserWithEmailAndPassword,
@@ -7,9 +7,12 @@ import {
     sendPasswordResetEmail,
     signInWithEmailAndPassword,
     signInWithPopup,
+    User,
     updateProfile,
 } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Platform } from "react-native";
+import { normalizeTemplateColor, TemplateColor } from "@/theme/template-colors";
 
 type SocialAuthAvailability = {
   available: boolean;
@@ -20,7 +23,8 @@ type SocialAuthAvailability = {
 export async function registerUser(
   name: string,
   email: string,
-  password: string
+  password: string,
+  templateColor: TemplateColor
 ) {
   const userCredential =
     await createUserWithEmailAndPassword(
@@ -32,6 +36,18 @@ export async function registerUser(
   await updateProfile(userCredential.user, {
     displayName: name,
   });
+
+  await setDoc(
+    doc(db, "users", userCredential.user.uid),
+    {
+      displayName: name,
+      email,
+      templateColor: normalizeTemplateColor(templateColor),
+      onboardingCompleted: false,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
 
   return userCredential.user;
 }
@@ -48,6 +64,17 @@ export async function loginUser(
     );
 
   return userCredential.user;
+}
+
+export async function saveUserTemplateColor(user: User, templateColor: TemplateColor) {
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      templateColor: normalizeTemplateColor(templateColor),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
 }
 
 export async function loginWithGoogle() {

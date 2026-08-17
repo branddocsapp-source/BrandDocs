@@ -271,7 +271,7 @@ function getStatusLabel(status: InvoiceRecord["status"]) {
 
 export default function InvoiceScreen() {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   const router = useRouter();
   const { editInvoiceId } = useLocalSearchParams<{ editInvoiceId?: string }>();
   const { showToast } = useToast();

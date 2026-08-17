@@ -150,7 +150,7 @@ function getVisitingCardStatusLabel(status: VisitingCardStatus) {
 
 export default function PreviewScreen() {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   const router = useRouter();
   const {
     content,

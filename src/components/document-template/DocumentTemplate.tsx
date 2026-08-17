@@ -19,6 +19,7 @@ const shadow = Platform.select({
 });
 
 export function HexagonLogo({ size = 48 }: { size?: number }) {
+  const docStyles = useDocStyles();
   return (
     <View style={[docStyles.hexWrap, { width: size, height: size, borderRadius: size * 0.18 }]}>
       <Ionicons name="document-text" size={size * 0.55} color={DocumentColors.accent} />
@@ -27,6 +28,7 @@ export function HexagonLogo({ size = 48 }: { size?: number }) {
 }
 
 export function HexagonBadge({ text }: { text: string }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.hexBadge}>
       <Text style={docStyles.hexBadgeText}>{text}</Text>
@@ -58,6 +60,7 @@ export function DocumentPaperShell({
   isDesktop?: boolean;
   minHeight?: number;
 }) {
+  const docStyles = useDocStyles();
   return (
     <View style={[docStyles.paper, isDesktop && docStyles.paperDesktop, { minHeight }, style]}>
       {children}
@@ -82,6 +85,7 @@ export function DocumentBrandHeader({
   editable?: boolean;
   onCompanyChange?: (field: keyof CompanyBlock, value: string) => void;
 }) {
+  const docStyles = useDocStyles();
   const Field = editable ? EditableLine : ReadonlyLine;
 
   return (
@@ -152,6 +156,7 @@ export function DocumentTaxBar({
   onPanChange?: (v: string) => void;
   onCinChange?: (v: string) => void;
 }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.taxBar}>
       <TaxItem label="GSTIN" value={gstin || "27ABCDE1234F1Z5"} editable={editable} onChange={onGstinChange} />
@@ -164,6 +169,7 @@ export function DocumentTaxBar({
 }
 
 export function DocumentFooter({ phone, email, website }: { phone?: string; email?: string; website?: string }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.footer}>
       <View style={docStyles.footerContacts}>
@@ -192,6 +198,7 @@ export function DocumentFooter({ phone, email, website }: { phone?: string; emai
 }
 
 export function DocumentSectionTitle({ icon, title }: { icon: IconName; title: string }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.sectionTitleRow}>
       <Ionicons name={icon} size={14} color={DocumentColors.accent} />
@@ -215,6 +222,7 @@ export function DocumentMetaField({
   onChangeText?: (v: string) => void;
   multiline?: boolean;
 }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.metaFieldRow}>
       <Ionicons name={icon} size={13} color={DocumentColors.accent} style={{ width: 18 }} />
@@ -235,6 +243,7 @@ export function DocumentMetaField({
 }
 
 export function DocumentTableHeader({ columns }: { columns: { label: string; width?: number; flex?: number; align?: "left" | "center" | "right" }[] }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.tableHeaderRow}>
       {columns.map((col) => (
@@ -255,6 +264,7 @@ export function DocumentTableHeader({ columns }: { columns: { label: string; wid
 }
 
 export function DocumentGrandTotalRow({ label, value }: { label: string; value: string }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.grandTotalRow}>
       <Text style={docStyles.grandTotalLabel}>{label}</Text>
@@ -264,6 +274,7 @@ export function DocumentGrandTotalRow({ label, value }: { label: string; value: 
 }
 
 export function DocumentWatermark() {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.watermark} pointerEvents="none">
       <HexagonLogo size={320} />
@@ -282,6 +293,7 @@ function ContactLine({
   editable?: boolean;
   onChange?: (v: string) => void;
 }) {
+  const docStyles = useDocStyles();
   if (!value && !editable) return null;
   return (
     <View style={docStyles.contactLine}>
@@ -296,6 +308,7 @@ function ContactLine({
 }
 
 function TaxItem({ label, value, editable, onChange }: { label: string; value: string; editable?: boolean; onChange?: (v: string) => void }) {
+  const docStyles = useDocStyles();
   return (
     <View style={docStyles.taxItem}>
       <Text style={docStyles.taxLabel}>{label} : </Text>
@@ -319,7 +332,8 @@ function ReadonlyLine({ value, textStyle }: { value: string; textStyle?: object 
   return <Text style={textStyle}>{value}</Text>;
 }
 
-export const docStyles = StyleSheet.create({
+function createDocStyles() {
+  return StyleSheet.create({
   paper: {
     alignSelf: "center",
     backgroundColor: DocumentColors.paper,
@@ -423,6 +437,9 @@ export const docStyles = StyleSheet.create({
   grandTotalLabel: { color: DocumentColors.grandTotalText, fontSize: 12, fontWeight: "900" },
   grandTotalValue: { color: DocumentColors.grandTotalText, fontSize: 13, fontWeight: "900" },
   watermark: { bottom: 40, opacity: 0.06, position: "absolute", right: 40 },
-});
+  });
+}
 
-export { DocumentColors, DOCUMENT_PAPER_WIDTH, DOCUMENT_PAPER_MIN_HEIGHT };
+function useDocStyles() {
+  return createDocStyles();
+}

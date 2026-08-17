@@ -15,6 +15,7 @@ import { getDownloadURL, ref, uploadBytes, uploadString } from "firebase/storage
 import { db, storage } from "@/firebase";
 import { BusinessProfile } from "@/services/business-profile";
 import { BrandColors } from "@/theme/tokens";
+import { processTransparentImageAssetForUpload } from "@/utils/remove-logo-background";
 
 export type VisitingCardStatus = "draft" | "final";
 export type VisitingCardOrientation = "horizontal" | "vertical";
@@ -794,25 +795,27 @@ async function syncProfilePhotoWithStorage(
     };
   }
 
-  if (/^https?:\/\//i.test(asset.uri)) {
+  const preparedAsset = (await processTransparentImageAssetForUpload(asset)) || asset;
+
+  if (/^https?:\/\//i.test(preparedAsset.uri || "")) {
     return {
-      url: asset.uri,
+      url: preparedAsset.uri,
       storagePath: currentStoragePath || null,
     };
   }
 
-  const mimeType = inferMimeType(asset.uri, asset);
+  const mimeType = inferMimeType(preparedAsset.uri || "", preparedAsset);
   const storagePath = currentStoragePath || `users/${user.uid}/businesses/${businessId}/visiting-cards/${cardId}/profile-photo.${getFileExtension(mimeType)}`;
   const assetRef = ref(storage, storagePath);
 
   try {
-    const dataUriParts = getDataUriParts(asset.uri);
-    const base64Payload = asset.base64 || dataUriParts?.base64;
+    const dataUriParts = getDataUriParts(preparedAsset.uri);
+    const base64Payload = preparedAsset.base64 || dataUriParts?.base64;
 
     if (base64Payload) {
       await withFirebaseTimeout(uploadString(assetRef, base64Payload, "base64", { contentType: mimeType }), `Firebase Storage profile photo upload ${storagePath}`);
     } else {
-      const response = await withFirebaseTimeout(fetch(asset.uri), `Reading selected profile photo ${storagePath}`);
+      const response = await withFirebaseTimeout(fetch(preparedAsset.uri || ""), `Reading selected profile photo ${storagePath}`);
       if (!response.ok) throw new Error(`Could not read selected profile photo. HTTP ${response.status} ${response.statusText}`.trim());
       const blob = await withFirebaseTimeout(response.blob(), `Preparing selected profile photo ${storagePath}`);
       await withFirebaseTimeout(uploadBytes(assetRef, blob, { contentType: mimeType }), `Firebase Storage profile photo upload ${storagePath}`);

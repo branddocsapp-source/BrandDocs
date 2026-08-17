@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 
 import {
   AppCard,
@@ -26,6 +26,8 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [invoiceCount, setInvoiceCount] = useState(0);
   const [quotationCount, setQuotationCount] = useState(0);
+  const [statementStartDate, setStatementStartDate] = useState("");
+  const [statementEndDate, setStatementEndDate] = useState("");
   const { isAppPreview, isWideDesktop } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
 
@@ -298,6 +300,96 @@ export default function ProfileScreen() {
               <AppCard style={styles.workspaceBox}>
                 <View style={styles.workspaceContent}>
                   <View style={[styles.workspaceIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
+                    <Ionicons name="document-attach-outline" size={24} color={BrandColors.primary} />
+                  </View>
+                  <View style={styles.workspaceCopy}>
+                    <Text style={[styles.workspaceTitle, { color: theme.ink }]}>Billing Statements</Text>
+                    <Text style={[styles.workspaceSubtitle, { color: theme.muted }]}>Compile Tax Invoice, Bill of Supply, and OCR Receipt into one downloadable statement.</Text>
+                  </View>
+                </View>
+                <View style={styles.statementDateRow}>
+                  <View style={styles.statementDateField}>
+                    <Text style={[styles.statementDateLabel, { color: theme.muted }]}>From Date</Text>
+                    {Platform.OS === "web" ? (
+                      <input
+                        type="date"
+                        value={statementStartDate}
+                        onChange={(event) => setStatementStartDate(event.target.value || "")}
+                        style={{
+                          backgroundColor: "transparent",
+                          borderColor: theme.line,
+                          borderRadius: "10px",
+                          borderStyle: "solid",
+                          borderWidth: "1px",
+                          color: theme.ink,
+                          fontSize: "12px",
+                          height: "38px",
+                          outline: "none",
+                          padding: "0 10px",
+                          width: "100%",
+                        }}
+                      />
+                    ) : (
+                      <TextInput
+                        style={[styles.statementDateInput, { borderColor: theme.line, color: theme.ink }]}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor={theme.muted}
+                        value={statementStartDate}
+                        onChangeText={setStatementStartDate}
+                      />
+                    )}
+                  </View>
+                  <View style={styles.statementDateField}>
+                    <Text style={[styles.statementDateLabel, { color: theme.muted }]}>To Date</Text>
+                    {Platform.OS === "web" ? (
+                      <input
+                        type="date"
+                        value={statementEndDate}
+                        onChange={(event) => setStatementEndDate(event.target.value || "")}
+                        style={{
+                          backgroundColor: "transparent",
+                          borderColor: theme.line,
+                          borderRadius: "10px",
+                          borderStyle: "solid",
+                          borderWidth: "1px",
+                          color: theme.ink,
+                          fontSize: "12px",
+                          height: "38px",
+                          outline: "none",
+                          padding: "0 10px",
+                          width: "100%",
+                        }}
+                      />
+                    ) : (
+                      <TextInput
+                        style={[styles.statementDateInput, { borderColor: theme.line, color: theme.ink }]}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor={theme.muted}
+                        value={statementEndDate}
+                        onChangeText={setStatementEndDate}
+                      />
+                    )}
+                  </View>
+                </View>
+                <SecondaryButton
+                  label="Download Bill Statement"
+                  icon="download-outline"
+                  onPress={() =>
+                    router.push(
+                      appRoute("/bill-statement-preview", {
+                        ...(statementStartDate ? { startDate: statementStartDate } : {}),
+                        ...(statementEndDate ? { endDate: statementEndDate } : {}),
+                      }) as never
+                    )
+                  }
+                  style={styles.workspaceButton}
+                />
+              </AppCard>
+
+              {/* Workspace Action Box */}
+              <AppCard style={styles.workspaceBox}>
+                <View style={styles.workspaceContent}>
+                  <View style={[styles.workspaceIcon, { backgroundColor: isDark ? theme.orangeSoft : BrandColors.primarySoft }]}>
                     <Ionicons name="add-circle-outline" size={24} color={BrandColors.primary} />
                   </View>
                   <View style={styles.workspaceCopy}>
@@ -510,5 +602,24 @@ const styles = StyleSheet.create({
   },
   workspaceButton: {
     alignSelf: "flex-start",
+  },
+  statementDateRow: {
+    flexDirection: "row",
+    gap: BrandSpacing.sm,
+  },
+  statementDateField: {
+    flex: 1,
+    gap: 6,
+  },
+  statementDateLabel: {
+    ...BrandTypography.caption,
+    fontSize: 11,
+  },
+  statementDateInput: {
+    borderRadius: BrandRadius.small,
+    borderWidth: 1,
+    fontSize: 12,
+    height: 38,
+    paddingHorizontal: 10,
   },
 });

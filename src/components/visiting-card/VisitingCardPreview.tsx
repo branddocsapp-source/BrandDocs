@@ -92,7 +92,7 @@ function FrontSide({ card, compact }: { card: VisitingCardRecord; compact?: bool
     <View style={[styles.cardContent, useCentered && styles.centeredContent]}>
       <View style={[styles.identityRow, useCentered && styles.centeredIdentityRow]}>
         {showPhoto ? (
-          <Image source={{ uri: card.profilePhotoUrl || "" }} style={[styles.photo, { height: design.photoSize, width: design.photoSize, borderColor: design.accentColor }]} contentFit="cover" />
+          <Image source={{ uri: card.profilePhotoUrl || "" }} style={[styles.photo, { height: design.photoSize, width: design.photoSize, borderColor: design.accentColor }]} contentFit="contain" />
         ) : showLogo ? (
           <Image source={{ uri: card.logoUrl || "" }} style={[styles.logo, { height: design.logoSize, width: design.logoSize }]} contentFit="contain" />
         ) : (

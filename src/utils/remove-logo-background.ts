@@ -144,6 +144,15 @@ function removeBackgroundFromPixels(data: Uint8ClampedArray, width: number, heig
   return removedPixels > 0;
 }
 
+function hasTransparentPixels(data: Uint8ClampedArray) {
+  for (let index = 3; index < data.length; index += 4) {
+    if (data[index] < 250) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function encodePngBase64(data: Uint8ClampedArray, width: number, height: number) {
   const rgbaBuffer = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
   const pngBuffer = UPNG.encode([toArrayBuffer(rgbaBuffer)], width, height, 0) as ArrayBuffer;
@@ -241,6 +250,19 @@ async function removeLogoBackgroundWithCanvas(input: LogoImageInput & { uri: str
 
     context.drawImage(image, 0, 0);
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const alreadyTransparent = hasTransparentPixels(imageData.data);
+    if (alreadyTransparent) {
+      const sourceBase64 = input.base64 || uint8ArrayToBase64(new Uint8Array(await blob.arrayBuffer()));
+      return {
+        uri: input.uri,
+        base64: sourceBase64,
+        mimeType: "image/png",
+        fileName: input.fileName?.replace(/\.\w+$/, ".png") || "logo.png",
+        file: input.file || null,
+        fileSize: input.fileSize || blob.size || Math.ceil((sourceBase64.length * 3) / 4),
+        backgroundRemoved: false,
+      };
+    }
     const backgroundRemoved = removeBackgroundFromPixels(imageData.data, canvas.width, canvas.height, options);
     context.putImageData(imageData, 0, 0);
 
@@ -285,6 +307,17 @@ async function removeLogoBackgroundWithPixels(input: LogoImageInput & { uri: str
   }
 
   const { data, width, height } = await decodeImageToRgba(workingInput);
+  if (hasTransparentPixels(data)) {
+    const passthroughBase64 = workingInput.base64 || encodePngBase64(data, width, height);
+    return {
+      uri: workingInput.uri,
+      base64: passthroughBase64,
+      mimeType: "image/png",
+      fileName: workingInput.fileName?.replace(/\.\w+$/, ".png") || "logo.png",
+      fileSize: workingInput.fileSize || Math.ceil((passthroughBase64.length * 3) / 4),
+      backgroundRemoved: false,
+    };
+  }
   const backgroundRemoved = removeBackgroundFromPixels(data, width, height, options);
   const base64 = encodePngBase64(data, width, height);
   const uri = `data:image/png;base64,${base64}`;
@@ -335,8 +368,8 @@ function getDataUriBase64(uri: string) {
   return match?.[1] || null;
 }
 
-/** Normalizes any picked/uploaded logo asset before storage. */
-export async function processLogoAssetForUpload<T extends LogoImageInput | null | undefined>(asset: T): Promise<T> {
+/** Normalizes any picked/uploaded image asset before storage as transparent PNG. */
+export async function processTransparentImageAssetForUpload<T extends LogoImageInput | null | undefined>(asset: T): Promise<T> {
   if (!asset?.uri) return asset;
 
   const processed = await removeLogoBackground(asset);
@@ -349,4 +382,9 @@ export async function processLogoAssetForUpload<T extends LogoImageInput | null 
     file: processed.file ?? asset.file ?? null,
     fileSize: processed.fileSize || asset.fileSize || null,
   } as T;
+}
+
+/** Backward-compatible alias for existing logo upload flows. */
+export async function processLogoAssetForUpload<T extends LogoImageInput | null | undefined>(asset: T): Promise<T> {
+  return processTransparentImageAssetForUpload(asset);
 }

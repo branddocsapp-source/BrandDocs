@@ -29,9 +29,11 @@ import {
   loginWithApple,
   loginWithGoogle,
   registerUser,
+  saveUserTemplateColor,
 } from "@/services/auth";
 import { loadBusinessProfile } from "@/services/business-profile";
 import { saveLegalAcceptance } from "@/services/consent";
+import { TEMPLATE_COLOR_OPTIONS, TemplateColor } from "@/theme/template-colors";
 
 const COUNTRY_CODES = [
   { label: "Canada", flag: "🇨🇦", value: "+1", code: "CA" },
@@ -63,6 +65,7 @@ export default function SignUpScreen() {
   const triggerRef = useRef<View>(null);
 
   const [mobileNumber, setMobileNumber] = useState("");
+  const [templateColor, setTemplateColor] = useState<TemplateColor>("orange");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -171,7 +174,7 @@ export default function SignUpScreen() {
 
     try {
       setLoading(true);
-      const user = await registerUser(fullName.trim(), email.trim(), password);
+      const user = await registerUser(fullName.trim(), email.trim(), password, templateColor);
       await saveLegalAcceptance(user, marketingOptIn, "signup");
       router.replace(withPreviewRoute("/business-setup") as never);
     } catch (error: any) {
@@ -207,6 +210,7 @@ export default function SignUpScreen() {
     try {
       setSocialLoading(provider);
       const user = provider === "google" ? await loginWithGoogle() : await loginWithApple();
+      await saveUserTemplateColor(user, templateColor);
       await saveLegalAcceptance(user, marketingOptIn, `signup-${provider}`);
       const profile = await loadBusinessProfile(user);
       router.replace(withPreviewRoute(profile ? "/dashboard" : "/business-setup") as never);
@@ -311,6 +315,47 @@ export default function SignUpScreen() {
           rightAction={<PasswordVisibilityButton visible={showConfirmPassword} onPress={() => setShowConfirmPassword((value) => !value)} />}
         />
         {errors.confirmPassword ? <Text style={authStyles.errorText}>{errors.confirmPassword}</Text> : null}
+
+        <View>
+          <Text style={{ color: "#334155", fontSize: 13, fontWeight: "700", marginBottom: 8, marginLeft: 2 }}>
+            Template Color
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {TEMPLATE_COLOR_OPTIONS.map((option) => {
+              const isActive = templateColor === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Use ${option.label} template color`}
+                  onPress={() => setTemplateColor(option.value)}
+                  style={{
+                    alignItems: "center",
+                    borderColor: isActive ? option.primaryColor : "#E2E8F0",
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    flex: 1,
+                    gap: 6,
+                    paddingHorizontal: 10,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      backgroundColor: option.primaryColor,
+                      borderRadius: 999,
+                      height: 16,
+                      width: 16,
+                    }}
+                  />
+                  <Text style={{ color: isActive ? option.primaryColor : "#475569", fontSize: 12, fontWeight: "700" }}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
       </View>
 
       <AuthCheckbox

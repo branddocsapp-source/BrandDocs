@@ -10,11 +10,20 @@ import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from "fi
 import { Platform } from "react-native";
 
 import { db, storage } from "@/firebase";
+import { setDocumentTemplateColor } from "@/components/document-template/document-colors";
 import { Colors } from "@/theme/colors";
+import {
+  normalizeTemplateColor,
+  primaryColorToTemplateColor,
+  setActiveTemplateColor,
+  templateColorToPrimaryColor,
+  TemplateColor,
+} from "@/theme/template-colors";
 import { processLogoAssetForUpload } from "@/utils/remove-logo-background";
 
 export type BusinessProfile = {
   id?: string;
+  templateColor?: TemplateColor;
   name: string;
   legalName?: string;
   ownerName?: string;
@@ -106,6 +115,12 @@ export const BUSINESS_PROFILE_IMAGE_UPLOADS_ENABLED = true;
 export const BUSINESS_PROFILE_IMAGE_UPLOADS_DISABLED_MESSAGE = "";
 
 let memoryCachedProfile: BusinessProfile | null = null;
+
+function applyTemplateColorPreference(value?: string | null) {
+  const normalized = setActiveTemplateColor(value);
+  setDocumentTemplateColor(normalized);
+  return normalized;
+}
 
 function getLocalStorage() {
   if (typeof globalThis === "undefined" || !("localStorage" in globalThis)) {
@@ -306,7 +321,7 @@ async function uploadAssetToStorage(
     return { url: uri, storagePath: existingPath || null };
   }
 
-  if (kind === "logo") {
+  if (kind === "logo" || kind === "photo") {
     preparedAsset = (await processLogoAssetForUpload(preparedAsset)) || preparedAsset;
   }
 
@@ -448,9 +463,14 @@ function normalizeProfile(id: string | undefined, value: any): BusinessProfile |
   const primaryTaxValue = Object.values(taxFields)[0] || value.taxRegistrationNumber || "";
 
   const countryMeta = value.countryMeta || {};
+  const templateColor = normalizeTemplateColor(
+    value.templateColor || primaryColorToTemplateColor(value.branding?.primaryColor),
+  );
+  const resolvedPrimary = templateColorToPrimaryColor(templateColor);
 
   return {
     id,
+    templateColor,
     name,
     legalName: value.legalName || name,
     ownerName: value.ownerName || "",
@@ -478,7 +498,7 @@ function normalizeProfile(id: string | undefined, value: any): BusinessProfile |
       documentDefaults: countryMeta.documentDefaults || {},
     },
     branding: {
-      primaryColor: value.branding?.primaryColor || Colors.primary,
+      primaryColor: value.branding?.primaryColor || resolvedPrimary || Colors.primary,
       logoUrl: value.branding?.logoUrl || null,
       logoStoragePath: value.branding?.logoStoragePath || null,
       stampUrl: value.branding?.stampUrl || null,
@@ -494,6 +514,7 @@ function normalizeProfile(id: string | undefined, value: any): BusinessProfile |
 function saveLocalProfile(userId: string | undefined, profile: BusinessProfile) {
   const storage = getLocalStorage();
   memoryCachedProfile = profile;
+  applyTemplateColorPreference(profile.templateColor || primaryColorToTemplateColor(profile.branding?.primaryColor));
   if (!storage) return;
 
   storage.setItem(getLocalKey(userId), JSON.stringify(profile));
@@ -515,10 +536,14 @@ function loadLocalProfile(userId?: string) {
 }
 
 export function getCachedBusinessProfile(userId?: string): BusinessProfile | null {
-  if (memoryCachedProfile) return memoryCachedProfile;
+  if (memoryCachedProfile) {
+    applyTemplateColorPreference(memoryCachedProfile.templateColor || primaryColorToTemplateColor(memoryCachedProfile.branding?.primaryColor));
+    return memoryCachedProfile;
+  }
   const local = loadLocalProfile(userId);
   if (local) {
     memoryCachedProfile = local;
+    applyTemplateColorPreference(local.templateColor || primaryColorToTemplateColor(local.branding?.primaryColor));
   }
   return memoryCachedProfile;
 }
@@ -539,11 +564,15 @@ export async function loadBusinessProfile(user: User | null): Promise<BusinessPr
   if (!user) {
     const local = loadLocalProfile();
     memoryCachedProfile = local;
+    if (local?.templateColor) {
+      applyTemplateColorPreference(local.templateColor);
+    }
     return local;
   }
 
   try {
     const userSnap = await getDoc(doc(db, "users", user.uid));
+    const userTemplateColor = userSnap.exists() ? normalizeTemplateColor(userSnap.data().templateColor) : "orange";
     const activeBusinessId = userSnap.exists() ? userSnap.data().activeBusinessId : undefined;
 
     if (activeBusinessId) {
@@ -551,11 +580,19 @@ export async function loadBusinessProfile(user: User | null): Promise<BusinessPr
       const profile = businessSnap.exists() ? normalizeProfile(businessSnap.id, businessSnap.data()) : null;
 
       if (profile) {
+        profile.templateColor = normalizeTemplateColor(profile.templateColor || userTemplateColor);
+        profile.branding = {
+          ...profile.branding,
+          primaryColor: templateColorToPrimaryColor(profile.templateColor),
+        };
         saveLocalProfile(user.uid, profile);
         memoryCachedProfile = profile;
+        applyTemplateColorPreference(profile.templateColor);
         return profile;
       }
     }
+
+    applyTemplateColorPreference(userTemplateColor);
   } catch (error) {
     console.warn("BrandDocs Firebase profile load failed; using local fallback if available.", error);
   }
@@ -563,6 +600,9 @@ export async function loadBusinessProfile(user: User | null): Promise<BusinessPr
   const local = loadLocalProfile(user.uid);
   if (local) {
     memoryCachedProfile = local;
+    if (local.templateColor) {
+      applyTemplateColorPreference(local.templateColor);
+    }
   }
   return local;
 }
@@ -601,7 +641,22 @@ export async function saveBusinessProfile(
 
   console.log(`[BrandDocs] Starting business profile save for user ${user.uid}.`);
 
+  let persistedTemplateColor: string | null = null;
+  try {
+    const userPreferenceSnap = await getDoc(doc(db, "users", user.uid));
+    persistedTemplateColor = userPreferenceSnap.exists() ? userPreferenceSnap.data().templateColor || null : null;
+  } catch (error) {
+    console.warn("BrandDocs user template color read failed; using incoming profile values.", error);
+  }
+
+  const templateColor = normalizeTemplateColor(
+    profile.templateColor || persistedTemplateColor || primaryColorToTemplateColor(profile.branding?.primaryColor),
+  );
+  const resolvedPrimaryColor = templateColorToPrimaryColor(templateColor);
+  applyTemplateColorPreference(templateColor);
+
   const profilePayload = {
+    templateColor,
     name: profile.name.trim(),
     legalName: (profile.legalName || profile.name).trim(),
     ownerName: profile.ownerName?.trim() || "",
@@ -629,7 +684,7 @@ export async function saveBusinessProfile(
       documentDefaults: profile.countryMeta?.documentDefaults || {},
     },
     branding: {
-      primaryColor: profile.branding?.primaryColor || Colors.primary,
+      primaryColor: resolvedPrimaryColor || profile.branding?.primaryColor || Colors.primary,
       logoUrl: getPersistedAssetUrl(profile.branding?.logoUrl) || previousAssets?.logo?.url || null,
       logoStoragePath: profile.branding?.logoStoragePath || previousAssets?.logo?.storagePath || null,
       stampUrl: getPersistedAssetUrl(profile.branding?.stampUrl) || previousAssets?.stamp?.url || null,
@@ -675,6 +730,7 @@ export async function saveBusinessProfile(
     await withFirebaseTimeout(setDoc(doc(db, "users", user.uid), {
       displayName: user.displayName,
       email: user.email,
+      templateColor,
       activeBusinessId: businessId,
       onboardingCompleted: true,
       updatedAt: serverTimestamp(),

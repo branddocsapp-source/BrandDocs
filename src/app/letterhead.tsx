@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -117,7 +117,7 @@ function getStatusLabel(status: LetterheadRecord["status"]) {
 
 export default function LetterheadScreen() {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   const router = useRouter();
   const { editLetterheadId } = useLocalSearchParams<{ editLetterheadId?: string }>();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
@@ -411,7 +411,7 @@ export default function LetterheadScreen() {
 
 function ToolbarButton({ label, icon, active, onPress }: { label?: string; icon?: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void }) {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   return (
     <Pressable style={[styles.toolbarButton, active && styles.toolbarButtonActive]} onPress={onPress}>
       {icon ? <Ionicons name={icon} size={17} color={active ? "#FFFFFF" : theme.ink} /> : <Text style={[styles.toolbarText, active && styles.toolbarTextActive]}>{label}</Text>}
@@ -433,7 +433,7 @@ function LetterheadPaper({
   scale?: number;
 }) {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   const lineHeight = letterhead.bodyFormatting.spacing === "compact" ? 20 : letterhead.bodyFormatting.spacing === "relaxed" ? 30 : 24;
 
   return (
@@ -525,7 +525,7 @@ function LetterheadPaper({
 
 function InlineInput({ value, onChangeText, multiline, textStyle, placeholder }: { value: string; onChangeText: (value: string) => void; multiline?: boolean; textStyle?: object; placeholder?: string }) {
   const { theme, isDark } = useAppTheme();
-  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const styles = createStyles(theme, isDark);
   return <TextInput style={[styles.inlineInput, textStyle]} value={value} onChangeText={onChangeText} multiline={multiline} placeholder={placeholder} placeholderTextColor="#A0A0A0" />;
 }
 

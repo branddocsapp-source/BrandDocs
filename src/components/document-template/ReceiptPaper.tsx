@@ -10,7 +10,6 @@ import {
   DocumentMetaField,
   DocumentPaperShell,
   DocumentTaxBar,
-  HexagonBadge,
 } from "@/components/document-template";
 import { SavedCustomerProfile } from "@/services/customer-directory";
 import { getPaymentMethodLabel, ReceiptRecord } from "@/services/receipts";
@@ -25,6 +24,7 @@ type ReceiptPaperProps = {
 };
 
 export function ReceiptPaper({ receipt, editable = false, onFieldChange, onReceivedFromChange, onSelectSavedCustomer, isDesktop }: ReceiptPaperProps) {
+  const styles = useReceiptStyles();
   const isPaidReceipt = (receipt.receiptTitle || "").toUpperCase().includes("PAID");
   const currencySymbol = receipt.company.currency === "INR" || !receipt.company.currency ? "₹" : receipt.company.currency;
 
@@ -205,6 +205,7 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
 }
 
 function SummaryLine({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  const styles = useReceiptStyles();
   return (
     <View style={styles.summaryLine}>
       <Text style={[styles.summaryLabel, accent && { color: DocumentColors.accent, fontWeight: "800" }]}>{label}</Text>
@@ -213,7 +214,8 @@ function SummaryLine({ label, value, accent }: { label: string; value: string; a
   );
 }
 
-const styles = StyleSheet.create({
+function createReceiptStyles() {
+  return StyleSheet.create({
   bodyRow: { flexDirection: "row", gap: 20, marginTop: 16 },
   metaColumn: { flex: 1 },
   metaFieldRow: { alignItems: "center", flexDirection: "row", gap: 6, marginBottom: 8, minHeight: 24 },
@@ -269,6 +271,9 @@ const styles = StyleSheet.create({
   },
   notesTitle: { color: DocumentColors.accent, fontSize: 11, fontWeight: "800", marginBottom: 4 },
   notesItem: { color: "#7C2D12", fontSize: 11 },
-});
+  });
+}
 
-export { HexagonBadge };
+function useReceiptStyles() {
+  return createReceiptStyles();
+}
