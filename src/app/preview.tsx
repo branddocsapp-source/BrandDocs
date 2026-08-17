@@ -944,8 +944,7 @@ export default function PreviewScreen() {
                       ))}
                     </View>
                     <View style={styles.previewActions}>
-                      {selectedLetterheadStatus === "bold" ||
-                      selectedLetterheadStatus === "draft" ? (
+                      {selectedLetterheadStatus === "draft" ? (
                         <Pressable
                           style={styles.secondaryAction}
                           onPress={() =>
@@ -2607,7 +2606,7 @@ function InvoicePreview({
           <PreviewLine label="Name" value={invoice.customer.name} />
           <PreviewLine label="Address" value={invoice.customer.address} />
           {isTaxInvoice ? (
-            <PreviewLine label="GSTIN" value={invoice.customer.gstin} />
+            <PreviewLine label="GSTIN" value={invoice.customer.gstin || ""} />
           ) : null}
         </View>
         <View style={{ flex: 1 }}>
@@ -2986,7 +2985,7 @@ function QuotationPreview({
         >
           GSTIN :{" "}
           <Text style={{ color: "#0F172A" }}>
-            {quotation.company.taxRegistrationNumber || "27ABCDE1234F1Z5"}
+            {(quotation.company as any).taxRegistrationNumber || "27ABCDE1234F1Z5"}
           </Text>
         </Text>
         <Text

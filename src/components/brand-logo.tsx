@@ -14,15 +14,15 @@ type BrandLogoProps = {
 };
 
 const logoAssets = {
-  brandDark: require("@/assets/images/branddocs-logo-dark.jpg"),
-  brandLight: require("@/assets/images/branddocs-logo-light.jpg"),
+  brandDark: require("@/assets/images/branddocs-logo-dark-trans.png"),
+  brandLight: require("@/assets/images/branddocs-logo-light-trans.png"),
 };
 
 const brandStackSizes = {
-  small: { width: 148, height: 78 },
-  medium: { width: 188, height: 98 },
-  large: { width: 228, height: 118 },
-  xlarge: { width: 280, height: 144 },
+  small: { width: 120, height: 76 },
+  medium: { width: 154, height: 98 },
+  large: { width: 190, height: 120 },
+  xlarge: { width: 230, height: 146 },
 } as const;
 
 export function BrandLogo({

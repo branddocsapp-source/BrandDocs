@@ -1,9 +1,15 @@
+import "@/global.css";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { useFonts } from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
+import { Platform } from "react-native";
+
+import { ToastProvider } from "@/components/ui/toast-context";
 import { ThemeProvider, useAppTheme } from "@/theme/theme-context";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ToastProvider } from "@/components/ui/toast-context";
-import { Platform } from "react-native";
 
 function RootLayoutContent() {
   const { isDark, theme } = useAppTheme();
@@ -12,8 +18,6 @@ function RootLayoutContent() {
     <>
       <StatusBar
         style={isDark ? "light" : "dark"}
-        translucent={Platform.OS === "android"}
-        backgroundColor="transparent"
       />
       <Stack
         screenOptions={{
@@ -31,6 +35,16 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    ...Ionicons.font,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -40,4 +54,4 @@ export default function RootLayout() {
       </ThemeProvider>
     </SafeAreaProvider>
   );
-}
+}

@@ -426,8 +426,8 @@ async function resolveAssetAfterProfileSave(
       kind,
       status: "uploaded",
       userMessage: getAssetSuccessMessage(kind),
-      url: result.url,
-      storagePath: result.storagePath,
+      url: result?.url || "",
+      storagePath: result?.storagePath || null,
     };
   } catch (error: unknown) {
     const technicalReason = getFirebaseErrorReason(error);

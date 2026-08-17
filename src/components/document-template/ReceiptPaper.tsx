@@ -89,14 +89,14 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
           <DocumentMetaField
             icon="call-outline"
             label="Mobile No."
-            value={receipt.receivedFrom.phone}
+            value={receipt.receivedFrom.phone || ""}
             editable={editable}
             onChangeText={editable ? (v) => setFrom("phone", v) : undefined}
           />
           <DocumentMetaField
             icon="location-outline"
             label="Address"
-            value={receipt.receivedFrom.address}
+            value={receipt.receivedFrom.address || ""}
             editable={editable}
             onChangeText={editable ? (v) => setFrom("address", v) : undefined}
             multiline
@@ -109,7 +109,7 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
           <DocumentMetaField
             icon="bag-outline"
             label={isPaidReceipt ? "Paid For" : "On Account Of"}
-            value={receipt.notes}
+            value={receipt.notes || ""}
             editable={editable}
             onChangeText={editable ? (v) => setField("notes", v) : undefined}
             multiline
@@ -117,7 +117,7 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
           <DocumentMetaField
             icon="create-outline"
             label="Reference / Note"
-            value={receipt.paymentReference}
+            value={receipt.paymentReference || ""}
             editable={editable}
             onChangeText={editable ? (v) => setField("paymentReference", v) : undefined}
           />
