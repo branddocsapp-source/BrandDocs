@@ -22,6 +22,17 @@ import {
   CustomerGstinField,
 } from "@/components/customer-suggest-field";
 import {
+  CancelConfirmModal,
+  DeleteConfirmModal,
+  DocStatusBadge,
+  DraftActionBar,
+  FinalizeConfirmModal,
+  ThreeDotMenu,
+  getCancelledMenuItems,
+  getDraftMenuItems,
+  getFinalMenuItems,
+} from "@/components/doc-status-actions";
+import {
   DocumentBrandHeader,
   DocumentColors,
   DocumentFooter,
@@ -38,7 +49,11 @@ import {
 import { SavedCustomerProfile } from "@/services/customer-directory";
 import {
   calculateDocumentTotals,
+  cancelInvoice,
+  deleteInvoice,
   DocumentType,
+  duplicateInvoiceAsDraft,
+  finalizeInvoice,
   generateNextDocumentNumber,
   getDocumentLabel,
   getDocumentTitle,
@@ -46,6 +61,8 @@ import {
   getLineAmount,
   InvoiceItem,
   InvoiceRecord,
+  InvoiceStatus,
+  isDocumentLocked,
   loadInvoiceById,
   loadInvoices,
   saveInvoice,
@@ -264,8 +281,8 @@ function buildDraftDocument(
 }
 
 function getStatusLabel(status: InvoiceRecord["status"]) {
-  if (status === "paid") return "Paid";
-  if (status === "pending") return "Pending";
+  if (status === "final") return "Final";
+  if (status === "cancelled") return "Cancelled";
   return "Draft";
 }
 
@@ -291,6 +308,9 @@ export default function InvoiceScreen() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<string[]>([]);
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState<InvoiceRecord | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<InvoiceRecord | null>(null);
   const { width, isWebsite, isDesktop, isAppPreview } = useResponsiveLayout();
   const isPhone = width < 640;
   const baseWidth = 794;
@@ -634,6 +654,90 @@ export default function InvoiceScreen() {
     }
   }
 
+  async function handleFinalize() {
+    const documentToSave = buildSavableDocument("draft");
+    if (!documentToSave) return;
+
+    const errors = validateDocument(documentToSave);
+    setFieldErrors(errors);
+    if (errors.length) {
+      setShowFinalizeModal(false);
+      return;
+    }
+
+    try {
+      setSaving(true);
+      // First save as draft to persist latest edits
+      const draftResult = await saveInvoice(auth.currentUser, profile, documentToSave);
+      // Then finalize
+      const result = await finalizeInvoice(auth.currentUser, profile, draftResult.invoice);
+
+      const [documents, selectedDocuments] = await Promise.all([
+        loadInvoices(auth.currentUser, profile, undefined, 500),
+        loadInvoices(auth.currentUser, profile, previousFilter, 50),
+      ]);
+      setAllDocuments(documents.length ? documents : [result.invoice, ...allDocuments]);
+      setPreviousDocuments(selectedDocuments.length ? selectedDocuments : [result.invoice, ...previousDocuments]);
+      setDraftDocument(null);
+      setShowFinalizeModal(false);
+
+      showToast({ message: `${getDocumentLabel(result.invoice.documentType)} finalized successfully!`, type: "success" });
+    } catch (error: any) {
+      Alert.alert("Finalize Failed", error?.message || "Could not finalize this document.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCancelDocument(document: InvoiceRecord, reason: string) {
+    try {
+      setSaving(true);
+      const result = await cancelInvoice(auth.currentUser, profile, document, reason);
+
+      const [documents, selectedDocuments] = await Promise.all([
+        loadInvoices(auth.currentUser, profile, undefined, 500),
+        loadInvoices(auth.currentUser, profile, previousFilter, 50),
+      ]);
+      setAllDocuments(documents.length ? documents : allDocuments.map((d) => (d.id === result.invoice.id ? result.invoice : d)));
+      setPreviousDocuments(selectedDocuments.length ? selectedDocuments : previousDocuments.map((d) => (d.id === result.invoice.id ? result.invoice : d)));
+      setShowCancelModal(null);
+
+      showToast({ message: `${getDocumentLabel(result.invoice.documentType)} cancelled.`, type: "success" });
+    } catch (error: any) {
+      Alert.alert("Cancel Failed", error?.message || "Could not cancel this document.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteDraft(document: InvoiceRecord) {
+    try {
+      setSaving(true);
+      await deleteInvoice(auth.currentUser, profile, document);
+
+      const [documents, selectedDocuments] = await Promise.all([
+        loadInvoices(auth.currentUser, profile, undefined, 500),
+        loadInvoices(auth.currentUser, profile, previousFilter, 50),
+      ]);
+      setAllDocuments(documents);
+      setPreviousDocuments(selectedDocuments);
+      setShowDeleteModal(null);
+      if (draftDocument?.id === document.id) setDraftDocument(null);
+
+      showToast({ message: "Draft deleted successfully.", type: "success" });
+    } catch (error: any) {
+      Alert.alert("Delete Failed", error?.message || "Could not delete this draft.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleDuplicate(document: InvoiceRecord) {
+    const copy = duplicateInvoiceAsDraft(document, allDocuments);
+    setDraftDocument(copy);
+    showToast({ message: "New draft created from copy.", type: "success" });
+  }
+
   function printDocument(document: InvoiceRecord) {
     if (Platform.OS === "web" && typeof window !== "undefined") {
       window.print();
@@ -671,25 +775,13 @@ export default function InvoiceScreen() {
               <Text style={styles.editorTitle}>
                 {getDocumentLabel(draftDocument.documentType)}
               </Text>
-              <View style={styles.editorActions}>
-                <Pressable
-                  style={[
-                    styles.secondaryButton,
-                    saving && styles.disabledButton,
-                  ]}
-                  onPress={() => persistDraft({ goToPreview: false })}
-                  disabled={saving}
-                >
-                  <Text style={styles.secondaryButtonText}>Save Draft</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.saveButton, saving && styles.disabledButton]}
-                  onPress={() => persistDraft({ goToPreview: true })}
-                  disabled={saving}
-                >
-                  <Text style={styles.saveButtonText}>Preview</Text>
-                </Pressable>
-              </View>
+              <ThreeDotMenu
+                items={getDraftMenuItems({
+                  onEdit: () => {},
+                  onPreview: () => persistDraft({ goToPreview: true }),
+                  onDelete: () => setShowDeleteModal(draftDocument),
+                })}
+              />
             </View>
 
             <View style={{ flex: 1 }}>

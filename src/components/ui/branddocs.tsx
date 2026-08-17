@@ -358,7 +358,7 @@ export function StatusBadge({ status }: { status: string }) {
   const { isDark, theme } = useAppTheme();
   const normalized = status.toLowerCase();
   const tone =
-    normalized.includes("paid") || normalized.includes("accepted")
+    normalized.includes("paid") || normalized.includes("accepted") || normalized.includes("final")
       ? [
           styles.badgeSuccess,
           isDark && { backgroundColor: "rgba(36, 161, 72, 0.18)" },
@@ -368,7 +368,7 @@ export function StatusBadge({ status }: { status: string }) {
             styles.badgeWarning,
             isDark && { backgroundColor: "rgba(245, 158, 11, 0.18)" },
           ]
-        : normalized.includes("reject") || normalized.includes("error")
+        : normalized.includes("reject") || normalized.includes("error") || normalized.includes("cancel")
           ? [
               styles.badgeError,
               isDark && { backgroundColor: "rgba(217, 45, 32, 0.18)" },
