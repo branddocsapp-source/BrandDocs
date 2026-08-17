@@ -2,6 +2,7 @@ import { User } from "firebase/auth";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -15,7 +16,7 @@ import { db } from "@/firebase";
 import { BusinessProfile } from "@/services/business-profile";
 
 export type DocumentType = "tax_invoice" | "bill_of_supply";
-export type InvoiceStatus = "draft" | "pending" | "paid";
+export type InvoiceStatus = "draft" | "final" | "cancelled";
 export type InvoiceTaxMode = "No GST" | "CGST + SGST" | "IGST";
 
 export type InvoiceItem = {
@@ -44,6 +45,8 @@ export type InvoiceRecord = {
   status: InvoiceStatus;
   taxMode: InvoiceTaxMode;
   businessProfileSnapshot?: Partial<BusinessProfile> | null;
+  cancellationReason?: string;
+  finalizedAt?: string;
   company: {
     logoUrl?: string | null;
     name: string;
@@ -132,9 +135,13 @@ function normalizeStatus(value: unknown): InvoiceStatus {
   const normalized = String(value || "draft")
     .trim()
     .toLowerCase();
-  if (normalized === "paid") return "paid";
-  if (normalized === "pending") return "pending";
+  if (normalized === "final" || normalized === "paid" || normalized === "pending") return "final";
+  if (normalized === "cancelled") return "cancelled";
   return "draft";
+}
+
+export function isDocumentLocked(status: InvoiceStatus): boolean {
+  return status === "final" || status === "cancelled";
 }
 
 export function getDocumentLabel(documentType: DocumentType) {
@@ -659,6 +666,11 @@ export async function saveInvoice(
   profile: BusinessProfile | null,
   invoice: InvoiceRecord,
 ): Promise<InvoiceSaveResult> {
+  // Backend guard: prevent modifying finalized or cancelled documents
+  if (invoice.id && isDocumentLocked(normalizeStatus(invoice.status))) {
+    throw new Error("This document is finalized or cancelled and cannot be modified.");
+  }
+
   const businessId = profile?.id;
   const userId = user?.uid;
   const totals = calculateDocumentTotals(invoice);
@@ -705,6 +717,21 @@ export async function saveInvoice(
     try {
       if (invoicePayload.id && !invoicePayload.id.startsWith("local-")) {
         const existingId = invoicePayload.id;
+
+        // Double-check current status in DB before overwriting
+        try {
+          const existingSnap = await getDoc(doc(db, "invoices", existingId));
+          if (existingSnap.exists()) {
+            const existingStatus = normalizeStatus(existingSnap.data()?.status);
+            if (isDocumentLocked(existingStatus)) {
+              throw new Error("This document is finalized or cancelled and cannot be modified.");
+            }
+          }
+        } catch (guardError: any) {
+          if (guardError?.message?.includes("finalized or cancelled")) throw guardError;
+          // If the guard check itself fails (network), allow the save to proceed
+        }
+
         await setDoc(
           doc(db, "invoices", existingId),
           {
@@ -729,6 +756,9 @@ export async function saveInvoice(
 
       return { invoice: savedInvoice, source: "firebase" };
     } catch (error: any) {
+      // Re-throw lock errors — don't swallow them into local fallback
+      if (error?.message?.includes("finalized or cancelled")) throw error;
+
       console.warn(
         "BrandDocs Firebase invoice save failed; invoice saved to local fallback.",
         error,
@@ -762,4 +792,166 @@ export async function saveInvoice(
     warning:
       "No active Firebase user or business profile was available, so the document was saved locally on this device.",
   };
+}
+
+// ─── Finalize ────────────────────────────────────────────────
+
+export async function finalizeInvoice(
+  user: User | null,
+  profile: BusinessProfile | null,
+  invoice: InvoiceRecord,
+): Promise<InvoiceSaveResult> {
+  if (isDocumentLocked(normalizeStatus(invoice.status))) {
+    throw new Error("This document is already finalized or cancelled.");
+  }
+
+  const now = new Date().toISOString();
+  const finalizedInvoice: InvoiceRecord = {
+    ...invoice,
+    status: "final",
+    finalizedAt: now,
+    businessProfileSnapshot: profile || invoice.businessProfileSnapshot || null,
+  };
+
+  return internalSaveWithStatus(user, profile, finalizedInvoice);
+}
+
+// ─── Cancel ──────────────────────────────────────────────────
+
+export const CANCELLATION_REASONS = [
+  "Incorrect Amount",
+  "Wrong Customer",
+  "Duplicate Document",
+  "Order Cancelled",
+  "Other",
+] as const;
+
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+
+export async function cancelInvoice(
+  user: User | null,
+  profile: BusinessProfile | null,
+  invoice: InvoiceRecord,
+  reason: string,
+): Promise<InvoiceSaveResult> {
+  if (normalizeStatus(invoice.status) !== "final") {
+    throw new Error("Only finalized documents can be cancelled.");
+  }
+
+  const cancelledInvoice: InvoiceRecord = {
+    ...invoice,
+    status: "cancelled",
+    cancellationReason: reason,
+  };
+
+  return internalSaveWithStatus(user, profile, cancelledInvoice);
+}
+
+// ─── Duplicate ───────────────────────────────────────────────
+
+export function duplicateInvoiceAsDraft(
+  original: InvoiceRecord,
+  allDocuments: InvoiceRecord[],
+): InvoiceRecord {
+  const { documentNumber, numberingSequence } = generateNextDocumentNumber(
+    original.documentType,
+    allDocuments,
+  );
+
+  return {
+    ...original,
+    id: undefined,
+    status: "draft",
+    documentNumber,
+    invoiceNumber: documentNumber,
+    numberingSequence,
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    dueDate: "",
+    finalizedAt: undefined,
+    cancellationReason: undefined,
+    createdAt: undefined,
+    updatedAt: undefined,
+  };
+}
+
+// ─── Delete (draft only) ─────────────────────────────────────
+
+export async function deleteInvoice(
+  user: User | null,
+  profile: BusinessProfile | null,
+  invoice: InvoiceRecord,
+): Promise<void> {
+  if (isDocumentLocked(normalizeStatus(invoice.status))) {
+    throw new Error("Finalized or cancelled documents cannot be deleted.");
+  }
+
+  const userId = user?.uid;
+  const businessId = profile?.id;
+
+  if (user && businessId && invoice.id && !invoice.id.startsWith("local-")) {
+    try {
+      await deleteDoc(doc(db, "invoices", invoice.id));
+    } catch (error) {
+      console.warn("BrandDocs Firebase invoice delete failed.", error);
+    }
+  }
+
+  const local = loadLocalInvoices(userId, businessId);
+  saveLocalInvoices(
+    userId,
+    businessId,
+    local.filter((r) => r.id !== invoice.id && r.documentNumber !== invoice.documentNumber),
+  );
+}
+
+// ─── Internal save (used by finalize/cancel) ─────────────────
+
+async function internalSaveWithStatus(
+  user: User | null,
+  profile: BusinessProfile | null,
+  invoice: InvoiceRecord,
+): Promise<InvoiceSaveResult> {
+  const businessId = profile?.id;
+  const userId = user?.uid;
+  const now = new Date().toISOString();
+  const payload: InvoiceRecord = {
+    ...invoice,
+    updatedAt: now,
+    businessProfileSnapshot: invoice.businessProfileSnapshot || profile || null,
+  };
+
+  const upsertLocal = (saved: InvoiceRecord) => {
+    const local = loadLocalInvoices(userId, businessId);
+    saveLocalInvoices(
+      userId,
+      businessId,
+      mergeInvoices(
+        local.filter((current) => current.id !== saved.id),
+        [saved],
+      ),
+    );
+  };
+
+  if (user && businessId && payload.id && !payload.id.startsWith("local-")) {
+    try {
+      await setDoc(
+        doc(db, "invoices", payload.id),
+        { ...payload, updatedAt: serverTimestamp() },
+        { merge: true },
+      );
+      upsertLocal(payload);
+      return { invoice: payload, source: "firebase" };
+    } catch (error: any) {
+      console.warn("BrandDocs Firebase status update failed.", error);
+      upsertLocal(payload);
+      return {
+        invoice: payload,
+        source: "local-fallback",
+        warning: error?.message || "Status update saved locally.",
+      };
+    }
+  }
+
+  upsertLocal(payload);
+  return { invoice: payload, source: "local-fallback" };
 }
