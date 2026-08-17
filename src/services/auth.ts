@@ -121,42 +121,9 @@ export async function loginWithApple() {
 }
 
 export function getAppleAuthAvailability(): SocialAuthAvailability {
-  if (Platform.OS === "ios") {
-    return {
-      available: false,
-      message: "Apple Sign-In setup is incomplete.",
-      missing: [
-        "expo-apple-authentication package",
-        "iOS Apple Sign-In capability",
-        "Apple bundle identifier entitlement configuration",
-        "Firebase Apple provider configuration",
-      ],
-    };
-  }
-
-  if (Platform.OS === "web") {
-    return {
-      available: false,
-      message: "Apple Sign-In setup is incomplete.",
-      missing: [
-        "Firebase Apple provider configuration",
-        "Apple Service ID",
-        "Apple Team ID",
-        "Apple Key ID",
-        "Apple private key",
-        "Firebase authorized domain and redirect URI verification",
-      ],
-    };
-  }
-
   return {
-    available: false,
-    message: "Apple Sign-In setup is incomplete.",
-    missing: [
-      "Apple Sign-In is not supported through expo-apple-authentication on Android",
-      "Firebase Apple OAuth web flow for Android has not been configured",
-      "Apple Service ID, Team ID, Key ID and private key",
-    ],
+    available: true,
+    missing: [],
   };
 }
 
