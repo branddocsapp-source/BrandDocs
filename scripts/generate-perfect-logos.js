@@ -5,35 +5,49 @@ const jpeg = require('jpeg-js');
 
 // 1. Process Dark Logo
 const darkBuf = fs.readFileSync(path.resolve(__dirname, '../assets/images/branddocs-logo-dark.jpg'));
-const darkDecoded = UPNG.decode(darkBuf);
-const darkData = new Uint8Array(UPNG.toRGBA8(darkDecoded)[0]);
-const dW = darkDecoded.width, dH = darkDecoded.height;
+let darkData, dW, dH;
+try {
+  const darkDecoded = UPNG.decode(darkBuf);
+  darkData = new Uint8Array(UPNG.toRGBA8(darkDecoded)[0]);
+  dW = darkDecoded.width;
+  dH = darkDecoded.height;
+} catch {
+  const darkDecoded = jpeg.decode(darkBuf, { useTArray: true });
+  darkData = darkDecoded.data;
+  dW = darkDecoded.width;
+  dH = darkDecoded.height;
+}
 
-const dCropX = 155;
-const dCropY = 27;
-const dCropW = 412;
-const dCropH = 258;
+const dCropX = 160;
+const dCropY = 34;
+const dCropW = 400;
+const dCropH = 245;
+const dPad = 10;
+const dOutW = dCropW + dPad * 2;
+const dOutH = dCropH + dPad * 2;
 
-const darkOut = new Uint8Array(dCropW * dCropH * 4);
+const darkOut = new Uint8Array(dOutW * dOutH * 4);
 for (let y = 0; y < dCropH; y++) {
   for (let x = 0; x < dCropW; x++) {
-    const srcIdx = ((dCropY + y) * dW + (dCropX + x)) * 4;
-    const dstIdx = (y * dCropW + x) * 4;
+    const srcX = dCropX + x;
+    const srcY = dCropY + y;
+    if (srcX < 0 || srcX >= dW || srcY < 0 || srcY >= dH) continue;
+    const srcIdx = (srcY * dW + srcX) * 4;
+    const dstIdx = ((y + dPad) * dOutW + (x + dPad)) * 4;
     const r = darkData[srcIdx], g = darkData[srcIdx+1], b = darkData[srcIdx+2];
-    
-    // Background removal for dark background
-    const dist = Math.sqrt((r - 20)**2 + (g - 22)**2 + (b - 25)**2);
-    if (dist < 18) {
+    const maxVal = Math.max(r, g, b);
+
+    if (maxVal < 12) {
       darkOut[dstIdx] = 0;
       darkOut[dstIdx+1] = 0;
       darkOut[dstIdx+2] = 0;
       darkOut[dstIdx+3] = 0;
-    } else if (dist < 38) {
-      const alpha = Math.round(((dist - 18) / 20) * 255);
-      darkOut[dstIdx] = r;
-      darkOut[dstIdx+1] = g;
-      darkOut[dstIdx+2] = b;
-      darkOut[dstIdx+3] = alpha;
+    } else if (maxVal < 55) {
+      const alphaFactor = (maxVal - 12) / 43;
+      darkOut[dstIdx] = Math.min(255, Math.round(r / alphaFactor));
+      darkOut[dstIdx+1] = Math.min(255, Math.round(g / alphaFactor));
+      darkOut[dstIdx+2] = Math.min(255, Math.round(b / alphaFactor));
+      darkOut[dstIdx+3] = Math.round(alphaFactor * 255);
     } else {
       darkOut[dstIdx] = r;
       darkOut[dstIdx+1] = g;
@@ -45,9 +59,9 @@ for (let y = 0; y < dCropH; y++) {
 
 fs.writeFileSync(
   path.resolve(__dirname, '../assets/images/branddocs-logo-dark-trans.png'),
-  Buffer.from(UPNG.encode([darkOut.buffer], dCropW, dCropH, 0))
+  Buffer.from(UPNG.encode([darkOut.buffer], dOutW, dOutH, 0))
 );
-console.log('Successfully generated branddocs-logo-dark-trans.png (' + dCropW + 'x' + dCropH + ')');
+console.log('Successfully generated branddocs-logo-dark-trans.png (' + dOutW + 'x' + dOutH + ')');
 
 // 2. Process Light Logo
 const lightBuf = fs.readFileSync(path.resolve(__dirname, '../assets/images/branddocs-logo-light.jpg'));
@@ -55,30 +69,38 @@ const lightDecoded = jpeg.decode(lightBuf, { useTArray: true });
 const lightData = lightDecoded.data;
 const lW = lightDecoded.width, lH = lightDecoded.height;
 
-const lCropX = 230;
-const lCropY = 90;
-const lCropW = 572;
-const lCropH = 354;
+const lCropX = 220;
+const lCropY = 80;
+const lCropW = 590;
+const lCropH = 370;
+const lPad = 10;
+const lOutW = lCropW + lPad * 2;
+const lOutH = lCropH + lPad * 2;
 
-const lightOut = new Uint8Array(lCropW * lCropH * 4);
+const lightOut = new Uint8Array(lOutW * lOutH * 4);
 for (let y = 0; y < lCropH; y++) {
   for (let x = 0; x < lCropW; x++) {
-    const srcIdx = ((lCropY + y) * lW + (lCropX + x)) * 4;
-    const dstIdx = (y * lCropW + x) * 4;
+    const srcX = lCropX + x;
+    const srcY = lCropY + y;
+    if (srcX < 0 || srcX >= lW || srcY < 0 || srcY >= lH) continue;
+    const srcIdx = (srcY * lW + srcX) * 4;
+    const dstIdx = ((y + lPad) * lOutW + (x + lPad)) * 4;
     const r = lightData[srcIdx], g = lightData[srcIdx+1], b = lightData[srcIdx+2];
-    const brightness = (r + g + b) / 3;
-    
-    if (brightness > 225) {
-      lightOut[dstIdx] = 255;
-      lightOut[dstIdx+1] = 255;
-      lightOut[dstIdx+2] = 255;
+
+    const dr = 255 - r, dg = 255 - g, db = 255 - b;
+    const maxDiff = Math.max(dr, dg, db);
+
+    if (maxDiff < 14) {
+      lightOut[dstIdx] = 0;
+      lightOut[dstIdx+1] = 0;
+      lightOut[dstIdx+2] = 0;
       lightOut[dstIdx+3] = 0;
-    } else if (brightness > 190) {
-      const alpha = Math.round(((225 - brightness) / 35) * 255);
-      lightOut[dstIdx] = r;
-      lightOut[dstIdx+1] = g;
-      lightOut[dstIdx+2] = b;
-      lightOut[dstIdx+3] = alpha;
+    } else if (maxDiff < 65) {
+      const alphaFactor = (maxDiff - 14) / 51;
+      lightOut[dstIdx] = Math.max(0, Math.min(255, Math.round(255 - (dr / alphaFactor))));
+      lightOut[dstIdx+1] = Math.max(0, Math.min(255, Math.round(255 - (dg / alphaFactor))));
+      lightOut[dstIdx+2] = Math.max(0, Math.min(255, Math.round(255 - (db / alphaFactor))));
+      lightOut[dstIdx+3] = Math.round(alphaFactor * 255);
     } else {
       lightOut[dstIdx] = r;
       lightOut[dstIdx+1] = g;
@@ -90,6 +112,6 @@ for (let y = 0; y < lCropH; y++) {
 
 fs.writeFileSync(
   path.resolve(__dirname, '../assets/images/branddocs-logo-light-trans.png'),
-  Buffer.from(UPNG.encode([lightOut.buffer], lCropW, lCropH, 0))
+  Buffer.from(UPNG.encode([lightOut.buffer], lOutW, lOutH, 0))
 );
-console.log('Successfully generated branddocs-logo-light-trans.png (' + lCropW + 'x' + lCropH + ')');
+console.log('Successfully generated branddocs-logo-light-trans.png (' + lOutW + 'x' + lOutH + ')');
