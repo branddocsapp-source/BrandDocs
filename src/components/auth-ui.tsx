@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { Href, router } from "expo-router";
 import { ReactNode, useState } from "react";
 import {
     ActivityIndicator,
-    Image,
     KeyboardTypeOptions,
     Platform,
     Pressable,
@@ -20,6 +20,12 @@ import { Colors } from "@/theme/colors";
 import { BrandLogo } from "@/components/brand-logo";
 import { useAppTheme } from "@/theme/theme-context";
 import { BrandColors } from "@/theme/tokens";
+
+const authLogos = {
+  google: require("@/assets/images/auth/google-logo.svg"),
+  appleBlack: require("@/assets/images/auth/apple-logo-black.png"),
+  appleWhite: require("@/assets/images/auth/apple-logo-white.png"),
+};
 
 const authBrand = {
   orange: BrandColors.primary,
@@ -1178,23 +1184,18 @@ export function SocialAuthButton({ provider, onPress, loading, disabled, unavail
         <ActivityIndicator color={theme.ink} />
       ) : (
         <View style={styles.socialButtonContent}>
-          <Ionicons
-            name={isApple ? "logo-apple" : "logo-google"}
-            size={20}
-            color={isApple ? (isDark ? "#FFFFFF" : "#000000") : (isDark ? "#FFAA2A" : "#EA4335")}
-            style={{ marginRight: 8 }}
+          <Image
+            source={isApple ? (isDark ? authLogos.appleWhite : authLogos.appleBlack) : authLogos.google}
+            style={{ width: 20, height: 20, marginRight: 8 }}
+            contentFit="contain"
+            transition={0}
+            accessibilityLabel={isApple ? "Apple logo" : "Google logo"}
           />
-          <Text style={[styles.socialButtonText, { color: theme.ink }]}>Continue with {isApple ? "Apple" : "Google"}</Text>
+          <Text style={[styles.socialButtonText, { color: theme.ink }]}>
+            Continue with {isApple ? "Apple" : "Google"}
+          </Text>
         </View>
       )}
-    </Pressable>
-  );
-}
-
-function DuplicateAuthInlineLink({ label, href }: { label: string; href: Href }) {
-  return (
-    <Pressable accessibilityRole="link" onPress={() => router.push(href as never)} hitSlop={8}>
-      <Text style={authStyles.inlineLink}>{label}</Text>
     </Pressable>
   );
 }
