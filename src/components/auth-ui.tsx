@@ -593,6 +593,201 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 24,
     borderWidth: 1,
+    width: "100%",
+  },
+  topBackFloatingBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  header: {
+    gap: 20,
+  },
+  cardLogo: {
+    height: 62,
+    width: 230,
+  },
+  titleGroup: {
+    gap: 8,
+  },
+  title: {
+    color: authBrand.ink,
+    fontSize: 36,
+    fontWeight: "950" as never,
+    letterSpacing: 0,
+    lineHeight: 42,
+  },
+  subtitle: {
+    color: authBrand.muted,
+    fontSize: 16,
+    lineHeight: 25,
+  },
+  inputFrame: {
+    backgroundColor: authBrand.white,
+    borderColor: "#DFDED7",
+    borderRadius: 14,
+    borderWidth: 1,
+    height: 54,
+    justifyContent: "center",
+  },
+  inputFrameFocused: {
+    borderColor: authBrand.orange,
+  },
+  input: {
+    color: authBrand.ink,
+    fontSize: 16,
+    height: 54,
+    paddingHorizontal: 17,
+  },
+  inputWithAction: {
+    paddingRight: 60,
+  },
+  inputAction: {
+    bottom: 0,
+    justifyContent: "center",
+    position: "absolute",
+    right: 12,
+    top: 0,
+  },
+  passwordIconButton: {
+    alignItems: "center",
+    borderRadius: 999,
+    height: 36,
+    justifyContent: "center",
+    width: 36,
+  },
+  iconPressed: {
+    backgroundColor: authBrand.orangeSoft,
+  },
+  checkboxRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 10,
+    marginTop: -2,
+  },
+  checkboxPressed: {
+    opacity: 0.86,
+  },
+  checkboxBox: {
+    alignItems: "center",
+    backgroundColor: authBrand.white,
+    borderColor: "#D8D7D0",
+    borderRadius: 6,
+    borderWidth: 1,
+    height: 21,
+    justifyContent: "center",
+    marginTop: 1,
+    width: 21,
+  },
+  checkboxBoxChecked: {
+    backgroundColor: authBrand.orange,
+    borderColor: authBrand.orange,
+  },
+  checkboxContent: {
+    flex: 1,
+  },
+  primaryButton: {
+    alignItems: "center",
+    backgroundColor: authBrand.orange,
+    borderRadius: 14,
+    height: 54,
+    justifyContent: "center",
+  },
+  primaryButtonHover: {
+    backgroundColor: authBrand.orangeDark,
+    transform: [{ translateY: -1 }],
+  },
+  primaryButtonPressed: {
+    opacity: 0.92,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.58,
+  },
+  primaryButtonText: {
+    color: authBrand.white,
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  dividerRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+  },
+  dividerLine: {
+    backgroundColor: authBrand.line,
+    flex: 1,
+    height: 1,
+  },
+  dividerLabel: {
+    color: "#8A8D87",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  socialButton: {
+    alignItems: "center",
+    alignSelf: "stretch",
+    backgroundColor: authBrand.white,
+    borderColor: "#DFDED7",
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    height: 54,
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    width: "100%",
+  },
+  socialButtonHover: {
+    backgroundColor: authBrand.wash,
+    borderColor: "#CDCBC2",
+    transform: [{ translateY: -1 }],
+  },
+  socialButtonPressed: {
+    opacity: 0.86,
+    transform: [{ scale: 0.995 }],
+  },
+  socialButtonDisabled: {
+    opacity: 0.58,
+  },
+  socialButtonContent: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "center",
+  },
+  socialLogo: {
+    height: 20,
+    width: 20,
+  },
+  socialButtonText: {
+    color: authBrand.ink,
+    fontSize: 14.5,
+    fontWeight: "900",
+  },
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+    marginVertical: 14,
+  },
+  infoBoxText: {
+    flex: 1,
+    fontSize: 12.5,
+    lineHeight: 18,
+    fontWeight: "500",
+  },
+  authCardContainer: {
+    width: "100%",
+    maxWidth: 440,
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1,
     gap: 16,
     alignSelf: "center",
   },
@@ -602,6 +797,8 @@ type AuthLayoutProps = {
   children: ReactNode;
   showBack?: boolean;
   onBackPress?: () => void;
+  maxWidth?: number;
+  cardStyle?: any;
 };
 
 type AuthHeaderProps = {
@@ -680,7 +877,7 @@ type AuthCheckboxProps = {
   children: ReactNode;
 };
 
-export function AuthLayout({ children }: AuthLayoutProps) {
+export function AuthLayout({ children, maxWidth, cardStyle }: AuthLayoutProps) {
   const { isDark, theme } = useAppTheme();
 
   return (
@@ -698,6 +895,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         entering={FadeIn.duration(350)}
         style={[
           styles.authCardContainer,
+          maxWidth ? { maxWidth } : null,
+          cardStyle,
           {
             backgroundColor: theme.card,
             borderColor: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F0",
