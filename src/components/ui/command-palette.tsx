@@ -11,8 +11,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/theme/theme-context";
-import { BrandColors, BrandRadius, BrandShadows } from "@/theme/tokens";
+import { BrandColors, BrandShadows } from "@/theme/tokens";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -34,6 +35,7 @@ type CommandPaletteProps = {
 export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const { isDark, toggleTheme, theme } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
 
   const commands: CommandItem[] = useMemo(
@@ -166,6 +168,10 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
         <Pressable
           style={[
             styles.modalContent,
+            {
+              marginTop: Math.max(insets.top, 8),
+              marginBottom: Math.max(insets.bottom, 8),
+            },
             { backgroundColor: theme.card, borderColor: theme.line },
             BrandShadows.raised,
           ]}
@@ -187,11 +193,11 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
               ]}
             />
             {query.length > 0 ? (
-              <Pressable onPress={() => setQuery("")} hitSlop={8}>
+              <Pressable onPress={() => setQuery("")} hitSlop={8} android_ripple={Platform.OS === "android" ? { color: "rgba(15,23,42,0.12)" } : undefined}>
                 <Ionicons name="close-circle" size={20} color={theme.muted} />
               </Pressable>
             ) : null}
-            <Pressable onPress={onClose} style={[styles.closeBadge, { backgroundColor: theme.line }]}>
+            <Pressable onPress={onClose} android_ripple={Platform.OS === "android" ? { color: "rgba(15,23,42,0.12)" } : undefined} style={[styles.closeBadge, { backgroundColor: theme.line }]}>
               <Ionicons name="close" size={16} color={isDark ? "#CBD5E1" : "#475569"} />
             </Pressable>
           </View>
@@ -202,7 +208,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
               <View style={styles.emptyContainer}>
                 <Ionicons name="search-outline" size={36} color={theme.muted} />
                 <Text style={[styles.emptyText, { color: theme.muted }]}>
-                  No matching tools found for "{query}"
+                  No matching tools found for &quot;{query}&quot;
                 </Text>
               </View>
             ) : (
@@ -210,6 +216,7 @@ export function CommandPalette({ visible, onClose }: CommandPaletteProps) {
                 <Pressable
                   key={item.id}
                   onPress={() => handleSelect(item)}
+                  android_ripple={Platform.OS === "android" ? { color: "rgba(15,23,42,0.12)" } : undefined}
                   style={({ pressed }) => [
                     styles.commandRow,
                     { borderBottomColor: theme.line },
@@ -287,9 +294,13 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   closeBadge: {
+    minWidth: 48,
+    minHeight: 48,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 8,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   closeBadgeText: {
     fontSize: 11,
@@ -303,6 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 18,
+    minHeight: 48,
     paddingVertical: 14,
     borderBottomWidth: 1,
     gap: 14,

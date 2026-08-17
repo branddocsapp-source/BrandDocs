@@ -4,6 +4,8 @@ import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { ReactNode, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -18,7 +20,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { CommandPalette } from "@/components/ui/command-palette";
@@ -61,6 +63,8 @@ function buttonStateStyle(pressed: boolean, disabled?: boolean) {
   return null;
 }
 
+const materialRipple = Platform.OS === "android" ? { color: "rgba(15,23,42,0.14)", borderless: false } : undefined;
+
 export function PrimaryButton({
   label,
   onPress,
@@ -76,6 +80,7 @@ export function PrimaryButton({
       accessibilityLabel={accessibilityLabel || label}
       disabled={disabled || loading}
       onPress={onPress}
+      android_ripple={materialRipple}
       style={({ pressed }) => [
         styles.buttonBase,
         styles.primaryButton,
@@ -108,6 +113,7 @@ export function SecondaryButton({
       accessibilityLabel={accessibilityLabel || label}
       disabled={disabled || loading}
       onPress={onPress}
+      android_ripple={materialRipple}
       style={({ pressed }) => [
         styles.buttonBase,
         styles.secondaryButton,
@@ -143,6 +149,7 @@ export function TextButton({
       accessibilityLabel={accessibilityLabel || label}
       disabled={disabled}
       onPress={onPress}
+      android_ripple={materialRipple}
       style={({ pressed }) => [
         styles.textButton,
         buttonStateStyle(pressed, disabled),
@@ -176,6 +183,7 @@ export function IconButton({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
+      android_ripple={materialRipple}
       style={({ pressed }) => [
         styles.iconButton,
         { backgroundColor: theme.card, borderColor: theme.line },
@@ -290,6 +298,7 @@ export function SelectField({
         accessibilityRole="button"
         accessibilityLabel={label || placeholder}
         onPress={onPress}
+        android_ripple={materialRipple}
         style={({ pressed }) => [
           styles.inputShell,
           { backgroundColor: theme.card, borderColor: theme.line },
@@ -594,6 +603,11 @@ export function BottomSheet({
   children: ReactNode;
   onClose: () => void;
 }) {
+  const insets = useSafeAreaInsets();
+  const webSafeBottom =
+    Platform.OS === "web"
+      ? ({ paddingBottom: "max(12px, env(safe-area-inset-bottom))" } as any)
+      : undefined;
   return (
     <Modal
       transparent
@@ -602,7 +616,13 @@ export function BottomSheet({
       onRequestClose={onClose}
     >
       <Pressable style={styles.sheetOverlay} onPress={onClose}>
-        <Pressable style={styles.sheet}>
+        <Pressable
+          style={[
+            styles.sheet,
+            { paddingBottom: BrandSpacing.xl + Math.max(insets.bottom, BrandSpacing.sm) },
+            webSafeBottom,
+          ]}
+        >
           <View style={styles.sheetHandle} />
           {children}
         </Pressable>
@@ -628,6 +648,7 @@ export function PageHeader({
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isCompact = width < 480;
+  const isIosCompact = Platform.OS === "ios" && width < 768;
   const handleBack = onBackPress || (() => router.back());
 
   return (
@@ -643,6 +664,7 @@ export function PageHeader({
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={handleBack}
+            android_ripple={materialRipple}
             style={({ pressed }) => [
               styles.pageHeaderBackBtn,
               { backgroundColor: theme.card, borderColor: theme.line },
@@ -652,7 +674,7 @@ export function PageHeader({
             <Ionicons name="chevron-back" size={19} color={theme.ink} />
           </Pressable>
         ) : null}
-        <View style={styles.pageHeaderCopy}>
+        <View style={[styles.pageHeaderCopy, isIosCompact && styles.pageHeaderCopyIos]}>
           <Text style={[styles.pageTitle, { color: theme.ink }]}>{title}</Text>
           {subtitle ? (
             <Text style={[styles.pageSubtitle, { color: theme.muted }]}>
@@ -770,6 +792,7 @@ export function DesktopSidebar({
           <Pressable
             accessibilityLabel="Open Quick Access Menu"
             onPress={onToggleDrawer}
+            android_ripple={materialRipple}
             style={({ pressed }) => [
               styles.mobileHeaderIconBtn,
               pressed && styles.pressed,
@@ -790,6 +813,7 @@ export function DesktopSidebar({
               accessibilityRole="button"
               accessibilityLabel={item.label}
               onPress={() => router.push(appRoute(item.route) as never)}
+              android_ripple={materialRipple}
               style={({ pressed }) => [
                 styles.sidebarItem,
                 active && styles.sidebarItemActive,
@@ -822,9 +846,21 @@ export function MobileBottomNavigation() {
   const pathname = usePathname();
   const appRoute = usePreviewRoute();
   const { theme } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const webSafeBottom =
+    Platform.OS === "web"
+      ? ({ paddingBottom: "max(12px, env(safe-area-inset-bottom))" } as any)
+      : undefined;
 
   return (
-    <View style={styles.floatingNavWrapper} pointerEvents="box-none">
+    <View
+      style={[
+        styles.floatingNavWrapper,
+        { bottom: 12 + Math.max(insets.bottom, BrandSpacing.sm) },
+        webSafeBottom,
+      ]}
+      pointerEvents="box-none"
+    >
       <View
         style={[
           styles.floatingBottomNav,
@@ -839,6 +875,7 @@ export function MobileBottomNavigation() {
               accessibilityRole="button"
               accessibilityLabel={item.label}
               onPress={() => router.push(appRoute(item.route) as never)}
+              android_ripple={materialRipple}
               style={({ pressed }) => [
                 styles.floatingNavItem,
                 active && { backgroundColor: theme.orangeSoft },
@@ -874,6 +911,11 @@ export function QuickAccessDrawer({
   const router = useRouter();
   const appRoute = usePreviewRoute();
   const { isDark, toggleTheme, theme, themeMode } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const webSafeBottom =
+    Platform.OS === "web"
+      ? ({ paddingBottom: "max(24px, env(safe-area-inset-bottom))" } as any)
+      : undefined;
 
   if (!visible) return null;
 
@@ -973,6 +1015,14 @@ export function QuickAccessDrawer({
           entering={FadeIn.duration(200)}
           style={[
             styles.drawerContent,
+            {
+              paddingTop:
+                (Platform.OS === "web" ? 20 : BrandSpacing.lg) +
+                Math.max(insets.top, BrandSpacing.sm),
+              paddingBottom:
+                24 + Math.max(insets.bottom, BrandSpacing.md),
+            },
+            webSafeBottom,
             { backgroundColor: theme.card, borderColor: theme.line },
           ]}
         >
@@ -1018,6 +1068,7 @@ export function QuickAccessDrawer({
             </View>
             <Pressable
               onPress={onClose}
+              android_ripple={materialRipple}
               style={[styles.drawerCloseBtn, { backgroundColor: theme.line }]}
             >
               <Ionicons name="close" size={18} color={theme.ink} />
@@ -1036,6 +1087,7 @@ export function QuickAccessDrawer({
               <Pressable
                 key={item.id}
                 onPress={() => handleNavigate(item.route)}
+                android_ripple={materialRipple}
                 style={({ pressed }) => [
                   styles.drawerRow,
                   { borderBottomColor: theme.line },
@@ -1117,6 +1169,7 @@ export function QuickAccessDrawer({
 
             <Pressable
               onPress={() => handleNavigate("/profile")}
+              android_ripple={materialRipple}
               style={({ pressed }) => [
                 styles.drawerRow,
                 { borderBottomColor: theme.line },
@@ -1152,6 +1205,7 @@ export function QuickAccessDrawer({
         <Pressable
           style={styles.drawerBackdrop}
           onPress={onClose}
+          android_ripple={materialRipple}
           accessibilityLabel="Close quick access menu"
         />
       </View>
@@ -1181,6 +1235,7 @@ export function AppShell({
   const appRoute = usePreviewRoute();
   const { isWebsite, usesSidebar, width } = useResponsiveLayout();
   const { theme } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const isCompactViewport = width < 390;
   const [profile, setProfile] = useState<BusinessProfile | null>(() =>
     getCachedBusinessProfile(auth.currentUser?.uid),
@@ -1205,6 +1260,30 @@ export function AppShell({
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (drawerVisible) {
+        setDrawerVisible(false);
+        return true;
+      }
+      if (commandPaletteVisible) {
+        setCommandPaletteVisible(false);
+        return true;
+      }
+      if (profileMenu && onProfilePress) {
+        onProfilePress();
+        return true;
+      }
+      if (router.canGoBack()) {
+        router.back();
+        return true;
+      }
+      return false;
+    });
+    return () => subscription.remove();
+  }, [commandPaletteVisible, drawerVisible, onProfilePress, profileMenu, router]);
 
   const pathname = usePathname();
   const isDashboard = pathname === "/dashboard";
@@ -1243,8 +1322,14 @@ export function AppShell({
     </Animated.View>
   );
 
+  const contentBottomInset = Math.max(
+    insets.bottom,
+    Platform.OS === "web" ? 0 : BrandSpacing.md,
+  );
+
   return (
     <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
       style={[
         styles.safeArea,
         { backgroundColor: theme.background },
@@ -1255,7 +1340,11 @@ export function AppShell({
         {usesSidebar ? (
           <DesktopSidebar onToggleDrawer={() => setDrawerVisible(true)} />
         ) : null}
-        <View style={[styles.workspace, { backgroundColor: theme.wash }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+          style={[styles.workspace, { backgroundColor: theme.wash }]}
+        >
           <View
             style={[
               styles.topBar,
@@ -1283,6 +1372,7 @@ export function AppShell({
                     <Pressable
                       accessibilityLabel="Back to Main Control Panel"
                       onPress={handleBackToControlPanel}
+                      android_ripple={materialRipple}
                       style={({ pressed }) => [
                         styles.mobileHeaderIconBtn,
                         pressed && styles.pressed,
@@ -1298,6 +1388,7 @@ export function AppShell({
                   <Pressable
                     accessibilityLabel="Open Quick Access Menu"
                     onPress={() => setDrawerVisible(true)}
+                    android_ripple={materialRipple}
                     style={({ pressed }) => [
                       styles.mobileHeaderIconBtn,
                       pressed && styles.pressed,
@@ -1311,6 +1402,7 @@ export function AppShell({
                 <Pressable
                   accessibilityLabel="Open Search & Command Palette"
                   onPress={() => setCommandPaletteVisible(true)}
+                  android_ripple={materialRipple}
                   style={({ pressed }) => [
                     styles.searchPill,
                     styles.mobileSearchPill,
@@ -1349,6 +1441,7 @@ export function AppShell({
                     onProfilePress ||
                     (() => router.push(appRoute("/profile") as never))
                   }
+                  android_ripple={materialRipple}
                   style={({ pressed }) => [
                     styles.avatarButton,
                     styles.mobileAvatarButton,
@@ -1372,6 +1465,7 @@ export function AppShell({
                   <Pressable
                     accessibilityLabel="Back to Main Control Panel"
                     onPress={handleBackToControlPanel}
+                    android_ripple={materialRipple}
                     style={({ pressed }) => [
                       styles.mobileHeaderIconBtn,
                       { marginRight: 6 },
@@ -1384,6 +1478,7 @@ export function AppShell({
                 <View style={styles.topBarSearchCenter}>
                   <Pressable
                     onPress={() => setCommandPaletteVisible(true)}
+                    android_ripple={materialRipple}
                     style={({ pressed }) => [
                       styles.searchPill,
                       styles.searchPillDesktop,
@@ -1416,6 +1511,7 @@ export function AppShell({
                       onProfilePress ||
                       (() => router.push(appRoute("/profile") as never))
                     }
+                    android_ripple={materialRipple}
                     style={({ pressed }) => [
                       styles.avatarButton,
                       pressed && styles.pressed,
@@ -1437,8 +1533,12 @@ export function AppShell({
           </View>
           {scroll ? (
             <ScrollView
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={[
+                styles.scrollContent,
+                { paddingBottom: BrandSpacing["5xl"] + contentBottomInset },
+              ]}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
               {content}
             </ScrollView>
@@ -1478,7 +1578,7 @@ export function AppShell({
               </View>
             </>
           ) : null}
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </SafeAreaView>
   );
@@ -1493,11 +1593,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     backgroundColor: BrandColors.surface,
+    overflow: "hidden",
   },
   workspace: {
     flex: 1,
     backgroundColor: BrandColors.surface,
     position: "relative",
+    minWidth: 0,
+    overflow: "hidden",
   },
   topBar: {
     alignItems: "center",
@@ -1576,6 +1679,7 @@ const styles = StyleSheet.create({
     maxWidth: BrandLayout.maxContentWidth,
     paddingHorizontal: BrandSpacing["3xl"],
     width: "100%",
+    minWidth: 0,
   },
   desktopContentInner: {
     maxWidth: BrandLayout.maxContentWidth,
@@ -1587,7 +1691,7 @@ const styles = StyleSheet.create({
   mobileContentInner: {
     maxWidth: BrandLayout.mobileContentWidth,
     paddingBottom: BrandLayout.bottomNavHeight + BrandSpacing["3xl"],
-    paddingHorizontal: BrandSpacing.xl,
+    paddingHorizontal: BrandSpacing.lg,
     paddingTop: BrandSpacing.xl,
   },
   sidebar: {
@@ -1636,10 +1740,10 @@ const styles = StyleSheet.create({
     borderColor: BrandColors.primarySubtle,
     borderRadius: BrandRadius.pill,
     borderWidth: 1,
-    height: 40,
+    height: 48,
     justifyContent: "center",
     overflow: "hidden",
-    width: 40,
+    width: 48,
   },
   avatarImage: {
     height: "100%",
@@ -1656,7 +1760,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: BrandSpacing.sm,
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: BrandSpacing.lg,
   },
   primaryButton: {
@@ -1672,7 +1776,7 @@ const styles = StyleSheet.create({
     borderRadius: BrandRadius.pill,
     flexDirection: "row",
     gap: BrandSpacing.xs,
-    minHeight: 40,
+    minHeight: 48,
     paddingHorizontal: BrandSpacing.sm,
   },
   primaryButtonText: {
@@ -1693,9 +1797,9 @@ const styles = StyleSheet.create({
     borderColor: BrandColors.border,
     borderRadius: BrandRadius.pill,
     borderWidth: 1,
-    height: 40,
+    height: 48,
     justifyContent: "center",
-    width: 40,
+    width: 48,
   },
   iconButtonActive: {
     backgroundColor: BrandColors.primarySoft,
@@ -1813,8 +1917,8 @@ const styles = StyleSheet.create({
     color: BrandColors.text,
   },
   documentOpenButton: {
-    height: 36,
-    width: 36,
+    height: 48,
+    width: 48,
   },
   badge: {
     borderRadius: BrandRadius.pill,
@@ -1887,15 +1991,18 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   pageHeaderBackBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   pageHeaderCopy: {
     flex: 1,
+  },
+  pageHeaderCopyIos: {
+    alignItems: "center",
   },
   pageTitle: {
     ...BrandTypography.pageHeading,
@@ -1921,6 +2028,8 @@ const styles = StyleSheet.create({
     ...BrandTypography.sectionHeading,
     color: BrandColors.text,
     marginBottom: BrandSpacing.sm,
+    textAlign: "left",
+    alignSelf: "stretch",
   },
   modalTitleDanger: {
     color: BrandColors.error,
@@ -1984,6 +2093,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
+    minHeight: 48,
     paddingVertical: 10,
     paddingHorizontal: 8,
     borderRadius: 24,
@@ -1997,19 +2107,20 @@ const styles = StyleSheet.create({
   },
   mobileSearchPill: {
     flex: 1,
-    height: 38,
+    minHeight: 48,
     paddingHorizontal: 12,
   },
   mobileHeaderIconBtn: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 6,
-    borderRadius: 10,
+    minHeight: 48,
+    minWidth: 48,
+    borderRadius: 12,
   },
   mobileAvatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   tipCard: {
     flexDirection: "row",
@@ -2072,9 +2183,9 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   drawerCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
   },
