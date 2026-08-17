@@ -40,6 +40,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.1",
+    "firebase-tools": "^15.27.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -50,7 +51,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "deploy": "npm run build && npx firebase deploy --only hosting"
+    "deploy": "npm run build && npx firebase-tools deploy --only hosting"
   },
   "private": true
 }
