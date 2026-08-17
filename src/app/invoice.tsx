@@ -1901,15 +1901,15 @@ const createStyles = (theme: ThemePalette, isDark: boolean) =>
     keyboardView: { flex: 1 },
     moduleContent: {
       alignSelf: "center",
-      maxWidth: 680,
-      padding: 18,
+      maxWidth: 920,
+      padding: 20,
       width: "100%",
     },
     webModuleContent: {
-      maxWidth: 1040,
-      paddingHorizontal: 40,
+      maxWidth: 960,
+      paddingHorizontal: 32,
       paddingBottom: 56,
-      paddingTop: 38,
+      paddingTop: 32,
     },
     moduleHeader: {
       alignItems: "center",

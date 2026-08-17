@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
+  Dimensions,
   Modal,
   Pressable,
   StyleSheet,
@@ -394,8 +395,10 @@ export function ThreeDotMenu({ items }: { items: ThreeDotMenuItem[] }) {
   const [menuPos, setMenuPos] = useState({ top: 0, right: 16 });
 
   function handleOpen() {
-    triggerRef.current?.measureInWindow((_x, y, _width, height) => {
-      setMenuPos({ top: y + height + 4, right: 16 });
+    triggerRef.current?.measureInWindow((x, y, width, height) => {
+      const windowWidth = Dimensions.get("window").width;
+      const rightOffset = Math.max(12, Math.min(windowWidth - (x + width), windowWidth - 210));
+      setMenuPos({ top: y + height + 4, right: rightOffset });
       setOpen(true);
     });
   }
@@ -421,7 +424,7 @@ export function ThreeDotMenu({ items }: { items: ThreeDotMenuItem[] }) {
           activeOpacity={1}
           onPress={() => setOpen(false)}
         >
-          <View style={[dotMenuStyles.menu, { top: menuPos.top, right: menuPos.right }]}>
+          <View style={[dotMenuStyles.menu, { top: menuPos.top, right: menuPos.right, backgroundColor: theme.card, borderColor: theme.line }]}>
             {items.map((item) => (
               <Pressable
                 key={item.label}
@@ -432,7 +435,7 @@ export function ThreeDotMenu({ items }: { items: ThreeDotMenuItem[] }) {
                 }}
               >
                 <Ionicons name={item.icon} size={16} color={item.color || theme.ink} />
-                <Text style={[dotMenuStyles.menuItemText, item.color ? { color: item.color } : null]}>{item.label}</Text>
+                <Text style={[dotMenuStyles.menuItemText, { color: item.color || theme.ink }]}>{item.label}</Text>
               </Pressable>
             ))}
           </View>
