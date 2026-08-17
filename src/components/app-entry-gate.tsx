@@ -46,7 +46,7 @@ export function BrandDocsSplashScreen() {
       ]}
     >
       <View style={styles.contentCenter}>
-        <BrandLogo size="xlarge" disableNavigation />
+        <BrandLogo size="xlarge" variant="stacked" align="center" disableNavigation />
       </View>
     </Animated.View>
   );

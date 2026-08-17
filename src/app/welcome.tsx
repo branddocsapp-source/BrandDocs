@@ -14,7 +14,7 @@ export default function WelcomeScreen() {
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
-      <BrandLogo size="large" disableNavigation />
+      <BrandLogo size="large" variant="stacked" align="center" disableNavigation />
 
       <Text style={styles.title}>Welcome to BrandDocs</Text>
 
