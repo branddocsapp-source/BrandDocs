@@ -2,6 +2,7 @@ import { User } from "firebase/auth";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -16,7 +17,7 @@ import { BusinessProfile } from "@/services/business-profile";
 import { getInvoiceCompanyCode } from "@/services/invoices";
 
 export type QuotationDocumentType = "standard_quotation" | "table_quotation";
-export type QuotationStatus = "draft" | "sent" | "accepted" | "rejected";
+export type QuotationStatus = "draft" | "final" | "cancelled";
 
 export type QuotationItem = {
   id: string;
@@ -71,6 +72,8 @@ export type QuotationRecord = {
   amountInWords: string;
   notes: string;
   terms: string;
+  cancellationReason?: string;
+  finalizedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -99,10 +102,13 @@ function toNumber(value: unknown) {
 
 function normalizeStatus(value: unknown): QuotationStatus {
   const normalized = String(value || "draft").trim().toLowerCase();
-  if (normalized === "sent") return "sent";
-  if (normalized === "accepted") return "accepted";
-  if (normalized === "rejected") return "rejected";
+  if (normalized === "final" || normalized === "sent" || normalized === "accepted") return "final";
+  if (normalized === "cancelled" || normalized === "rejected") return "cancelled";
   return "draft";
+}
+
+export function isQuotationLocked(status: QuotationStatus): boolean {
+  return status === "final" || status === "cancelled";
 }
 
 function normalizeDocumentType(value: any): QuotationDocumentType {
@@ -315,6 +321,11 @@ export async function loadQuotationById(user: User | null, profile: BusinessProf
 }
 
 export async function saveQuotation(user: User | null, profile: BusinessProfile | null, quotation: QuotationRecord): Promise<QuotationSaveResult> {
+  // Backend guard: prevent modifying finalized or cancelled documents
+  if (quotation.id && isQuotationLocked(normalizeStatus(quotation.status))) {
+    throw new Error("This quotation is finalized or cancelled and cannot be modified.");
+  }
+
   const businessId = profile?.id;
   const userId = user?.uid;
   const totals = calculateQuotationTotals(quotation);
@@ -339,6 +350,19 @@ export async function saveQuotation(user: User | null, profile: BusinessProfile 
   if (user && businessId) {
     try {
       if (quotationPayload.id && !quotationPayload.id.startsWith("local-")) {
+        // Double-check current status in DB before overwriting
+        try {
+          const existingSnap = await getDoc(doc(db, "quotations", quotationPayload.id));
+          if (existingSnap.exists()) {
+            const existingStatus = normalizeStatus(existingSnap.data()?.status);
+            if (isQuotationLocked(existingStatus)) {
+              throw new Error("This quotation is finalized or cancelled and cannot be modified.");
+            }
+          }
+        } catch (guardError: any) {
+          if (guardError?.message?.includes("finalized or cancelled")) throw guardError;
+        }
+
         await setDoc(doc(db, "quotations", quotationPayload.id), {
           ...quotationPayload,
           createdAt: quotation.createdAt || serverTimestamp(),
@@ -357,6 +381,8 @@ export async function saveQuotation(user: User | null, profile: BusinessProfile 
       upsertLocal(savedQuotation);
       return { quotation: savedQuotation, source: "firebase" };
     } catch (error: any) {
+      if (error?.message?.includes("finalized or cancelled")) throw error;
+
       console.warn("BrandDocs Firebase quotation save failed; quotation saved to local fallback.", error);
       const localQuotation = { ...quotationPayload, id: quotationPayload.id || `local-${Date.now()}` };
       upsertLocal(localQuotation);
@@ -375,4 +401,157 @@ export async function saveQuotation(user: User | null, profile: BusinessProfile 
     source: "local-fallback",
     warning: "No active Firebase user or business profile was available, so the quotation was saved locally on this device.",
   };
+}
+
+// ─── Finalize ────────────────────────────────────────────────
+
+export async function finalizeQuotation(
+  user: User | null,
+  profile: BusinessProfile | null,
+  quotation: QuotationRecord,
+): Promise<QuotationSaveResult> {
+  if (isQuotationLocked(normalizeStatus(quotation.status))) {
+    throw new Error("This quotation is already finalized or cancelled.");
+  }
+
+  const now = new Date().toISOString();
+  const finalized: QuotationRecord = {
+    ...quotation,
+    status: "final",
+    finalizedAt: now,
+    businessProfileSnapshot: profile || quotation.businessProfileSnapshot || null,
+  };
+
+  return internalQuotationSaveWithStatus(user, profile, finalized);
+}
+
+// ─── Cancel ──────────────────────────────────────────────────
+
+export async function cancelQuotation(
+  user: User | null,
+  profile: BusinessProfile | null,
+  quotation: QuotationRecord,
+  reason: string,
+): Promise<QuotationSaveResult> {
+  if (normalizeStatus(quotation.status) !== "final") {
+    throw new Error("Only finalized quotations can be cancelled.");
+  }
+
+  const cancelled: QuotationRecord = {
+    ...quotation,
+    status: "cancelled",
+    cancellationReason: reason,
+  };
+
+  return internalQuotationSaveWithStatus(user, profile, cancelled);
+}
+
+// ─── Duplicate ───────────────────────────────────────────────
+
+export function duplicateQuotationAsDraft(
+  original: QuotationRecord,
+  allQuotations: QuotationRecord[],
+  companyName?: string,
+): QuotationRecord {
+  const { quotationNumber, numberingSequence } = generateNextQuotationNumber(
+    original.documentType,
+    companyName,
+    allQuotations,
+  );
+
+  return {
+    ...original,
+    id: undefined,
+    status: "draft",
+    quotationNumber,
+    numberingSequence,
+    quotationDate: new Date().toISOString().slice(0, 10),
+    validUntil: "",
+    finalizedAt: undefined,
+    cancellationReason: undefined,
+    createdAt: undefined,
+    updatedAt: undefined,
+  };
+}
+
+// ─── Delete (draft only) ─────────────────────────────────────
+
+export async function deleteQuotation(
+  user: User | null,
+  profile: BusinessProfile | null,
+  quotation: QuotationRecord,
+): Promise<void> {
+  if (isQuotationLocked(normalizeStatus(quotation.status))) {
+    throw new Error("Finalized or cancelled quotations cannot be deleted.");
+  }
+
+  const userId = user?.uid;
+  const businessId = profile?.id;
+
+  if (user && businessId && quotation.id && !quotation.id.startsWith("local-")) {
+    try {
+      await deleteDoc(doc(db, "quotations", quotation.id));
+    } catch (error) {
+      console.warn("BrandDocs Firebase quotation delete failed.", error);
+    }
+  }
+
+  const local = loadLocalQuotations(userId, businessId);
+  saveLocalQuotations(
+    userId,
+    businessId,
+    local.filter((r) => r.id !== quotation.id && r.quotationNumber !== quotation.quotationNumber),
+  );
+}
+
+// ─── Internal save (used by finalize/cancel) ─────────────────
+
+async function internalQuotationSaveWithStatus(
+  user: User | null,
+  profile: BusinessProfile | null,
+  quotation: QuotationRecord,
+): Promise<QuotationSaveResult> {
+  const businessId = profile?.id;
+  const userId = user?.uid;
+  const now = new Date().toISOString();
+  const payload: QuotationRecord = {
+    ...quotation,
+    updatedAt: now,
+    businessProfileSnapshot: quotation.businessProfileSnapshot || profile || null,
+  };
+
+  const upsertLocal = (saved: QuotationRecord) => {
+    const local = loadLocalQuotations(userId, businessId);
+    saveLocalQuotations(
+      userId,
+      businessId,
+      mergeQuotations(
+        local.filter((current) => current.id !== saved.id),
+        [saved],
+      ),
+    );
+  };
+
+  if (user && businessId && payload.id && !payload.id.startsWith("local-")) {
+    try {
+      await setDoc(
+        doc(db, "quotations", payload.id),
+        { ...payload, updatedAt: serverTimestamp() },
+        { merge: true },
+      );
+      upsertLocal(payload);
+      return { quotation: payload, source: "firebase" };
+    } catch (error: any) {
+      console.warn("BrandDocs Firebase quotation status update failed.", error);
+      upsertLocal(payload);
+      return {
+        quotation: payload,
+        source: "local-fallback",
+        warning: error?.message || "Status update saved locally.",
+      };
+    }
+  }
+
+  upsertLocal(payload);
+  return { quotation: payload, source: "local-fallback" };
 }

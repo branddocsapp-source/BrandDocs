@@ -14,7 +14,7 @@ import {
 import { db } from "@/firebase";
 import { BusinessProfile } from "@/services/business-profile";
 
-export type ReceiptStatus = "draft" | "final";
+export type ReceiptStatus = "draft" | "final" | "cancelled";
 export type PaymentMethod = "cash" | "bank_transfer" | "cheque" | "card" | "upi" | "other";
 
 export type ReceiptRecord = {
@@ -50,6 +50,8 @@ export type ReceiptRecord = {
     signatureUrl?: string | null;
     stampUrl?: string | null;
   };
+  cancellationReason?: string;
+  finalizedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -84,7 +86,14 @@ function toNumber(value: unknown) {
 }
 
 function normalizeStatus(value: unknown): ReceiptStatus {
-  return String(value || "draft").toLowerCase() === "final" ? "final" : "draft";
+  const normalized = String(value || "draft").toLowerCase();
+  if (normalized === "final") return "final";
+  if (normalized === "cancelled") return "cancelled";
+  return "draft";
+}
+
+export function isReceiptLocked(status: ReceiptStatus): boolean {
+  return status === "final" || status === "cancelled";
 }
 
 function normalizePaymentMethod(value: unknown): PaymentMethod {
@@ -233,6 +242,11 @@ export async function saveReceipt(
   profile: BusinessProfile | null,
   receipt: ReceiptRecord
 ): Promise<ReceiptSaveResult> {
+  // Backend guard: prevent modifying finalized or cancelled documents
+  if (receipt.id && isReceiptLocked(normalizeStatus(receipt.status))) {
+    throw new Error("This receipt is finalized or cancelled and cannot be modified.");
+  }
+
   const userId = user?.uid;
   const businessId = profile?.id;
   const now = new Date().toISOString();
@@ -258,6 +272,21 @@ export async function saveReceipt(
       ? doc(db, "receipts", receiptPayload.id)
       : doc(collection(db, "receipts"));
 
+    // Double-check current status in DB before overwriting
+    if (receiptPayload.id && !receiptPayload.id.startsWith("local-")) {
+      try {
+        const existingSnap = await getDoc(docRef);
+        if (existingSnap.exists()) {
+          const existingStatus = normalizeStatus(existingSnap.data()?.status);
+          if (isReceiptLocked(existingStatus)) {
+            throw new Error("This receipt is finalized or cancelled and cannot be modified.");
+          }
+        }
+      } catch (guardError: any) {
+        if (guardError?.message?.includes("finalized or cancelled")) throw guardError;
+      }
+    }
+
     try {
       const firestorePayload = {
         ...receiptPayload,
@@ -271,6 +300,8 @@ export async function saveReceipt(
       upsertLocal(savedReceipt);
       return { receipt: savedReceipt, source: "firebase" };
     } catch (error: any) {
+      if (error?.message?.includes("finalized or cancelled")) throw error;
+
       console.error("BrandDocs Firebase receipt save failed.", error);
       const fallbackId = receiptPayload.id || `local-${Date.now()}`;
       const savedReceipt = { ...receiptPayload, id: fallbackId };
@@ -294,6 +325,11 @@ export async function saveReceipt(
 }
 
 export async function deleteReceipt(user: User | null, profile: BusinessProfile | null, receipt: ReceiptRecord) {
+  // Backend guard: prevent deleting finalized or cancelled documents
+  if (isReceiptLocked(normalizeStatus(receipt.status))) {
+    throw new Error("Finalized or cancelled receipts cannot be deleted.");
+  }
+
   const userId = user?.uid;
   const businessId = profile?.id;
 
@@ -309,24 +345,119 @@ export async function deleteReceipt(user: User | null, profile: BusinessProfile 
   saveLocalReceipts(userId, businessId, local.filter((r) => r.id !== receipt.id && r.receiptNumber !== receipt.receiptNumber));
 }
 
-export function generateNextReceiptNumber(receipts: ReceiptRecord[], date = new Date()) {
-  const year = String(date.getFullYear());
-  const maxSequence = receipts.reduce((currentMax, receipt) => {
-    const savedSequence = String(receipt.receiptNumber).includes(`RCT-${year}-`) ? Number(receipt.numberingSequence || 0) : 0;
-    return Math.max(currentMax, savedSequence, getSequenceFromNumber(receipt.receiptNumber, year));
-  }, 0);
-  const nextSequence = maxSequence + 1;
+// ─── Finalize ────────────────────────────────────────────────
+
+export async function finalizeReceipt(
+  user: User | null,
+  profile: BusinessProfile | null,
+  receipt: ReceiptRecord,
+): Promise<ReceiptSaveResult> {
+  if (isReceiptLocked(normalizeStatus(receipt.status))) {
+    throw new Error("This receipt is already finalized or cancelled.");
+  }
+
+  const now = new Date().toISOString();
+  const finalized: ReceiptRecord = {
+    ...receipt,
+    status: "final",
+    finalizedAt: now,
+  };
+
+  return internalReceiptSaveWithStatus(user, profile, finalized);
+}
+
+// ─── Cancel ──────────────────────────────────────────────────
+
+export async function cancelReceipt(
+  user: User | null,
+  profile: BusinessProfile | null,
+  receipt: ReceiptRecord,
+  reason: string,
+): Promise<ReceiptSaveResult> {
+  if (normalizeStatus(receipt.status) !== "final") {
+    throw new Error("Only finalized receipts can be cancelled.");
+  }
+
+  const cancelled: ReceiptRecord = {
+    ...receipt,
+    status: "cancelled",
+    cancellationReason: reason,
+  };
+
+  return internalReceiptSaveWithStatus(user, profile, cancelled);
+}
+
+// ─── Duplicate ───────────────────────────────────────────────
+
+export function duplicateReceiptAsDraft(
+  original: ReceiptRecord,
+  allReceipts: ReceiptRecord[],
+): ReceiptRecord {
+  const { receiptNumber, numberingSequence } = generateNextReceiptNumber(allReceipts);
 
   return {
-    receiptNumber: `RCT-${year}-${String(nextSequence).padStart(4, "0")}`,
-    numberingSequence: nextSequence,
+    ...original,
+    id: undefined,
+    status: "draft",
+    receiptNumber,
+    numberingSequence,
+    receiptDate: new Date().toISOString().slice(0, 10),
+    finalizedAt: undefined,
+    cancellationReason: undefined,
+    createdAt: undefined,
+    updatedAt: undefined,
   };
 }
 
-function getSequenceFromNumber(receiptNumber: string, year: string) {
-  const match = receiptNumber.match(/^RCT-(\d{4})-(\d{4})$/);
-  if (!match || match[1] !== year) return 0;
-  return Number(match[2] || 0);
+// ─── Internal save (used by finalize/cancel) ─────────────────
+
+async function internalReceiptSaveWithStatus(
+  user: User | null,
+  profile: BusinessProfile | null,
+  receipt: ReceiptRecord,
+): Promise<ReceiptSaveResult> {
+  const businessId = profile?.id;
+  const userId = user?.uid;
+  const now = new Date().toISOString();
+  const payload: ReceiptRecord = {
+    ...receipt,
+    updatedAt: now,
+  };
+
+  const upsertLocal = (saved: ReceiptRecord) => {
+    const local = loadLocalReceipts(userId, businessId);
+    saveLocalReceipts(
+      userId,
+      businessId,
+      mergeReceipts(
+        local.filter((current) => current.id !== saved.id),
+        [saved],
+      ),
+    );
+  };
+
+  if (user && businessId && payload.id && !payload.id.startsWith("local-")) {
+    try {
+      await setDoc(
+        doc(db, "receipts", payload.id),
+        { ...payload, updatedAt: serverTimestamp() },
+        { merge: true },
+      );
+      upsertLocal(payload);
+      return { receipt: payload, source: "firebase" };
+    } catch (error: any) {
+      console.warn("BrandDocs Firebase receipt status update failed.", error);
+      upsertLocal(payload);
+      return {
+        receipt: payload,
+        source: "local-fallback",
+        warning: error?.message || "Status update saved locally.",
+      };
+    }
+  }
+
+  upsertLocal(payload);
+  return { receipt: payload, source: "local-fallback" };
 }
 
 export function validateReceipt(receipt: ReceiptRecord) {
