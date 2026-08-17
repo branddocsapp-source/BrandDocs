@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import {
@@ -40,15 +41,16 @@ import { TEMPLATE_COLOR_OPTIONS, TemplateColor } from "@/theme/template-colors";
 import { useAppTheme } from "@/theme/theme-context";
 
 const COUNTRY_CODES = [
-  { label: "Canada", flag: "🇨🇦", value: "+1", code: "CA" },
-  { label: "UK", flag: "🇬🇧", value: "+44", code: "GB" },
+  { label: "United States", flag: "🇺🇸", value: "+1", code: "US" },
   { label: "India", flag: "🇮🇳", value: "+91", code: "IN" },
+  { label: "Canada", flag: "🇨🇦", value: "+1", code: "CA" },
+  { label: "United Kingdom", flag: "🇬🇧", value: "+44", code: "GB" },
   { label: "Australia", flag: "🇦🇺", value: "+61", code: "AU" },
-  { label: "US", flag: "🇺🇸", value: "+1", code: "US" },
   { label: "Germany", flag: "🇩🇪", value: "+49", code: "DE" },
   { label: "France", flag: "🇫🇷", value: "+33", code: "FR" },
+  { label: "United Arab Emirates", flag: "🇦🇪", value: "+971", code: "AE" },
+  { label: "Singapore", flag: "🇸🇬", value: "+65", code: "SG" },
   { label: "Japan", flag: "🇯🇵", value: "+81", code: "JP" },
-  { label: "UAE", flag: "🇦🇪", value: "+971", code: "AE" },
 ];
 
 type FormErrors = {
@@ -63,9 +65,9 @@ type FormErrors = {
 export default function SignUpScreen() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[4]); // Default to US
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]); // Default to US
   const [isPickerVisible, setIsPickerVisible] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 220 });
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 260 });
   const triggerRef = useRef<View>(null);
 
   const [mobileNumber, setMobileNumber] = useState("");
@@ -83,7 +85,7 @@ export default function SignUpScreen() {
 
   const { isAppPreview, width } = useResponsiveLayout();
   const { isDark, theme } = useAppTheme();
-  const isWide = width >= 780;
+  const isWide = width >= 720;
 
   const googleAvailability = getGoogleAuthAvailability();
   const appleAvailability = getAppleAuthAvailability();
@@ -94,9 +96,9 @@ export default function SignUpScreen() {
     } else {
       triggerRef.current?.measureInWindow((x, y, width, height) => {
         setDropdownPos({
-          left: x,
-          top: y + height + 4,
-          width: 220,
+          left: Math.max(16, x),
+          top: y + height + 6,
+          width: Math.max(260, width),
         });
         setIsPickerVisible(true);
       });
@@ -230,8 +232,8 @@ export default function SignUpScreen() {
     <AuthLayout
       showBack={true}
       onBackPress={() => router.replace(withPreviewRoute("/signin") as never)}
-      maxWidth={isWide ? 960 : 460}
-      cardStyle={{ padding: isWide ? 32 : 20 }}
+      maxWidth={isWide ? 1040 : 540}
+      cardStyle={{ padding: isWide ? 38 : 24 }}
     >
       <View style={[styles.mainLayout, isWide && styles.mainLayoutWide]}>
         {/* ── LEFT COLUMN: Account Form ── */}
@@ -244,7 +246,8 @@ export default function SignUpScreen() {
             onLogoPress={() => router.push(withPreviewRoute("/") as never)}
           />
 
-          <View style={[authStyles.fieldGroup, { marginTop: 12 }]}>
+          <View style={styles.formFields}>
+            {/* Full Name */}
             <View>
               <AuthInput
                 placeholder="Full Name"
@@ -257,6 +260,7 @@ export default function SignUpScreen() {
               {errors.fullName ? <Text style={authStyles.errorText}>{errors.fullName}</Text> : null}
             </View>
 
+            {/* Email */}
             <View>
               <AuthInput
                 placeholder="Business Email"
@@ -271,28 +275,25 @@ export default function SignUpScreen() {
               {errors.email ? <Text style={authStyles.errorText}>{errors.email}</Text> : null}
             </View>
 
-            {/* Mobile Number Row */}
-            <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+            {/* Mobile Number with Country Flag & Code */}
+            <View style={styles.phoneInputRow}>
               <View ref={triggerRef} collapsable={false}>
                 <TouchableOpacity
                   onPress={toggleDropdown}
                   activeOpacity={0.7}
-                  style={{
-                    paddingHorizontal: 12,
-                    height: 52,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    backgroundColor: theme.searchSurface,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
+                  style={[
+                    styles.countryPickerTrigger,
+                    {
+                      borderColor: theme.line,
+                      backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#F8FAFC",
+                    },
+                  ]}
                 >
-                  <Text style={{ fontSize: 13, color: theme.ink, fontWeight: "600" }}>
-                    {selectedCountry.code.toLowerCase()} {selectedCountry.value}
+                  <Text style={{ fontSize: 20 }}>{selectedCountry.flag}</Text>
+                  <Text style={[styles.countryCodeText, { color: theme.ink }]}>
+                    {selectedCountry.value}
                   </Text>
-                  <Text style={{ fontSize: 9, color: theme.muted }}>▼</Text>
+                  <Ionicons name="chevron-down" size={14} color={theme.muted} style={{ marginLeft: 2 }} />
                 </TouchableOpacity>
               </View>
 
@@ -309,40 +310,39 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            {/* Passwords in row on wide screens or stacked */}
-            <View style={[isWide && { flexDirection: "row", gap: 10 }]}>
-              <View style={{ flex: 1 }}>
-                <AuthInput
-                  placeholder="Password"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={(value) => {
-                    setPassword(value);
-                    clearFieldError("password");
-                  }}
-                  rightAction={<PasswordVisibilityButton visible={showPassword} onPress={() => setShowPassword((value) => !value)} />}
-                />
-                {errors.password ? <Text style={authStyles.errorText}>{errors.password}</Text> : null}
-              </View>
+            {/* Password */}
+            <View>
+              <AuthInput
+                placeholder="Password"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  clearFieldError("password");
+                }}
+                rightAction={<PasswordVisibilityButton visible={showPassword} onPress={() => setShowPassword((value) => !value)} />}
+              />
+              {errors.password ? <Text style={authStyles.errorText}>{errors.password}</Text> : null}
+            </View>
 
-              <View style={[{ flex: 1 }, !isWide && { marginTop: 12 }]}>
-                <AuthInput
-                  placeholder="Confirm Password"
-                  secureTextEntry={!showConfirmPassword}
-                  value={confirmPassword}
-                  onChangeText={(value) => {
-                    setConfirmPassword(value);
-                    clearFieldError("confirmPassword");
-                  }}
-                  rightAction={<PasswordVisibilityButton visible={showConfirmPassword} onPress={() => setShowConfirmPassword((value) => !value)} />}
-                />
-                {errors.confirmPassword ? <Text style={authStyles.errorText}>{errors.confirmPassword}</Text> : null}
-              </View>
+            {/* Confirm Password */}
+            <View>
+              <AuthInput
+                placeholder="Confirm Password"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={(value) => {
+                  setConfirmPassword(value);
+                  clearFieldError("confirmPassword");
+                }}
+                rightAction={<PasswordVisibilityButton visible={showConfirmPassword} onPress={() => setShowConfirmPassword((value) => !value)} />}
+              />
+              {errors.confirmPassword ? <Text style={authStyles.errorText}>{errors.confirmPassword}</Text> : null}
             </View>
           </View>
 
           {/* Terms & Marketing */}
-          <View style={{ marginTop: 14, gap: 10 }}>
+          <View style={styles.agreementsBlock}>
             <AuthCheckbox
               checked={acceptedTerms}
               onPress={() => {
@@ -365,41 +365,42 @@ export default function SignUpScreen() {
 
             <AuthCheckbox checked={marketingOptIn} onPress={() => setMarketingOptIn((value) => !value)}>
               <Text style={authStyles.agreementText}>
-                I would like to receive product updates and communications.
+                I would like to receive product updates and promotional communications.
               </Text>
             </AuthCheckbox>
           </View>
 
-          {submitError ? <Text style={[authStyles.submitError, { marginTop: 10 }]}>{submitError}</Text> : null}
+          {submitError ? <Text style={[authStyles.submitError, { marginTop: 12 }]}>{submitError}</Text> : null}
 
-          <View style={{ marginTop: 14 }}>
-            <AuthPrimaryButton label="Create Account" loading={loading} disabled={loading || !acceptedTerms || !!socialLoading} onPress={handleSignup} />
+          <View style={{ marginTop: 18 }}>
+            <AuthPrimaryButton
+              label="Create Account"
+              loading={loading}
+              disabled={loading || !acceptedTerms || !!socialLoading}
+              onPress={handleSignup}
+            />
           </View>
 
           <AuthDivider />
 
-          <View style={[authStyles.socialGroup, isWide && { flexDirection: "row", gap: 10 }]}>
-            <View style={{ flex: 1 }}>
-              <SocialAuthButton
-                provider="google"
-                loading={socialLoading === "google"}
-                unavailable={!googleAvailability.available}
-                disabled={loading || socialLoading === "apple"}
-                onPress={() => handleSocialSignup("google")}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <SocialAuthButton
-                provider="apple"
-                loading={socialLoading === "apple"}
-                unavailable={!appleAvailability.available}
-                disabled={loading || socialLoading === "google"}
-                onPress={() => handleSocialSignup("apple")}
-              />
-            </View>
+          <View style={[authStyles.socialGroup, { marginTop: 2 }]}>
+            <SocialAuthButton
+              provider="google"
+              loading={socialLoading === "google"}
+              unavailable={!googleAvailability.available}
+              disabled={loading || socialLoading === "apple"}
+              onPress={() => handleSocialSignup("google")}
+            />
+            <SocialAuthButton
+              provider="apple"
+              loading={socialLoading === "apple"}
+              unavailable={!appleAvailability.available}
+              disabled={loading || socialLoading === "google"}
+              onPress={() => handleSocialSignup("apple")}
+            />
           </View>
 
-          <Pressable onPress={() => router.replace(withPreviewRoute("/signin") as never)} style={{ marginTop: 10 }}>
+          <Pressable onPress={() => router.replace(withPreviewRoute("/signin") as never)} style={{ marginTop: 14, alignSelf: "center" }}>
             <Text style={authStyles.footerText}>
               Already have an account? <Text style={authStyles.footerLink}>Sign In</Text>
             </Text>
@@ -409,8 +410,10 @@ export default function SignUpScreen() {
         {/* ── RIGHT COLUMN: Template Color & Document Live Preview ── */}
         <View style={[styles.column, isWide && styles.rightColumn]}>
           <View style={styles.previewCardHeader}>
-            <Text style={[styles.previewSectionTitle, { color: theme.ink }]}>Template Color</Text>
-            <Text style={[styles.previewSectionSubtitle, { color: theme.muted }]}>Choose the primary tone for your invoices & receipts.</Text>
+            <Text style={[styles.previewSectionTitle, { color: theme.ink }]}>Template Color & Preview</Text>
+            <Text style={[styles.previewSectionSubtitle, { color: theme.muted }]}>
+              Choose the primary brand theme for your invoices, receipts, and quotations.
+            </Text>
           </View>
 
           {/* Color Selector Grid */}
@@ -427,7 +430,7 @@ export default function SignUpScreen() {
                     styles.colorChip,
                     {
                       borderColor: isActive ? option.primaryColor : theme.line,
-                      backgroundColor: isActive ? option.primaryColor + "15" : theme.searchSurface,
+                      backgroundColor: isActive ? option.primaryColor + "18" : (isDark ? "rgba(255,255,255,0.04)" : "#F8FAFC"),
                     },
                   ]}
                 >
@@ -435,14 +438,19 @@ export default function SignUpScreen() {
                     style={{
                       backgroundColor: option.primaryColor,
                       borderRadius: 999,
-                      height: 16,
-                      width: 16,
+                      height: 18,
+                      width: 18,
+                      shadowColor: option.primaryColor,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: isActive ? 0.4 : 0,
+                      shadowRadius: 4,
+                      elevation: isActive ? 3 : 0,
                     }}
                   />
                   <Text
                     style={{
                       color: isActive ? option.primaryColor : theme.ink,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: "700",
                     }}
                   >
@@ -454,80 +462,84 @@ export default function SignUpScreen() {
           </View>
 
           {/* Live Mini Invoice Preview */}
-          <View style={[styles.previewBox, { borderColor: theme.line }]}>
+          <View style={[styles.previewBox, { borderColor: theme.line, backgroundColor: "#FFFFFF" }]}>
             {/* Header bar */}
-            <View style={{ backgroundColor: primaryBrandColor, paddingHorizontal: 12, paddingVertical: 7, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View style={{ backgroundColor: primaryBrandColor, paddingHorizontal: 14, paddingVertical: 9, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <View>
-                <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800" }}>Your Company</Text>
-                <Text style={{ color: "#fff", fontSize: 7, opacity: 0.85 }}>Business Slogan Here</Text>
+                <Text style={{ color: "#fff", fontSize: 10, fontWeight: "900", letterSpacing: 0.3 }}>Your Company</Text>
+                <Text style={{ color: "#fff", fontSize: 7.5, opacity: 0.85 }}>Business Slogan Here</Text>
               </View>
               <View style={{ alignItems: "flex-end" }}>
-                <Text style={{ color: "#fff", fontSize: 10, fontWeight: "900", letterSpacing: 0.5 }}>INVOICE</Text>
-                <Text style={{ color: "#fff", fontSize: 7, opacity: 0.85 }}>#INV-2025-1001</Text>
+                <Text style={{ color: "#fff", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 }}>INVOICE</Text>
+                <Text style={{ color: "#fff", fontSize: 7.5, opacity: 0.85 }}>#INV-2025-1001</Text>
               </View>
             </View>
 
             {/* Preview Body */}
-            <View style={{ padding: 10, backgroundColor: "#FFFFFF" }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
-                <View style={{ gap: 1 }}>
-                  <Text style={{ fontSize: 7, color: "#888" }}>123 Business Street</Text>
-                  <Text style={{ fontSize: 7, color: "#888" }}>New York, NY 10001</Text>
+            <View style={{ padding: 12, backgroundColor: "#FFFFFF" }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                <View style={{ gap: 2 }}>
+                  <Text style={{ fontSize: 7.5, color: "#888" }}>123 Business Street</Text>
+                  <Text style={{ fontSize: 7.5, color: "#888" }}>New York, NY 10001</Text>
+                  <Text style={{ fontSize: 7.5, color: "#888" }}>+1 (555) 123-4567</Text>
                 </View>
-                <View style={{ alignItems: "flex-end", gap: 1 }}>
-                  <Text style={{ fontSize: 7, color: "#555" }}>Invoice Date: 20 May 2025</Text>
-                  <Text style={{ fontSize: 7, color: "#555" }}>Due Date: 03 Jun 2025</Text>
+                <View style={{ alignItems: "flex-end", gap: 2 }}>
+                  <Text style={{ fontSize: 7.5, color: "#555" }}>Invoice Date: 20 May 2025</Text>
+                  <Text style={{ fontSize: 7.5, color: "#555" }}>Due Date: 03 Jun 2025</Text>
+                  <Text style={{ fontSize: 7.5, color: "#555" }}>Payment Terms: Net 14 Days</Text>
                 </View>
               </View>
 
-              <View style={{ marginBottom: 6 }}>
-                <Text style={{ fontSize: 6.5, color: "#888" }}>Bill To:</Text>
-                <Text style={{ fontSize: 7.5, color: "#222", fontWeight: "700" }}>John Doe — ABC Corporation</Text>
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 7, color: "#888" }}>Bill To:</Text>
+                <Text style={{ fontSize: 8.5, color: "#1E293B", fontWeight: "700" }}>John Doe</Text>
+                <Text style={{ fontSize: 7.5, color: "#555" }}>ABC Corporation, 456 Client Avenue</Text>
               </View>
 
               {/* Table header */}
-              <View style={{ backgroundColor: primaryBrandColor, borderRadius: 4, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 6, paddingVertical: 3, marginBottom: 3 }}>
-                {["Item & Description", "Qty", "Rate", "Amount"].map((h) => (
-                  <Text key={h} style={{ color: "#fff", fontSize: 6.5, fontWeight: "800" }}>{h}</Text>
+              <View style={{ backgroundColor: primaryBrandColor, borderRadius: 5, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 8, paddingVertical: 4, marginBottom: 4 }}>
+                {["# Item & Description", "Qty", "Rate", "Amount"].map((h) => (
+                  <Text key={h} style={{ color: "#fff", fontSize: 7, fontWeight: "800" }}>{h}</Text>
                 ))}
               </View>
 
               {/* Table rows */}
               {[
-                ["Web Design", "1", "$500.00", "$500.00"],
-                ["Development", "1", "$1,200.00", "$1,200.00"],
-                ["SEO Optimization", "1", "$300.00", "$300.00"],
-              ].map(([item, qty, rate, amt], i) => (
-                <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 2, borderBottomWidth: 0.5, borderBottomColor: "#F1F5F9" }}>
-                  <Text style={{ fontSize: 6.5, color: "#333", flex: 1 }}>{item}</Text>
-                  <Text style={{ fontSize: 6.5, color: "#555", width: 20, textAlign: "center" }}>{qty}</Text>
-                  <Text style={{ fontSize: 6.5, color: "#555", width: 44, textAlign: "right" }}>{rate}</Text>
-                  <Text style={{ fontSize: 6.5, color: "#333", fontWeight: "600", width: 44, textAlign: "right" }}>{amt}</Text>
+                ["1", "Web Design", "1", "$500.00", "$500.00"],
+                ["2", "Development", "1", "$1,200.00", "$1,200.00"],
+                ["3", "SEO Optimization", "1", "$300.00", "$300.00"],
+              ].map(([num, item, qty, rate, amt]) => (
+                <View key={num} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" }}>
+                  <Text style={{ fontSize: 7.5, color: primaryBrandColor, fontWeight: "700", width: 14 }}>{num}</Text>
+                  <Text style={{ fontSize: 7.5, color: "#333", flex: 1 }}>{item}</Text>
+                  <Text style={{ fontSize: 7.5, color: "#555", width: 22, textAlign: "center" }}>{qty}</Text>
+                  <Text style={{ fontSize: 7.5, color: "#555", width: 48, textAlign: "right" }}>{rate}</Text>
+                  <Text style={{ fontSize: 7.5, color: "#1E293B", fontWeight: "700", width: 48, textAlign: "right" }}>{amt}</Text>
                 </View>
               ))}
 
               {/* Total Due Banner */}
-              <View style={{ marginTop: 6, alignItems: "flex-end" }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", backgroundColor: primaryBrandColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 3, width: 120 }}>
-                  <Text style={{ color: "#fff", fontSize: 7, fontWeight: "800" }}>Total Due</Text>
-                  <Text style={{ color: "#fff", fontSize: 7.5, fontWeight: "900" }}>$2,090.00</Text>
+              <View style={{ marginTop: 8, alignItems: "flex-end" }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", backgroundColor: primaryBrandColor, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5, width: 140 }}>
+                  <Text style={{ color: "#fff", fontSize: 8, fontWeight: "800" }}>Total Due</Text>
+                  <Text style={{ color: "#fff", fontSize: 9, fontWeight: "900" }}>$2,090.00</Text>
                 </View>
               </View>
             </View>
 
             {/* Preview Footer */}
-            <View style={{ backgroundColor: primaryBrandColor + "18", borderTopWidth: 1, borderTopColor: primaryBrandColor + "28", paddingHorizontal: 10, paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: primaryBrandColor }} />
-              <Text style={{ fontSize: 6.5, color: primaryBrandColor, fontWeight: "700" }}>BrandDocs – Create. Share. Grow.</Text>
+            <View style={{ backgroundColor: primaryBrandColor + "15", borderTopWidth: 1, borderTopColor: primaryBrandColor + "25", paddingHorizontal: 12, paddingVertical: 6, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: primaryBrandColor }} />
+              <Text style={{ fontSize: 7.5, color: primaryBrandColor, fontWeight: "700" }}>BrandDocs – Create. Share. Grow.</Text>
             </View>
           </View>
 
           {/* Color Details Swatch */}
-          <View style={[styles.swatchLegend, { backgroundColor: theme.searchSurface, borderColor: theme.line }]}>
-            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: primaryBrandColor }} />
+          <View style={[styles.swatchLegend, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#F8FAFC", borderColor: theme.line }]}>
+            <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: primaryBrandColor }} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, fontWeight: "800", color: theme.ink }}>{activeColorOption.label.toUpperCase()}</Text>
-              <Text style={{ fontSize: 10, color: theme.muted, fontWeight: "600" }}>HEX: {activeColorOption.primaryColor} • {activeColorOption.tagline}</Text>
+              <Text style={{ fontSize: 10.5, color: theme.muted, fontWeight: "600" }}>HEX: {activeColorOption.primaryColor} • {activeColorOption.tagline}</Text>
             </View>
           </View>
         </View>
@@ -546,17 +558,17 @@ export default function SignUpScreen() {
               left: dropdownPos.left,
               top: dropdownPos.top,
               width: dropdownPos.width,
-              maxHeight: 210,
+              maxHeight: 250,
               backgroundColor: theme.card,
-              borderRadius: 12,
+              borderRadius: 16,
               borderWidth: 1,
               borderColor: theme.line,
               shadowColor: "#000000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.12,
-              shadowRadius: 10,
-              elevation: 8,
-              paddingVertical: 4,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.16,
+              shadowRadius: 16,
+              elevation: 10,
+              paddingVertical: 6,
               overflow: "hidden",
             }}
           >
@@ -569,19 +581,19 @@ export default function SignUpScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    paddingVertical: 11,
                   }}
                   onPress={() => {
                     setSelectedCountry(item);
                     setIsPickerVisible(false);
                   }}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <Text style={{ fontSize: 16 }}>{item.flag}</Text>
-                    <Text style={{ fontSize: 14, color: theme.ink }}>{item.label}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <Text style={{ fontSize: 20 }}>{item.flag}</Text>
+                    <Text style={{ fontSize: 14, color: theme.ink, fontWeight: "600" }}>{item.label}</Text>
                   </View>
-                  <Text style={{ fontSize: 14, color: theme.muted }}>{item.value}</Text>
+                  <Text style={{ fontSize: 14, color: theme.muted, fontWeight: "700" }}>{item.value}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -593,71 +605,97 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
+  agreementsBlock: {
+    gap: 12,
+    marginTop: 16,
+  },
   colorChip: {
     alignItems: "center",
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 1.5,
     flexDirection: "row",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   colorGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 12,
+    gap: 8,
+    marginBottom: 16,
   },
   column: {
     width: "100%",
   },
+  countryCodeText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  countryPickerTrigger: {
+    alignItems: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    height: 54,
+    paddingHorizontal: 14,
+  },
+  formFields: {
+    gap: 16,
+    marginTop: 18,
+  },
   leftColumn: {
-    flex: 1.1,
-    paddingRight: 20,
+    flex: 1.15,
+    paddingRight: 28,
     borderRightWidth: 1,
-    borderRightColor: "rgba(226, 232, 240, 0.5)",
+    borderRightColor: "rgba(226, 232, 240, 0.6)",
   },
   mainLayout: {
-    gap: 20,
+    gap: 28,
     width: "100%",
   },
   mainLayoutWide: {
     flexDirection: "row",
     alignItems: "flex-start",
   },
+  phoneInputRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
   previewBox: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     elevation: 3,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.09,
+    shadowRadius: 8,
   },
   previewCardHeader: {
-    marginBottom: 10,
+    marginBottom: 14,
   },
   previewSectionSubtitle: {
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 17,
   },
   previewSectionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "800",
-    marginBottom: 2,
+    marginBottom: 3,
   },
   rightColumn: {
-    flex: 0.9,
-    paddingLeft: 20,
+    flex: 0.95,
+    paddingLeft: 28,
   },
   swatchLegend: {
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 10,
-    marginTop: 10,
-    padding: 10,
+    gap: 12,
+    marginTop: 14,
+    padding: 12,
   },
 });

@@ -784,11 +784,11 @@ const styles = StyleSheet.create({
   },
   authCardContainer: {
     width: "100%",
-    maxWidth: 440,
-    padding: 24,
+    maxWidth: 520,
+    padding: 28,
     borderRadius: 24,
     borderWidth: 1,
-    gap: 16,
+    gap: 18,
     alignSelf: "center",
   },
 });
