@@ -4,6 +4,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -316,11 +317,18 @@ export default function SignUpScreen() {
         />
         {errors.confirmPassword ? <Text style={authStyles.errorText}>{errors.confirmPassword}</Text> : null}
 
+        {/* ── Template Color ─────────────────────────────────── */}
         <View>
-          <Text style={{ color: "#334155", fontSize: 13, fontWeight: "700", marginBottom: 8, marginLeft: 2 }}>
+          <Text style={{ color: "#334155", fontSize: 13, fontWeight: "700", marginBottom: 10, marginLeft: 2 }}>
             Template Color
           </Text>
-          <View style={{ flexDirection: "row", gap: 8 }}>
+
+          {/* ── 5-color horizontal scroll picker ── */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingBottom: 2 }}
+          >
             {TEMPLATE_COLOR_OPTIONS.map((option) => {
               const isActive = templateColor === option.value;
               return (
@@ -333,28 +341,175 @@ export default function SignUpScreen() {
                     alignItems: "center",
                     borderColor: isActive ? option.primaryColor : "#E2E8F0",
                     borderRadius: 14,
-                    borderWidth: 1,
-                    flex: 1,
+                    borderWidth: isActive ? 2 : 1,
                     gap: 6,
-                    paddingHorizontal: 10,
+                    minWidth: 90,
+                    paddingHorizontal: 12,
                     paddingVertical: 10,
+                    backgroundColor: isActive ? option.primaryColor + "14" : "transparent",
                   }}
                 >
                   <View
                     style={{
                       backgroundColor: option.primaryColor,
                       borderRadius: 999,
-                      height: 16,
-                      width: 16,
+                      height: 18,
+                      width: 18,
+                      shadowColor: option.primaryColor,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: isActive ? 0.45 : 0,
+                      shadowRadius: 4,
+                      elevation: isActive ? 4 : 0,
                     }}
                   />
-                  <Text style={{ color: isActive ? option.primaryColor : "#475569", fontSize: 12, fontWeight: "700" }}>
+                  <Text
+                    style={{
+                      color: isActive ? option.primaryColor : "#475569",
+                      fontSize: 11,
+                      fontWeight: "700",
+                      textAlign: "center",
+                    }}
+                  >
                     {option.label}
                   </Text>
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
+
+          {/* ── Live mini invoice preview ── */}
+          {(() => {
+            const active = TEMPLATE_COLOR_OPTIONS.find((o) => o.value === templateColor);
+            if (!active) return null;
+            const c = active.primaryColor;
+            const row = (label: string, amount: string) => (
+              <View key={label} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+                <Text style={{ fontSize: 8, color: "#555" }}>{label}</Text>
+                <Text style={{ fontSize: 8, color: "#333", fontWeight: "600" }}>{amount}</Text>
+              </View>
+            );
+            return (
+              <View
+                style={{
+                  marginTop: 12,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "#E2E8F0",
+                  overflow: "hidden",
+                  backgroundColor: "#FFFFFF",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                {/* Header bar */}
+                <View style={{ backgroundColor: c, paddingHorizontal: 12, paddingVertical: 8, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <View>
+                    <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800", letterSpacing: 0.3 }}>Your Company</Text>
+                    <Text style={{ color: "#fff", fontSize: 7, opacity: 0.8 }}>Business Slogan Here</Text>
+                  </View>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text style={{ color: "#fff", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 }}>INVOICE</Text>
+                    <Text style={{ color: "#fff", fontSize: 7, opacity: 0.85 }}>#INV-2025-1001</Text>
+                  </View>
+                </View>
+
+                {/* Body */}
+                <View style={{ padding: 10 }}>
+                  {/* Info row */}
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                    <View style={{ gap: 2 }}>
+                      <Text style={{ fontSize: 7, color: "#888" }}>123 Business Street</Text>
+                      <Text style={{ fontSize: 7, color: "#888" }}>New York, NY 10001</Text>
+                      <Text style={{ fontSize: 7, color: "#888" }}>+1 (555) 123-4567</Text>
+                    </View>
+                    <View style={{ alignItems: "flex-end", gap: 2 }}>
+                      <View style={{ flexDirection: "row", gap: 4 }}>
+                        <Text style={{ fontSize: 7, color: "#888" }}>Invoice Date</Text>
+                        <Text style={{ fontSize: 7, color: "#333", fontWeight: "600" }}>20 May 2025</Text>
+                      </View>
+                      <View style={{ flexDirection: "row", gap: 4 }}>
+                        <Text style={{ fontSize: 7, color: "#888" }}>Due Date</Text>
+                        <Text style={{ fontSize: 7, color: "#333", fontWeight: "600" }}>03 Jun 2025</Text>
+                      </View>
+                      <View style={{ flexDirection: "row", gap: 4 }}>
+                        <Text style={{ fontSize: 7, color: "#888" }}>Payment Terms</Text>
+                        <Text style={{ fontSize: 7, color: "#333", fontWeight: "600" }}>Net 14 Days</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Bill To */}
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 7, color: "#888", marginBottom: 2 }}>Bill To:</Text>
+                    <Text style={{ fontSize: 8, color: "#222", fontWeight: "700" }}>John Doe</Text>
+                    <Text style={{ fontSize: 7, color: "#555" }}>ABC Corporation, 456 Client Avenue</Text>
+                    <Text style={{ fontSize: 7, color: "#555" }}>Los Angeles, CA 90001, United States</Text>
+                  </View>
+
+                  {/* Table header */}
+                  <View style={{ backgroundColor: c, borderRadius: 5, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 8, paddingVertical: 4, marginBottom: 5 }}>
+                    {["# Item & Description", "Qty", "Rate", "Amount"].map((h) => (
+                      <Text key={h} style={{ color: "#fff", fontSize: 7, fontWeight: "800" }}>{h}</Text>
+                    ))}
+                  </View>
+
+                  {/* Table rows */}
+                  {[
+                    ["1", "Web Design", "1", "$500.00", "$500.00"],
+                    ["2", "Development", "1", "$1,200.00", "$1,200.00"],
+                    ["3", "SEO Optimization", "1", "$300.00", "$300.00"],
+                  ].map(([num, item, qty, rate, amt]) => (
+                    <View key={num} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" }}>
+                      <Text style={{ fontSize: 7, color: c, fontWeight: "700", width: 16 }}>{num}</Text>
+                      <Text style={{ fontSize: 7, color: "#333", flex: 1 }}>{item}</Text>
+                      <Text style={{ fontSize: 7, color: "#555", width: 20, textAlign: "center" }}>{qty}</Text>
+                      <Text style={{ fontSize: 7, color: "#555", width: 44, textAlign: "right" }}>{rate}</Text>
+                      <Text style={{ fontSize: 7, color: "#333", fontWeight: "600", width: 44, textAlign: "right" }}>{amt}</Text>
+                    </View>
+                  ))}
+
+                  {/* Totals */}
+                  <View style={{ marginTop: 6, alignItems: "flex-end", gap: 2 }}>
+                    {row("Subtotal", "$2,000.00")}
+                    {row("Discount (5%)", "-$100.00")}
+                    {row("Tax (10%)", "$190.00")}
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", backgroundColor: c, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 4, marginTop: 3, width: 140 }}>
+                      <Text style={{ color: "#fff", fontSize: 8, fontWeight: "800" }}>Total Due</Text>
+                      <Text style={{ color: "#fff", fontSize: 8, fontWeight: "900" }}>$2,090.00</Text>
+                    </View>
+                  </View>
+
+                  {/* Thank you */}
+                  <Text style={{ fontSize: 7, color: "#888", marginTop: 6, fontStyle: "italic" }}>Thank you for your business!</Text>
+                </View>
+
+                {/* Footer */}
+                <View style={{ backgroundColor: c + "22", borderTopWidth: 1, borderTopColor: c + "33", paddingHorizontal: 12, paddingVertical: 5, flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c }} />
+                  <Text style={{ fontSize: 7, color: c, fontWeight: "700" }}>BrandDocs – Create. Share. Grow.</Text>
+                </View>
+              </View>
+            );
+          })()}
+
+          {/* Color swatch legend below preview */}
+          {(() => {
+            const active = TEMPLATE_COLOR_OPTIONS.find((o) => o.value === templateColor);
+            if (!active) return null;
+            return (
+              <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, marginTop: 10 }}>
+                <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: active.primaryColor }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, fontWeight: "800", color: "#1E293B" }}>{active.label.toUpperCase()}</Text>
+                  <Text style={{ fontSize: 10, color: "#64748B", fontWeight: "600" }}>HEX: {active.primaryColor}</Text>
+                  <Text style={{ fontSize: 10, color: "#64748B", marginTop: 1 }}>{active.tagline}</Text>
+                </View>
+              </View>
+            );
+          })()}
         </View>
       </View>
 
