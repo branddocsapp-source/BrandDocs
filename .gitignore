@@ -9,6 +9,8 @@ node_modules/
 dist/
 web-build/
 build/
+.firebase/
+.netlify/
 *.tmp
 
 # APK & Binary Build Artifacts
