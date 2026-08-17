@@ -14,8 +14,8 @@ type BrandLogoProps = {
 };
 
 const logoAssets = {
-  brandDark: require("@/assets/images/branddocs-logo-dark.jpg"),
-  brandLight: require("@/assets/images/branddocs-logo-light.jpg"),
+  brandDark: require("@/assets/images/branddocs-logo-dark-trans.png"),
+  brandLight: require("@/assets/images/branddocs-logo-light-trans.png"),
 };
 
 const brandStackSizes = {
@@ -50,7 +50,7 @@ export function BrandLogo({
         source={isDark ? logoAssets.brandDark : logoAssets.brandLight}
         style={[
           stackSize,
-          Platform.OS === "web" ? ({ backgroundColor: "transparent" } as object) : null,
+          { backgroundColor: "transparent" },
         ]}
         contentFit="contain"
         transition={0}
@@ -68,7 +68,10 @@ export function BrandLogo({
       accessibilityRole="button"
       accessibilityLabel="BrandDocs Home"
       onPress={handlePress}
-      style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}
+      style={({ pressed }) => [
+        align === "center" && styles.pressableCenter,
+        { opacity: pressed ? 0.78 : 1 },
+      ]}
     >
       {content}
     </Pressable>
@@ -77,10 +80,18 @@ export function BrandLogo({
 
 const styles = StyleSheet.create({
   stackWrap: {
+    backgroundColor: "transparent",
     overflow: "hidden",
+  },
+  pressableCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   alignCenter: {
     alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   alignLeft: {
     alignItems: "flex-start",

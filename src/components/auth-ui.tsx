@@ -466,7 +466,9 @@ const styles = StyleSheet.create({
   headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    justifyContent: "center",
+    width: "100%",
+    position: "relative",
   },
   backArrowBtn: {
     width: 38,
@@ -475,6 +477,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  backArrowBtnFloating: {
+    position: "absolute",
+    left: 0,
+    zIndex: 2,
   },
   topBackFloatingWrapper: {
     alignSelf: "center",
@@ -491,26 +498,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   header: {
-    gap: 20,
+    alignItems: "center",
+    gap: 16,
+    width: "100%",
   },
   cardLogo: {
     height: 62,
     width: 230,
   },
   titleGroup: {
-    gap: 8,
+    alignItems: "center",
+    gap: 6,
+    width: "100%",
   },
   title: {
     color: authBrand.ink,
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: "950" as never,
     letterSpacing: 0,
-    lineHeight: 42,
+    lineHeight: 36,
+    textAlign: "center",
   },
   subtitle: {
     color: authBrand.muted,
-    fontSize: 16,
-    lineHeight: 25,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
   },
   inputFrame: {
     backgroundColor: authBrand.white,
@@ -796,22 +809,7 @@ type AuthHeaderProps = {
 
 export function AuthHeader({ title, subtitle, onLogoPress, onBackPress, showBack }: AuthHeaderProps) {
   const { isDark, theme } = useAppTheme();
-  const isNativeMobile = Platform.OS !== "web";
   const handleBack = onBackPress || (() => { if (router.canGoBack()) router.back(); else router.replace("/signin" as never); });
-
-  if (isNativeMobile) {
-    return (
-      <View style={styles.nativeHeader}>
-        <BrandLogo size="medium" align="center" disableNavigation />
-        <View style={styles.nativeTitleGroup}>
-          <Text accessibilityRole="header" style={[styles.nativeTitle, { color: theme.ink }]}>
-            {title}
-          </Text>
-          <Text style={[styles.nativeSubtitle, { color: theme.muted }]}>{subtitle}</Text>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.header}>
@@ -821,6 +819,7 @@ export function AuthHeader({ title, subtitle, onLogoPress, onBackPress, showBack
             onPress={handleBack}
             style={({ pressed }) => [
               styles.backArrowBtn,
+              styles.backArrowBtnFloating,
               { backgroundColor: theme.searchSurface, borderColor: theme.line },
               pressed && { opacity: 0.7 },
             ]}
@@ -829,8 +828,8 @@ export function AuthHeader({ title, subtitle, onLogoPress, onBackPress, showBack
             <Ionicons name="chevron-back" size={20} color={theme.ink} />
           </Pressable>
         ) : null}
-        <Pressable onPress={onLogoPress} accessibilityRole="link" accessibilityLabel="BrandDocs home">
-          <BrandLogo size="medium" disableNavigation />
+        <Pressable onPress={onLogoPress} accessibilityRole="link" accessibilityLabel="BrandDocs home" style={{ alignSelf: "center" }}>
+          <BrandLogo size="medium" align="center" disableNavigation />
         </Pressable>
       </View>
       <View style={styles.titleGroup}>
