@@ -45,22 +45,22 @@ export const lightPalette: ThemePalette = {
 };
 
 export const darkPalette: ThemePalette = {
-  background: "#0A0A0A",
-  white: "#141414",
-  card: "#141414",
-  ink: "#FFFFFF",
-  text: "#D6D6D6",
-  muted: "#8E8E8E",
-  line: "#262626",
+  background: "#0B0F19",
+  white: "#151C2C",
+  card: "#151C2C",
+  ink: "#F8FAFC",
+  text: "#E2E8F0",
+  muted: "#94A3B8",
+  line: "#2A344A",
   orange: BrandColors.primary,
   orangeDark: "#FF9533",
-  orangeSoft: "#241A10",
-  wash: "#0A0A0A",
-  accentSurface: "#1A1510",
-  accentBorder: "#3D2E1F",
-  searchSurface: "#161616",
-  inputSurface: "#161616",
-  infoText: "#E8C4A8",
+  orangeSoft: "#332115",
+  wash: "#0B0F19",
+  accentSurface: "#1B2438",
+  accentBorder: "#3B4B68",
+  searchSurface: "#192236",
+  inputSurface: "#192236",
+  infoText: "#FDBA74",
 };
 
 type ThemeContextType = {

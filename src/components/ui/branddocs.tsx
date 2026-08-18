@@ -1348,12 +1348,8 @@ export function AppShell({
           <View
             style={[
               styles.topBar,
-              { backgroundColor: theme.card, borderBottomColor: theme.line },
+              { backgroundColor: theme.card, borderBottomColor: theme.line, borderBottomWidth: 1 },
               usesSidebar && styles.desktopTopBar,
-              usesSidebar && {
-                backgroundColor: theme.background,
-                borderBottomWidth: 0,
-              },
               !usesSidebar && {
                 paddingHorizontal: isCompactViewport
                   ? BrandSpacing.md
