@@ -2955,15 +2955,12 @@ function QuotationPreview({
   quotation: QuotationRecord;
   isDesktop: boolean;
 }) {
-  // Screenshot 5: TABLE QUOTATION
   const totals = useMemo(
     () => calculateQuotationTotals(quotation),
     [quotation],
   );
-  const currencySymbol =
-    quotation.currency === "INR" || !quotation.currency
-      ? "₹"
-      : quotation.currency;
+  const currencySymbol = quotation.currency || "INR";
+  const isTable = quotation.documentType === "table_quotation";
 
   return (
     <View
@@ -2984,7 +2981,15 @@ function QuotationPreview({
         }}
       >
         <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
-          <HexagonLogo size={52} />
+          {quotation.company.logoUrl ? (
+            <Image
+              source={{ uri: quotation.company.logoUrl }}
+              style={{ width: 52, height: 52, borderRadius: 8 }}
+              contentFit="contain"
+            />
+          ) : (
+            <HexagonLogo size={52} />
+          )}
           <View style={{ flex: 1 }}>
             <Text
               style={{
@@ -2994,35 +2999,41 @@ function QuotationPreview({
                 letterSpacing: -0.3,
               }}
             >
-              {quotation.company.name || "ABC ENTERPRISES PVT. LTD."}
+              {quotation.company.name || "Your Company Name"}
             </Text>
-            <Text style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>
-              📍{" "}
-              {quotation.company.address ||
-                "123, Business Park, Andheri East, Mumbai"}
-            </Text>
-            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
-              📞 {quotation.company.phone || "+91 98765 43210"}
-            </Text>
-            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
-              ✉️ {quotation.company.email || "info@abcenterprises.com"}
-            </Text>
-            <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
-              🌐 {quotation.company.website || "www.abcenterprises.com"}
-            </Text>
+            {quotation.company.address ? (
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>
+                📍 {quotation.company.address}
+              </Text>
+            ) : null}
+            {quotation.company.phone ? (
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
+                📞 {quotation.company.phone}
+              </Text>
+            ) : null}
+            {quotation.company.email ? (
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
+                ✉️ {quotation.company.email}
+              </Text>
+            ) : null}
+            {quotation.company.website ? (
+              <Text style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>
+                🌐 {quotation.company.website}
+              </Text>
+            ) : null}
           </View>
         </View>
 
         <View style={{ width: 240, alignItems: "flex-end" }}>
           <Text
             style={{
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: "900",
               color: DocumentColors.accent,
               letterSpacing: -0.5,
             }}
           >
-            TABLE QUOTATION
+            {isTable ? "TABLE QUOTATION" : "QUOTATION"}
           </Text>
           <View style={{ marginTop: 8, gap: 3, alignItems: "flex-end" }}>
             <Text style={{ fontSize: 11, color: "#475569" }}>
@@ -3044,66 +3055,17 @@ function QuotationPreview({
               </Text>
             </Text>
             <Text style={{ fontSize: 11, color: "#475569" }}>
-              Place :{" "}
-              <Text style={{ fontWeight: "700", color: "#0F172A" }}>
-                Mumbai, Maharashtra
-              </Text>
-            </Text>
-            <Text style={{ fontSize: 11, color: "#475569" }}>
               Currency :{" "}
               <Text style={{ fontWeight: "700", color: "#0F172A" }}>
-                {quotation.currency} (Indian Rupees)
+                {currencySymbol}
               </Text>
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Tax Bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          backgroundColor: "#FFF7ED",
-          paddingVertical: 6,
-          marginVertical: 12,
-          borderRadius: 8,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: "700",
-            color: DocumentColors.accent,
-          }}
-        >
-          GSTIN :{" "}
-          <Text style={{ color: "#0F172A" }}>
-            {(quotation.company as any).taxRegistrationNumber || "27ABCDE1234F1Z5"}
-          </Text>
-        </Text>
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: "700",
-            color: DocumentColors.accent,
-          }}
-        >
-          PAN : <Text style={{ color: "#0F172A" }}>ABCDE1234F</Text>
-        </Text>
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: "700",
-            color: DocumentColors.accent,
-          }}
-        >
-          CIN : <Text style={{ color: "#0F172A" }}>U74999MH2020PTC123456</Text>
-        </Text>
-      </View>
-
       {/* Quoted To & Subject Block */}
-      <View style={{ flexDirection: "row", gap: 20, marginVertical: 10 }}>
+      <View style={{ flexDirection: "row", gap: 20, marginVertical: 14 }}>
         <View style={{ flex: 1, gap: 4 }}>
           <Text
             style={{
@@ -3115,14 +3077,28 @@ function QuotationPreview({
             👤 QUOTED TO
           </Text>
           <Text style={{ fontSize: 14, fontWeight: "800", color: "#0F172A" }}>
-            {quotation.client.name || "Rahul Traders"}
+            {quotation.client.name || "Client Name"}
           </Text>
-          <Text style={{ fontSize: 11, color: "#475569" }}>
-            {quotation.client.address || "456, Market Road, Pune - 411001"}
-          </Text>
-          <Text style={{ fontSize: 11, color: "#475569" }}>
-            GSTIN : 27ABCDE1234F1Z5
-          </Text>
+          {quotation.client.companyName ? (
+            <Text style={{ fontSize: 12, fontWeight: "600", color: "#334155" }}>
+              {quotation.client.companyName}
+            </Text>
+          ) : null}
+          {quotation.client.address ? (
+            <Text style={{ fontSize: 11, color: "#475569" }}>
+              {quotation.client.address}
+            </Text>
+          ) : null}
+          {quotation.client.phone ? (
+            <Text style={{ fontSize: 11, color: "#475569" }}>
+              📞 {quotation.client.phone}
+            </Text>
+          ) : null}
+          {quotation.client.email ? (
+            <Text style={{ fontSize: 11, color: "#475569" }}>
+              ✉️ {quotation.client.email}
+            </Text>
+          ) : null}
         </View>
 
         <View style={{ flex: 1.2, gap: 4 }}>
@@ -3136,221 +3112,106 @@ function QuotationPreview({
             📝 SUBJECT
           </Text>
           <Text style={{ fontSize: 13, fontWeight: "700", color: "#0F172A" }}>
-            {quotation.subject ||
-              "Quotation for Office Stationery & Related Products"}
+            {quotation.subject || "Quotation for Goods / Services"}
           </Text>
-          <Text style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>
-            Dear Sir/Madam,
-          </Text>
-          <Text style={{ fontSize: 11, color: "#475569" }}>
-            Thank you for your enquiry. Please find below our best offer for the
-            required products / services as per your requirements.
-          </Text>
+          {quotation.greeting ? (
+            <Text style={{ fontSize: 11, fontWeight: "600", color: "#475569", marginTop: 4 }}>
+              {quotation.greeting}
+            </Text>
+          ) : null}
+          {quotation.intro ? (
+            <Text style={{ fontSize: 11, color: "#475569", lineHeight: 16 }}>
+              {quotation.intro}
+            </Text>
+          ) : null}
         </View>
       </View>
 
-      {/* Table with Solid Orange Header */}
-      <View
-        style={{
-          marginTop: 14,
-          borderWidth: 1,
-          borderColor: DocumentColors.accent,
-          borderRadius: 8,
-          overflow: "hidden",
-        }}
-      >
+      {/* Standard Proposal Content */}
+      {!isTable ? (
+        <View style={{ marginVertical: 10, gap: 14 }}>
+          {quotation.scope ? (
+            <View style={{ borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 8, padding: 12, backgroundColor: "#F8FAFC" }}>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>
+                SCOPE OF WORK / DELIVERABLES
+              </Text>
+              <Text style={{ fontSize: 12, color: "#334155", lineHeight: 18 }}>
+                {quotation.scope}
+              </Text>
+            </View>
+          ) : null}
+
+          {quotation.milestones ? (
+            <View style={{ borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 8, padding: 12, backgroundColor: "#F8FAFC" }}>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: DocumentColors.accent, marginBottom: 4 }}>
+                MILESTONES & TIMELINES
+              </Text>
+              <Text style={{ fontSize: 12, color: "#334155", lineHeight: 18 }}>
+                {quotation.milestones}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* Table Format */}
+      {isTable ? (
         <View
           style={{
-            flexDirection: "row",
-            backgroundColor: DocumentColors.accent,
-            paddingVertical: 8,
-            paddingHorizontal: 6,
+            marginTop: 14,
+            borderWidth: 1,
+            borderColor: DocumentColors.accent,
+            borderRadius: 8,
+            overflow: "hidden",
           }}
         >
-          <Text
-            style={{
-              width: 30,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "center",
-            }}
-          >
-            #
-          </Text>
-          <Text
-            style={{
-              flex: 2,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-            }}
-          >
-            DESCRIPTION OF GOODS / SERVICES
-          </Text>
-          <Text
-            style={{
-              width: 70,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "center",
-            }}
-          >
-            HSN/SAC
-          </Text>
-          <Text
-            style={{
-              width: 44,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "center",
-            }}
-          >
-            QTY.
-          </Text>
-          <Text
-            style={{
-              width: 44,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "center",
-            }}
-          >
-            UNIT
-          </Text>
-          <Text
-            style={{
-              width: 74,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "right",
-            }}
-          >
-            RATE ({currencySymbol})
-          </Text>
-          <Text
-            style={{
-              width: 74,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "right",
-            }}
-          >
-            DISCOUNT ({currencySymbol})
-          </Text>
-          <Text
-            style={{
-              width: 84,
-              fontSize: 10,
-              fontWeight: "800",
-              color: "#FFFFFF",
-              textAlign: "right",
-            }}
-          >
-            AMOUNT ({currencySymbol})
-          </Text>
-        </View>
-
-        {quotation.items.map((item, index) => (
           <View
-            key={item.id}
             style={{
               flexDirection: "row",
+              backgroundColor: DocumentColors.accent,
               paddingVertical: 8,
               paddingHorizontal: 6,
-              borderBottomWidth: 1,
-              borderBottomColor: "#E2E8F0",
             }}
           >
-            <Text
-              style={{
-                width: 30,
-                fontSize: 11,
-                color: "#475569",
-                textAlign: "center",
-              }}
-            >
-              {index + 1}
-            </Text>
-            <Text
-              style={{
-                flex: 2,
-                fontSize: 11,
-                fontWeight: "600",
-                color: "#0F172A",
-              }}
-            >
-              {item.description}
-            </Text>
-            <Text
-              style={{
-                width: 70,
-                fontSize: 11,
-                color: "#475569",
-                textAlign: "center",
-              }}
-            >
-              {item.itemCode || "4820"}
-            </Text>
-            <Text
-              style={{
-                width: 44,
-                fontSize: 11,
-                color: "#0F172A",
-                textAlign: "center",
-              }}
-            >
-              {item.quantity}
-            </Text>
-            <Text
-              style={{
-                width: 44,
-                fontSize: 11,
-                color: "#475569",
-                textAlign: "center",
-              }}
-            >
-              {item.unit || "Nos"}
-            </Text>
-            <Text
-              style={{
-                width: 74,
-                fontSize: 11,
-                color: "#0F172A",
-                textAlign: "right",
-              }}
-            >
-              {formatMoney(toNumber(item.rate), "")}
-            </Text>
-            <Text
-              style={{
-                width: 74,
-                fontSize: 11,
-                color: "#0F172A",
-                textAlign: "right",
-              }}
-            >
-              {formatMoney(toNumber(item.discount), "")}
-            </Text>
-            <Text
-              style={{
-                width: 84,
-                fontSize: 11,
-                fontWeight: "700",
-                color: "#0F172A",
-                textAlign: "right",
-              }}
-            >
-              {formatMoney(getQuotationItemAmount(item), "")}
-            </Text>
+            <Text style={{ width: 30, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>#</Text>
+            <Text style={{ flex: 2, fontSize: 10, fontWeight: "800", color: "#FFFFFF" }}>DESCRIPTION</Text>
+            <Text style={{ width: 44, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>QTY</Text>
+            <Text style={{ width: 44, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "center" }}>UNIT</Text>
+            <Text style={{ width: 74, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "right" }}>RATE</Text>
+            <Text style={{ width: 74, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "right" }}>DISC.</Text>
+            <Text style={{ width: 84, fontSize: 10, fontWeight: "800", color: "#FFFFFF", textAlign: "right" }}>AMOUNT</Text>
           </View>
-        ))}
-      </View>
+
+          {quotation.items && quotation.items.length > 0 ? (
+            quotation.items.map((item, index) => (
+              <View
+                key={item.id}
+                style={{
+                  flexDirection: "row",
+                  paddingVertical: 8,
+                  paddingHorizontal: 6,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E2E8F0",
+                }}
+              >
+                <Text style={{ width: 30, fontSize: 11, color: "#475569", textAlign: "center" }}>{index + 1}</Text>
+                <Text style={{ flex: 2, fontSize: 11, fontWeight: "600", color: "#0F172A" }}>{item.description || "—"}</Text>
+                <Text style={{ width: 44, fontSize: 11, color: "#0F172A", textAlign: "center" }}>{item.quantity || "1"}</Text>
+                <Text style={{ width: 44, fontSize: 11, color: "#475569", textAlign: "center" }}>{item.unit || "Nos"}</Text>
+                <Text style={{ width: 74, fontSize: 11, color: "#0F172A", textAlign: "right" }}>{formatMoney(toNumber(item.rate), "")}</Text>
+                <Text style={{ width: 74, fontSize: 11, color: "#0F172A", textAlign: "right" }}>{formatMoney(toNumber(item.discount), "")}</Text>
+                <Text style={{ width: 84, fontSize: 11, fontWeight: "700", color: "#0F172A", textAlign: "right" }}>
+                  {formatMoney(getQuotationItemAmount(item), "")}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <View style={{ padding: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 11, color: "#64748B" }}>No itemized rows</Text>
+            </View>
+          )}
+        </View>
+      ) : null}
 
       {/* Totals Summary */}
       <View
@@ -3372,14 +3233,13 @@ function QuotationPreview({
               marginTop: 2,
             }}
           >
-            {quotation.amountInWords ||
-              "Indian Rupees Eighteen Thousand Fifty Four Only"}
+            {quotation.amountInWords || `${currencySymbol} ${totals.grandTotal.toFixed(2)} only`}
           </Text>
         </View>
 
         <View
           style={{
-            width: 280,
+            width: 260,
             borderWidth: 1,
             borderColor: "#E2E8F0",
             borderRadius: 10,
@@ -3387,58 +3247,28 @@ function QuotationPreview({
           }}
         >
           <View style={{ padding: 8, gap: 4 }}>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Text style={{ fontSize: 11, color: "#475569" }}>SUB TOTAL</Text>
-              <Text
-                style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}
-              >
+              <Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>
                 {currencySymbol} {totals.subtotal.toFixed(2)}
               </Text>
             </View>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Text style={{ fontSize: 11, color: "#475569" }}>DISCOUNT</Text>
-              <Text
-                style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}
-              >
-                {currencySymbol} {quotation.discount.toFixed(2)}
-              </Text>
-            </View>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Text style={{ fontSize: 11, color: "#475569" }}>
-                TAXABLE VALUE
-              </Text>
-              <Text
-                style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}
-              >
-                {currencySymbol} {totals.subtotal.toFixed(2)}
-              </Text>
-            </View>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Text style={{ fontSize: 11, color: "#475569" }}>CGST @ 9%</Text>
-              <Text
-                style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}
-              >
-                {currencySymbol} {(totals.subtotal * 0.09).toFixed(2)}
-              </Text>
-            </View>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Text style={{ fontSize: 11, color: "#475569" }}>SGST @ 9%</Text>
-              <Text
-                style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}
-              >
-                {currencySymbol} {(totals.subtotal * 0.09).toFixed(2)}
-              </Text>
-            </View>
+            {quotation.discount ? (
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 11, color: "#475569" }}>DISCOUNT</Text>
+                <Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>
+                  - {currencySymbol} {toNumber(quotation.discount).toFixed(2)}
+                </Text>
+              </View>
+            ) : null}
+            {quotation.otherCharges ? (
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 11, color: "#475569" }}>OTHER CHARGES</Text>
+                <Text style={{ fontSize: 11, fontWeight: "700", color: "#0F172A" }}>
+                  + {currencySymbol} {toNumber(quotation.otherCharges).toFixed(2)}
+                </Text>
+              </View>
+            ) : null}
           </View>
           <View
             style={{
@@ -3452,7 +3282,7 @@ function QuotationPreview({
               GRAND TOTAL
             </Text>
             <Text style={{ fontSize: 13, fontWeight: "900", color: "#FFFFFF" }}>
-              {currencySymbol} {(totals.subtotal * 1.18).toFixed(2)}
+              {currencySymbol} {totals.grandTotal.toFixed(2)}
             </Text>
           </View>
         </View>
@@ -3480,67 +3310,77 @@ function QuotationPreview({
             📜 TERMS & CONDITIONS
           </Text>
           <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>
-            1. This quotation is valid up to {quotation.validUntil}.
-          </Text>
-          <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>
-            2. Prices are inclusive of all applicable taxes.
-          </Text>
-          <Text style={{ fontSize: 10, color: "#475569", lineHeight: 16 }}>
-            3. Delivery will be within 5 to 7 working days from date of
-            confirmation.
+            {quotation.terms || `1. This quotation is valid up to ${quotation.validUntil}.`}
           </Text>
         </View>
 
-        <View
-          style={{
-            flex: 1,
-            borderWidth: 1,
-            borderColor: "#E2E8F0",
-            borderRadius: 12,
-            padding: 12,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: "800",
-              color: DocumentColors.accent,
-              marginBottom: 4,
-            }}
-          >
-            📝 NOTES
-          </Text>
-          <Text style={{ fontSize: 11, color: "#64748B" }}>
-            {quotation.notes || "Add notes or special instructions here..."}
-          </Text>
-        </View>
-      </View>
-
-      <View style={{ marginTop: 20, alignItems: "flex-start" }}>
-        <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>
-          For {quotation.company.name}
-        </Text>
-        {quotation.company.signatureUrl ? (
-          <Image
-            source={{ uri: quotation.company.signatureUrl }}
-            style={{ width: 120, height: 40, marginVertical: 4 }}
-            contentFit="contain"
-          />
-        ) : (
+        {quotation.notes ? (
           <View
             style={{
-              height: 40,
-              width: 120,
-              borderBottomWidth: 1,
-              borderBottomColor: "#CBD5E1",
-              marginVertical: 4,
+              flex: 1,
+              borderWidth: 1,
+              borderColor: "#E2E8F0",
+              borderRadius: 12,
+              padding: 12,
             }}
-          />
-        )}
-        <Text style={{ fontSize: 11, fontWeight: "800", color: "#0F172A" }}>
-          Amit Kumar
-        </Text>
-        <Text style={{ fontSize: 10, color: "#64748B" }}>Director</Text>
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: "800",
+                color: DocumentColors.accent,
+                marginBottom: 4,
+              }}
+            >
+              📝 NOTES
+            </Text>
+            <Text style={{ fontSize: 11, color: "#64748B" }}>
+              {quotation.notes}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Signature & Footer */}
+      <View style={{ marginTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <View style={{ maxWidth: 360 }}>
+          <Text style={{ fontSize: 11, fontStyle: "italic", color: "#64748B" }}>
+            We look forward to working with you. Please feel free to contact us for any clarification.
+          </Text>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 12, fontWeight: "700", color: "#0F172A" }}>
+            For {quotation.company.name || "Company"}
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, marginVertical: 6 }}>
+            {quotation.company.stampUrl ? (
+              <Image
+                source={{ uri: quotation.company.stampUrl }}
+                style={{ width: 60, height: 40 }}
+                contentFit="contain"
+              />
+            ) : null}
+            {quotation.company.signatureUrl ? (
+              <Image
+                source={{ uri: quotation.company.signatureUrl }}
+                style={{ width: 100, height: 40 }}
+                contentFit="contain"
+              />
+            ) : (
+              <View
+                style={{
+                  height: 40,
+                  width: 100,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#CBD5E1",
+                }}
+              />
+            )}
+          </View>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: "#0F172A" }}>
+            Authorized Signatory
+          </Text>
+        </View>
       </View>
 
       {/* Bottom Footer Bar */}
@@ -3555,8 +3395,7 @@ function QuotationPreview({
         }}
       >
         <Text style={{ fontSize: 11, color: "#475569" }}>
-          📞 {quotation.company.phone} | ✉️ {quotation.company.email} | 🌐{" "}
-          {quotation.company.website}
+          📞 {quotation.company.phone || "—"} | ✉️ {quotation.company.email || "—"} | 🌐 {quotation.company.website || "—"}
         </Text>
         <Text
           style={{
@@ -3565,7 +3404,7 @@ function QuotationPreview({
             color: DocumentColors.accent,
           }}
         >
-          Thank you for your business!
+          Thank you for considering our proposal!
         </Text>
       </View>
     </View>

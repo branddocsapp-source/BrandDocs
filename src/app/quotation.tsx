@@ -66,13 +66,13 @@ import { Colors } from "@/theme/colors";
 import { ThemePalette, useAppTheme } from "@/theme/theme-context";
 
 const quotationOptions: {
-  type: QuotationType;
+  type: QuotationDocumentType;
   title: string;
   description: string;
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
   {
-    type: "proposal_quotation",
+    type: "standard_quotation",
     title: "Standard Quotation",
     description: "Detailed proposal with scope of work, deliverables, and total pricing.",
     icon: "document-text-outline",
@@ -85,8 +85,8 @@ const quotationOptions: {
   },
 ];
 
-const previousFilters: { type: QuotationType; label: string }[] = [
-  { type: "proposal_quotation", label: "Previous Quotations" },
+const previousFilters: { type: QuotationDocumentType; label: string }[] = [
+  { type: "standard_quotation", label: "Previous Standard Quotations" },
   { type: "table_quotation", label: "Previous Table Quotations" },
 ];
 
@@ -126,25 +126,25 @@ function getCompanyAddress(profile: BusinessProfile | null) {
 }
 
 function buildDraftQuotation(
-  documentType: QuotationType,
+  documentType: QuotationDocumentType | string,
   profile: BusinessProfile | null,
   quotations: QuotationRecord[]
 ): QuotationRecord {
+  const normalizedType = normalizeDocumentType({ documentType });
   const currency = profile?.defaultCurrency || profile?.currencyCode || "INR";
   const { quotationNumber, numberingSequence } = generateNextQuotationNumber(
-    documentType,
-    quotations,
-    profile?.name
+    normalizedType,
+    profile?.name,
+    quotations
   );
   const defaultTerms =
     profile?.countryMeta?.documentDefaults?.terms ||
     "This quotation is valid until the date mentioned above.";
 
   return {
-    documentType,
+    documentType: normalizedType,
     quotationNumber,
     numberingSequence,
-    quotationTitle: getQuotationTitle(documentType),
     quotationDate: todayISO(),
     validUntil: validUntilISO(),
     status: "draft",
@@ -172,14 +172,14 @@ function buildDraftQuotation(
       zipCode: "",
       country: "",
     },
-    subject: documentType === "table_quotation" ? "Itemized quotation" : "Quotation for services",
+    subject: normalizedType === "table_quotation" ? "Itemized quotation" : "Quotation for services",
     greeting: "Dear Client,",
     intro: "Thank you for giving us the opportunity to submit this quotation.",
     scope: "Scope of work / services can be edited directly here.",
     milestones: "Deliverables and milestones can be listed here.",
     terms: defaultTerms,
     items:
-      documentType === "table_quotation"
+      normalizedType === "table_quotation"
         ? [
             {
               id: "item-1",
@@ -197,6 +197,7 @@ function buildDraftQuotation(
     otherCharges: 0,
     grandTotal: 0,
     amountInWords: getNumberWords(0, currency),
+    notes: "",
   };
 }
 
@@ -206,14 +207,14 @@ export default function QuotationScreen() {
   const router = useRouter();
   const { editQuotationId, startType } = useLocalSearchParams<{
     editQuotationId?: string;
-    startType?: QuotationType;
+    startType?: string;
   }>();
   const { showToast } = useToast();
 
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [allQuotations, setAllQuotations] = useState<QuotationRecord[]>([]);
   const [previousQuotations, setPreviousQuotations] = useState<QuotationRecord[]>([]);
-  const [previousFilter, setPreviousFilter] = useState<QuotationType>("proposal_quotation");
+  const [previousFilter, setPreviousFilter] = useState<QuotationDocumentType>("standard_quotation");
   const [draftQuotation, setDraftQuotation] = useState<QuotationRecord | null>(null);
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -264,7 +265,8 @@ export default function QuotationScreen() {
         if (editingQuotation?.status === "draft") {
           setDraftQuotation(editingQuotation);
         } else if (startType) {
-          setDraftQuotation(buildDraftQuotation(startType, savedProfile, savedQuotations));
+          const normalizedStartType = normalizeDocumentType({ documentType: startType });
+          setDraftQuotation(buildDraftQuotation(normalizedStartType, savedProfile, savedQuotations));
         }
         setLoading(false);
       }
@@ -300,7 +302,7 @@ export default function QuotationScreen() {
     };
   }, [loading, previousFilter, profile]);
 
-  function startQuotation(documentType: QuotationType) {
+  function startQuotation(documentType: QuotationDocumentType) {
     setSelectorVisible(false);
     setFieldErrors([]);
     setDraftQuotation(buildDraftQuotation(documentType, profile, allQuotations));
@@ -581,9 +583,7 @@ export default function QuotationScreen() {
                       isDesktop && styles.webA4Paper,
                       width < 820 && {
                         transform: [{ scale: scale }],
-                        transformOrigin: "top left",
-                        width: baseWidth,
-                        minHeight: baseHeight,
+                        position: "absolute",
                       },
                     ]}
                   >

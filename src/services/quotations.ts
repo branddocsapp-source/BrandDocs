@@ -17,6 +17,7 @@ import { BusinessProfile } from "@/services/business-profile";
 import { getInvoiceCompanyCode } from "@/services/invoices";
 
 export type QuotationDocumentType = "standard_quotation" | "table_quotation";
+export type QuotationType = QuotationDocumentType;
 export type QuotationStatus = "draft" | "final" | "cancelled";
 
 export type QuotationItem = {
@@ -27,6 +28,7 @@ export type QuotationItem = {
   unit: string;
   rate: string;
   discount: string;
+  amount?: number;
 };
 
 export type QuotationRecord = {
@@ -57,13 +59,17 @@ export type QuotationRecord = {
     address: string;
     email: string;
     phone: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
   };
   subject: string;
   greeting: string;
   intro: string;
   scope: string;
   milestones: string;
-  closing: string;
+  closing?: string;
   items: QuotationItem[];
   subtotal: number;
   discount: number;
@@ -111,23 +117,27 @@ export function isQuotationLocked(status: QuotationStatus): boolean {
   return status === "final" || status === "cancelled";
 }
 
-function normalizeDocumentType(value: any): QuotationDocumentType {
-  return value?.documentType === "table_quotation" ? "table_quotation" : "standard_quotation";
+export function normalizeDocumentType(value: any): QuotationDocumentType {
+  const raw = value?.documentType || value?.type || (typeof value === "string" ? value : "");
+  return raw === "table_quotation" ? "table_quotation" : "standard_quotation";
 }
 
-export function getQuotationLabel(documentType: QuotationDocumentType) {
-  return documentType === "table_quotation" ? "Table Quotation" : "Standard Quotation";
+export function getQuotationLabel(documentType: QuotationDocumentType | string) {
+  const normalized = normalizeDocumentType({ documentType });
+  return normalized === "table_quotation" ? "Table Quotation" : "Standard Quotation";
 }
 
-export function getQuotationTitle(documentType: QuotationDocumentType) {
-  return documentType === "table_quotation" ? "TABLE QUOTATION" : "QUOTATION";
+export function getQuotationTitle(documentType: QuotationDocumentType | string) {
+  const normalized = normalizeDocumentType({ documentType });
+  return normalized === "table_quotation" ? "TABLE QUOTATION" : "QUOTATION";
 }
 
-function getQuotationPrefix(documentType: QuotationDocumentType) {
-  return documentType === "table_quotation" ? "TQ" : "QUO";
+function getQuotationPrefix(documentType: QuotationDocumentType | string) {
+  const normalized = normalizeDocumentType({ documentType });
+  return normalized === "table_quotation" ? "TQ" : "QUO";
 }
 
-function getSequenceFromQuotationNumber(quotationNumber: string, year: string, documentType: QuotationDocumentType) {
+function getSequenceFromQuotationNumber(quotationNumber: string, year: string, documentType: QuotationDocumentType | string) {
   const prefix = getQuotationPrefix(documentType);
   const match = quotationNumber.match(/^[A-Z0-9]+-(QUO|TQ)-(\d{4})-\d{2}-(\d{3})$/);
   if (!match || match[1] !== prefix || match[2] !== year) return 0;
@@ -135,24 +145,25 @@ function getSequenceFromQuotationNumber(quotationNumber: string, year: string, d
 }
 
 export function generateNextQuotationNumber(
-  documentType: QuotationDocumentType,
+  documentType: QuotationDocumentType | string,
   companyName: string | undefined,
   quotations: QuotationRecord[],
   date = new Date()
 ) {
+  const normalizedType = normalizeDocumentType({ documentType });
   const companyCode = getInvoiceCompanyCode(companyName);
   const year = String(date.getFullYear());
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const maxSequence = quotations
-    .filter((quotation) => quotation.documentType === documentType)
+    .filter((quotation) => normalizeDocumentType(quotation) === normalizedType)
     .reduce((currentMax, quotation) => {
       const savedSequence = String(quotation.quotationNumber).includes(`-${year}-`) ? Number(quotation.numberingSequence || 0) : 0;
-      return Math.max(currentMax, savedSequence, getSequenceFromQuotationNumber(quotation.quotationNumber, year, documentType));
+      return Math.max(currentMax, savedSequence, getSequenceFromQuotationNumber(quotation.quotationNumber, year, normalizedType));
     }, 0);
   const nextSequence = maxSequence + 1;
 
   return {
-    quotationNumber: `${companyCode}-${getQuotationPrefix(documentType)}-${year}-${month}-${String(nextSequence).padStart(3, "0")}`,
+    quotationNumber: `${companyCode}-${getQuotationPrefix(normalizedType)}-${year}-${month}-${String(nextSequence).padStart(3, "0")}`,
     numberingSequence: nextSequence,
   };
 }
@@ -253,10 +264,16 @@ function isVisibleToUser(quotation: QuotationRecord, userId?: string) {
   return !quotation.userId || !userId || quotation.userId === userId;
 }
 
-function filterQuotations(quotations: QuotationRecord[], documentType?: QuotationDocumentType, userId?: string, maxCount = 50) {
+function filterQuotations(
+  quotations: QuotationRecord[],
+  documentType?: QuotationDocumentType | string,
+  userId?: string,
+  maxCount = 50
+) {
+  const normalizedTarget = documentType ? normalizeDocumentType({ documentType }) : undefined;
   return quotations
     .filter((quotation) => isVisibleToUser(quotation, userId))
-    .filter((quotation) => !documentType || quotation.documentType === documentType)
+    .filter((quotation) => !normalizedTarget || normalizeDocumentType(quotation) === normalizedTarget)
     .sort(sortQuotations)
     .slice(0, maxCount);
 }
