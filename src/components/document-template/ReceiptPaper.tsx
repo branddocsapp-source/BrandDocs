@@ -131,13 +131,19 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
                 style={styles.amountValue}
                 value={receipt.amount ? String(receipt.amount) : ""}
                 onChangeText={(v) => {
-                  const parsed = parseFloat(v);
-                  setField("amount", isNaN(parsed) ? 0 : parsed);
+                  const cleaned = v.replace(/[^0-9.]/g, "");
+                  const parsed = parseFloat(cleaned);
+                  const num = isNaN(parsed) ? 0 : parsed;
+                  setField("amount", num);
+                  if (!receipt.amountInWords || receipt.amountInWords.includes("only") || receipt.amountInWords.includes("Only")) {
+                    setField("amountInWords", `${currencySymbol} ${num.toFixed(2)} only`);
+                  }
                 }}
                 keyboardType="numeric"
+                placeholder="0.00"
               />
             ) : (
-              <Text style={styles.amountValue}>{currencySymbol} {receipt.amount.toFixed(2)}</Text>
+              <Text style={styles.amountValue}>{currencySymbol} {(Number(receipt.amount) || 0).toFixed(2)}</Text>
             )}
             {editable ? (
               <TextInput
@@ -148,7 +154,7 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
                 multiline
               />
             ) : (
-              <Text style={styles.amountWords}>({receipt.amountInWords || "Rupees Only"})</Text>
+              <Text style={styles.amountWords}>({receipt.amountInWords || `${currencySymbol} ${(Number(receipt.amount) || 0).toFixed(2)} only`})</Text>
             )}
           </View>
 
@@ -157,10 +163,10 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
               <Text style={styles.paymentTableHeaderText}>PAYMENT DETAILS</Text>
             </View>
             <View style={styles.paymentTableBody}>
-              <SummaryLine label="Amount" value={`${currencySymbol} ${receipt.amount.toFixed(2)}`} />
+              <SummaryLine label="Amount" value={`${currencySymbol} ${(Number(receipt.amount) || 0).toFixed(2)}`} />
               <SummaryLine label="Less: TDS (If any)" value={`${currencySymbol} 0.00`} />
               <View style={styles.paymentDivider} />
-              <SummaryLine label={`TOTAL AMOUNT ${isPaidReceipt ? "PAID" : "RECEIVED"}`} value={`${currencySymbol} ${receipt.amount.toFixed(2)}`} accent />
+              <SummaryLine label={`TOTAL AMOUNT ${isPaidReceipt ? "PAID" : "RECEIVED"}`} value={`${currencySymbol} ${(Number(receipt.amount) || 0).toFixed(2)}`} accent />
             </View>
           </View>
         </View>
@@ -170,8 +176,8 @@ export function ReceiptPaper({ receipt, editable = false, onFieldChange, onRecei
         <Text style={styles.confirmTitle}>📜 {isPaidReceipt ? "RECEIVED WITH THANKS" : "PAYMENT ACKNOWLEDGEMENT"}</Text>
         <Text style={styles.confirmText}>
           {isPaidReceipt
-            ? `I confirm receipt of ${currencySymbol} ${receipt.amount.toFixed(2)} (${receipt.amountInWords || "Rupees Only"}) from ${receipt.company.name} towards ${receipt.notes || "payment"}.`
-            : `We acknowledge receipt of ${currencySymbol} ${receipt.amount.toFixed(2)} (${receipt.amountInWords || "Rupees Only"}) from ${receipt.receivedFrom.name || "the payer"}.`}
+            ? `I confirm receipt of ${currencySymbol} ${(Number(receipt.amount) || 0).toFixed(2)} (${receipt.amountInWords || "Rupees Only"}) from ${receipt.company.name} towards ${receipt.notes || "payment"}.`
+            : `We acknowledge receipt of ${currencySymbol} ${(Number(receipt.amount) || 0).toFixed(2)} (${receipt.amountInWords || "Rupees Only"}) from ${receipt.receivedFrom?.name || "the payer"}.`}
         </Text>
       </View>
 

@@ -64,32 +64,56 @@ export function DraftActionBar({
   onPreview: () => void;
   onFinalize: () => void;
 }) {
-  const { theme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
 
   return (
-    <View style={actionBarStyles.bar}>
+    <View style={[actionBarStyles.bar, { backgroundColor: theme.card, borderTopColor: theme.line }]}>
       <Pressable
-        style={[actionBarStyles.button, actionBarStyles.secondaryButton, saving && actionBarStyles.disabledButton]}
+        style={[
+          actionBarStyles.button,
+          {
+            backgroundColor: isDark ? "#334155" : "#F1F5F9",
+            borderColor: isDark ? "#475569" : "#CBD5E1",
+            borderWidth: 1,
+          },
+          saving && actionBarStyles.disabledButton,
+        ]}
         onPress={onSaveDraft}
         disabled={saving}
         accessibilityRole="button"
         accessibilityLabel="Save Draft"
       >
-        <Ionicons name="save-outline" size={16} color={theme.ink} />
-        <Text style={[actionBarStyles.buttonText, { color: theme.ink }]}>Save Draft</Text>
+        <Ionicons name="save-outline" size={16} color={isDark ? "#F8FAFC" : "#0F172A"} />
+        <Text style={[actionBarStyles.buttonText, { color: isDark ? "#F8FAFC" : "#0F172A" }]}>
+          Save Draft
+        </Text>
       </Pressable>
       <Pressable
-        style={[actionBarStyles.button, actionBarStyles.outlineButton, saving && actionBarStyles.disabledButton]}
+        style={[
+          actionBarStyles.button,
+          {
+            backgroundColor: isDark ? "#1E293B" : "#FFF7ED",
+            borderColor: isDark ? "#F97316" : "#EA580C",
+            borderWidth: 1,
+          },
+          saving && actionBarStyles.disabledButton,
+        ]}
         onPress={onPreview}
         disabled={saving}
         accessibilityRole="button"
         accessibilityLabel="Preview"
       >
-        <Ionicons name="eye-outline" size={16} color={theme.orange} />
-        <Text style={[actionBarStyles.buttonText, { color: theme.orange }]}>Preview</Text>
+        <Ionicons name="eye-outline" size={16} color={isDark ? "#FB923C" : "#EA580C"} />
+        <Text style={[actionBarStyles.buttonText, { color: isDark ? "#FB923C" : "#EA580C" }]}>
+          Preview
+        </Text>
       </Pressable>
       <Pressable
-        style={[actionBarStyles.button, actionBarStyles.finalizeButton, saving && actionBarStyles.disabledButton]}
+        style={[
+          actionBarStyles.button,
+          actionBarStyles.finalizeButton,
+          saving && actionBarStyles.disabledButton,
+        ]}
         onPress={onFinalize}
         disabled={saving}
         accessibilityRole="button"
@@ -104,12 +128,11 @@ export function DraftActionBar({
 
 const actionBarStyles = StyleSheet.create({
   bar: {
-    borderTopColor: "#E2E8F0",
     borderTopWidth: 1,
     flexDirection: "row",
-    gap: 8,
+    gap: 10,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   button: {
     alignItems: "center",
@@ -118,7 +141,7 @@ const actionBarStyles = StyleSheet.create({
     flexDirection: "row",
     gap: 6,
     justifyContent: "center",
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   buttonText: {
     fontSize: 13,
@@ -128,11 +151,7 @@ const actionBarStyles = StyleSheet.create({
     opacity: 0.5,
   },
   finalizeButton: {
-    backgroundColor: "#15803D",
-  },
-  outlineButton: {
-    borderColor: "#E2E8F0",
-    borderWidth: 1,
+    backgroundColor: "#16A34A",
   },
   secondaryButton: {
     backgroundColor: "#F1F5F9",

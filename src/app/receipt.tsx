@@ -102,7 +102,11 @@ export default function ReceiptScreen() {
   const { theme, isDark } = useAppTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const router = useRouter();
-  const { editReceiptId } = useLocalSearchParams<{ editReceiptId?: string }>();
+  const { editReceiptId, startType, create } = useLocalSearchParams<{
+    editReceiptId?: string;
+    startType?: string;
+    create?: string;
+  }>();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [receipts, setReceipts] = useState<ReceiptRecord[]>([]);
   const [draft, setDraft] = useState<ReceiptRecord | null>(null);
@@ -136,6 +140,8 @@ export default function ReceiptScreen() {
         setReceipts(savedReceipts);
         if (editingReceipt) {
           setDraft(editingReceipt);
+        } else if (create === "1" || create === "true" || startType) {
+          setDraft(buildDraftReceipt(savedProfile, savedReceipts));
         }
         setLoading(false);
       }
@@ -146,7 +152,7 @@ export default function ReceiptScreen() {
     return () => {
       isMounted = false;
     };
-  }, [editReceiptId]);
+  }, [editReceiptId, create, startType]);
 
   function refreshReceipts(next?: ReceiptRecord) {
     loadReceipts(auth.currentUser, profile, 50).then((saved) => {
@@ -356,9 +362,7 @@ export default function ReceiptScreen() {
                 <View style={
                   width < 820 ? {
                     transform: [{ scale: scale }],
-                    transformOrigin: "top left",
-                    width: baseWidth,
-                    minHeight: baseHeight,
+                    position: "absolute",
                   } : undefined
                 }>
                   <ReceiptPaper
@@ -436,7 +440,7 @@ export default function ReceiptScreen() {
               </View>
               <View style={styles.rightActions}>
                 <Text style={[styles.receiptAmountText, { color: theme.ink }]}>
-                  {receipt.company.currency} {receipt.amount.toFixed(2)}
+                  {receipt.company?.currency || "INR"} {(Number(receipt.amount) || 0).toFixed(2)}
                 </Text>
                 <View style={styles.actionButtons}>
                   <ThreeDotMenu
