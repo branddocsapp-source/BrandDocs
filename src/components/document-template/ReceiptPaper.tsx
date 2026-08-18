@@ -10,7 +10,7 @@ import {
   DocumentMetaField,
   DocumentPaperShell,
   DocumentTaxBar,
-} from "@/components/document-template";
+} from "./DocumentTemplate";
 import { SavedCustomerProfile } from "@/services/customer-directory";
 import { getPaymentMethodLabel, ReceiptRecord } from "@/services/receipts";
 

@@ -509,7 +509,7 @@ const dotMenuStyles = StyleSheet.create({
 
 export function CancelledWatermark() {
   return (
-    <View style={watermarkStyles.container} pointerEvents="none">
+    <View style={[watermarkStyles.container, { pointerEvents: "none" } as object]}>
       <View style={watermarkStyles.badge}>
         <Text style={watermarkStyles.text}>CANCELLED</Text>
       </View>

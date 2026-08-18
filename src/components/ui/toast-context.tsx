@@ -50,7 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, hideToast }}>
       {children}
-      <View style={styles.toastContainer} pointerEvents="box-none">
+      <View style={[styles.toastContainer, { pointerEvents: "box-none" } as object]}>
         {toasts.map((toast) => {
           let iconName: keyof typeof Ionicons.glyphMap = "checkmark-circle";
           let badgeColor: string = BrandColors.success;

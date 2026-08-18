@@ -96,6 +96,30 @@ export function isReceiptLocked(status: ReceiptStatus): boolean {
   return status === "final" || status === "cancelled";
 }
 
+export function generateNextReceiptNumber(
+  receipts: ReceiptRecord[] = [],
+  date = new Date(),
+) {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const maxSequence = (receipts || []).reduce((currentMax, receipt) => {
+    if (!receipt || !receipt.receiptNumber) return currentMax;
+    const match = String(receipt.receiptNumber).match(/(\d{3,4})$/);
+    const parsed = match ? parseInt(match[1], 10) : 0;
+    const seq = Number(receipt.numberingSequence) || parsed || 0;
+    return Math.max(currentMax, seq);
+  }, 0);
+
+  const nextSequence = maxSequence + 1;
+  const sequenceStr = String(nextSequence).padStart(3, "0");
+  const receiptNumber = `REC-${year}-${month}-${sequenceStr}`;
+
+  return {
+    receiptNumber,
+    numberingSequence: nextSequence,
+  };
+}
+
 function normalizePaymentMethod(value: unknown): PaymentMethod {
   const normalized = String(value || "cash").toLowerCase();
   if (normalized === "bank_transfer" || normalized === "cheque" || normalized === "card" || normalized === "upi" || normalized === "other") {

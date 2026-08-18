@@ -67,9 +67,9 @@ export function BrandLogo({
       return logoAssets.icon;
     }
     if (variant === "stacked") {
-      return isDark ? logoAssets.stackedDark : logoAssets.stackedLight;
+      return isDark ? logoAssets.stackedLight : logoAssets.stackedDark;
     }
-    return isDark ? logoAssets.horizontalDark : logoAssets.horizontalLight;
+    return isDark ? logoAssets.horizontalLight : logoAssets.horizontalDark;
   }, [variant, isDark]);
 
   const handlePress = () => {

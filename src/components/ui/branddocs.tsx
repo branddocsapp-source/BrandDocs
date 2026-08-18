@@ -856,10 +856,9 @@ export function MobileBottomNavigation() {
     <View
       style={[
         styles.floatingNavWrapper,
-        { bottom: 12 + Math.max(insets.bottom, BrandSpacing.sm) },
+        { bottom: 12 + Math.max(insets.bottom, BrandSpacing.sm), pointerEvents: "box-none" } as object,
         webSafeBottom,
       ]}
-      pointerEvents="box-none"
     >
       <View
         style={[
@@ -1348,8 +1347,12 @@ export function AppShell({
           <View
             style={[
               styles.topBar,
-              { backgroundColor: theme.card, borderBottomColor: theme.line, borderBottomWidth: 1 },
               usesSidebar && styles.desktopTopBar,
+              {
+                backgroundColor: theme.background,
+                borderBottomColor: theme.line,
+                borderBottomWidth: 1,
+              },
               !usesSidebar && {
                 paddingHorizontal: isCompactViewport
                   ? BrandSpacing.md
@@ -1559,7 +1562,6 @@ export function AppShell({
                 style={styles.profileMenuBackdrop}
               />
               <View
-                pointerEvents="box-none"
                 style={[
                   styles.profileMenuFloating,
                   {
@@ -1567,7 +1569,8 @@ export function AppShell({
                       ? BrandSpacing["3xl"]
                       : BrandSpacing.lg,
                     top: usesSidebar ? 76 : 60,
-                  },
+                    pointerEvents: "box-none",
+                  } as object,
                 ]}
               >
                 {profileMenu}
@@ -1588,20 +1591,19 @@ const styles = StyleSheet.create({
   shell: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: BrandColors.surface,
+    backgroundColor: "transparent",
     overflow: "hidden",
   },
   workspace: {
     flex: 1,
-    backgroundColor: BrandColors.surface,
+    backgroundColor: "transparent",
     position: "relative",
     minWidth: 0,
     overflow: "hidden",
   },
   topBar: {
     alignItems: "center",
-    backgroundColor: BrandColors.background,
-    borderBottomColor: BrandColors.border,
+    backgroundColor: "transparent",
     borderBottomWidth: 1,
     flexDirection: "row",
     minHeight: 68,
@@ -1639,8 +1641,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   desktopTopBar: {
-    backgroundColor: BrandColors.surface,
-    borderBottomWidth: 0,
+    backgroundColor: "transparent",
+    borderBottomWidth: 1,
     minHeight: 76,
     paddingHorizontal: BrandSpacing["3xl"],
   },
@@ -1732,10 +1734,8 @@ const styles = StyleSheet.create({
   },
   avatarButton: {
     alignItems: "center",
-    backgroundColor: BrandColors.primarySoft,
-    borderColor: BrandColors.primarySubtle,
+    backgroundColor: "transparent",
     borderRadius: BrandRadius.pill,
-    borderWidth: 1,
     height: 48,
     justifyContent: "center",
     overflow: "hidden",
